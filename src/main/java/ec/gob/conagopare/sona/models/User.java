@@ -15,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 
 @Data
@@ -26,35 +27,34 @@ import java.util.List;
 public class User implements UserDetails, PurgableFileStore {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @NotBlank
-    @Size(max = 100)
+    @Column(nullable = false, length = 100)
     private String name;
 
-    @NotBlank
-    @Size(max = 100)
+    @Column(nullable = false, length = 100)
     private String lastname;
 
-    @Column(unique = true)
-    @Size(max = 100, min = 6)
+    @Column(nullable = false, length = 100, unique = true)
     private String username;
 
-    @NotBlank
-    @NotNull
+    @Column(nullable = false, length = 100, unique = true)
     private String email;
 
-    @NotNull
+    @Column
     private String profilePicture;
 
     @JsonIgnore
+    @Column(nullable = false)
     private String password;
 
     @Builder.Default
+    @Column(nullable = false)
     private boolean enabled = true;
 
     @Builder.Default
+    @Column(nullable = false)
     private boolean accountNonLocked = true;
 
 

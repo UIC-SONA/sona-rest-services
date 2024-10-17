@@ -6,7 +6,7 @@ import ec.gob.conagopare.sona.dto.RecoveryPasswordData;
 import ec.gob.conagopare.sona.dto.Register;
 import ec.gob.conagopare.sona.dto.TokenContainer;
 import ec.gob.conagopare.sona.services.AuthenticationService;
-import ec.gob.conagopare.sona.utils.MessageResolverI18n;
+import ec.gob.conagopare.sona.utils.MessageAccessor;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -29,7 +29,7 @@ import java.io.IOException;
 public class AuthenticationController {
 
     private final AuthenticationService service;
-    private final MessageResolverI18n resolver;
+    private final MessageAccessor messages;
 
     /**
      * Autentica un usuario.
@@ -38,52 +38,55 @@ public class AuthenticationController {
      * @return Una ResponseEntity que contiene el token JWT si la autenticación es exitosa, o un mensaje de error si las credenciales son inválidas.
      */
     @PostMapping("/login")
-    public ResponseEntity<TokenContainer> login(@RequestBody Login login) {
-        var tokenResponse = service.login(login);
-        return ResponseEntity.ok(tokenResponse);
+    public ResponseEntity<TokenContainer> login(
+            @RequestBody Login login
+    ) {
+        return ResponseEntity.ok(service.login(login));
     }
 
     @PostMapping("/register")
     public ResponseEntity<TokenContainer> register(
             @RequestPart Register data,
-            @RequestPart MultipartFile profileImage
+            @RequestPart(required = false) MultipartFile profileImage
     ) throws IOException {
-        var tokenResponse = service.register(data, profileImage);
-        return ResponseEntity.ok(tokenResponse);
+        return ResponseEntity.ok(service.register(data, profileImage));
     }
 
     /**
      * Cierra la sesión de un usuario.
+     *
      * @param token El token de autorización.
      * @return Una ResponseEntity que contiene el mensaje "Cerrada la sesión" si el cierre de sesión es exitoso, o un mensaje de error si ocurre algún problema.
      */
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         service.logout(token);
-        return ResponseEntity.ok(resolver.get("user.logout"));
+        return ResponseEntity.ok(messages.getMessage("user.logout"));
     }
 
     /**
      * Elimina un usuario.
+     *
      * @param email El email del usuario a eliminar.
      * @return Una ResponseEntity que contiene el mensaje "Eliminado" si la eliminación es exitosa, o un mensaje de error si ocurre algún problema.
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         service.forgotPassword(email);
-        return ResponseEntity.ok(resolver.get("user.recovery-password-email-sent"));
+        return ResponseEntity.ok(messages.getMessage("user.recovery-password-email-sent"));
     }
 
 
     /**
      * Actualiza la contraseña de un usuario.
+     *
      * @param data El objeto RecoveryPasswordData que contiene el email, la nueva contraseña y el token de recuperación.
      * @return Una ResponseEntity que contiene el mensaje "Se ha actualizado su contraseña" si la actualización es exitosa, o un mensaje de error si ocurre algún problema.
      */
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@Valid @RequestBody RecoveryPasswordData data) {
         service.resetPassword(data);
-        return ResponseEntity.ok(resolver.get("user.reset-password-updated"));
+        return ResponseEntity.ok(messages.getMessage("user.reset-password-updated"));
     }
 
     /**
@@ -96,4 +99,5 @@ public class AuthenticationController {
     public ResponseEntity<Object> whoami(@AuthenticationPrincipal Object principals) {
         return ResponseEntity.ok(principals);
     }
+
 }

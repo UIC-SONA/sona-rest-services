@@ -1,12 +1,14 @@
 package ec.gob.conagopare.sona.security;
 
-import ec.gob.conagopare.sona.utils.MessageResolverI18n;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.authentication.*;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
@@ -15,12 +17,18 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.HashMap;
 
 @Log4j2
 @Configuration
+@RequiredArgsConstructor
 public class SecurityBeans {
+
+    private final WebSecurityProperties properties;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         var encodingId = "argon2";
@@ -33,23 +41,34 @@ public class SecurityBeans {
     }
 
     @Bean
-    public UserDetailsChecker userDetailsChecker(MessageResolverI18n resolver) {
+    public CorsConfigurationSource corsConfigurationSource() {
+        var corsProperties = properties.getCors();
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsProperties.toCorsConfiguration());
+        return source;
+    }
+
+    @Bean
+    public UserDetailsChecker userDetailsChecker() {
+
+        var messages = SpringSecurityMessageSource.getAccessor();
+
         return user -> {
 
             if (!user.isEnabled()) {
-                throw new DisabledException(resolver.get("authentication.account-disabled"));
+                throw new DisabledException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.disabled", "User is disabled"));
             }
 
             if (!user.isAccountNonLocked()) {
-                throw new LockedException(resolver.get("authentication.account-locked"));
+                throw new LockedException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.locked", "User account is locked"));
             }
 
             if (!user.isAccountNonExpired()) {
-                throw new AccountExpiredException(resolver.get("authentication.account-expired"));
+                throw new AccountExpiredException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.expired", "User account has expired"));
             }
 
             if (!user.isCredentialsNonExpired()) {
-                throw new CredentialsExpiredException(resolver.get("authentication.credentials-expired"));
+                throw new CredentialsExpiredException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.credentialsExpired", "User credentials have expired"));
             }
         };
     }

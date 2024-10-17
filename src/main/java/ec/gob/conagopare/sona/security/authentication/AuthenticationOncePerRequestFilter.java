@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -16,22 +15,20 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @Log4j2
 @Component
 public class AuthenticationOncePerRequestFilter extends OncePerRequestFilter {
 
-    private final List<AuthenticationRequestResolver<?, ?>> resolvers;
-
+    private final List<AuthenticationRequestProvider<?>> resolvers;
     private final HandlerExceptionResolver exceptionResolver;
 
-    public AuthenticationOncePerRequestFilter(List<AuthenticationRequestResolver<?, ?>> resolvers, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
+    public AuthenticationOncePerRequestFilter(List<AuthenticationRequestProvider<?>> resolvers, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
         this.exceptionResolver = exceptionResolver;
+        this.resolvers = resolvers;
         for (var resolver : resolvers) {
             log.info("Adding authentication resolver {} to the authentication filter.", resolver.getClass().getSimpleName());
         }
-        this.resolvers = resolvers;
     }
 
     @Override
@@ -40,6 +37,7 @@ public class AuthenticationOncePerRequestFilter extends OncePerRequestFilter {
             @NotNull HttpServletResponse response,
             @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
+
         SecurityContext context = SecurityContextHolder.getContext();
 
         if (context.getAuthentication() != null) {
@@ -49,12 +47,13 @@ public class AuthenticationOncePerRequestFilter extends OncePerRequestFilter {
         }
 
         try {
-            for (AuthenticationRequestResolver<?, ?> resolver : resolvers) {
-                Optional<? extends Authentication> authentication = resolver.resolve(request);
+            for (var resolver : resolvers) {
+                var result = resolver.resolve(request);
                 log.debug("Authentication resolved by {}.", resolver.getClass().getSimpleName());
-                if (authentication.isPresent() && authentication.get().isAuthenticated()) {
-                    log.debug("Setting authentication in the security context, authentication: {}", authentication.get());
-                    context.setAuthentication(authentication.get());
+                if (result.success()) {
+                    var authentication = result.authentication();
+                    log.debug("Setting authentication in the security context, authentication: {}", authentication);
+                    context.setAuthentication(authentication);
                     break;
                 }
             }

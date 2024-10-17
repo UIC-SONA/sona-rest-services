@@ -10,37 +10,32 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "token_forget_password")
-public class TokenForgetPassword implements Serializable {
+@Table(name = "recovery_password_code")
+public class RecoveryPasswordCode implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(unique = true, nullable = false)
-    private String token;
+    private String code;
 
-    @Email(message = "El email no es válido")
+    @Email
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public boolean isExpired() {
-        var now = LocalDateTime.now();
-        return now.isAfter(this.createdAt.plusMinutes(30));
-    }
-
-
-    @PrePersist
-    public void onBeforeConvert() {
-        setCreatedAt(LocalDateTime.now());
+    public boolean isExpired(long minutesExpiration) {
+        return createdAt.plusMinutes(minutesExpiration).isBefore(LocalDateTime.now());
     }
 }
 

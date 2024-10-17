@@ -3,12 +3,12 @@ package ec.gob.conagopare.sona.security.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import ec.gob.conagopare.sona.security.WebSecurityProperties;
 import ec.gob.conagopare.sona.utils.EnvironmentChecker;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
  */
 @Log4j2
 @Component
-public class JwtService {
+public class Jwt {
 
     @Getter
     private final String issuer;
@@ -34,21 +34,12 @@ public class JwtService {
     private final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();
     private final EnvironmentChecker environment;
 
-    public JwtService(EnvironmentChecker environment, @Value("${security.jwt.issuer}") String issuer, @Value("${security.jwt.ttlMillis}") long expiration) throws NoSuchAlgorithmException {
+    public Jwt(EnvironmentChecker environment, WebSecurityProperties properties) throws NoSuchAlgorithmException {
         this.environment = environment;
-        this.issuer = issuer;
-        this.ttlMillis = expiration;
+        this.issuer = properties.getJwt().getIssuer();
+        this.ttlMillis = properties.getJwt().getTtlMillis();
         this.algorithm = getAlgorithm();
     }
-
-    byte[] hexToBytes(String hex) {
-        var bytes = new byte[hex.length() / 2];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = (byte) Integer.parseInt(hex.substring(2 * i, 2 * i + 2), 16);
-        }
-        return bytes;
-    }
-
 
     private boolean isExpired(String token) {
         var decodedJWT = decode(token);
@@ -59,14 +50,14 @@ public class JwtService {
 
         if (environment.isDevelopment()) {
             log.warn("Using hardcoded secret key for development purposes");
-            var hexKey = "072E932153C5F10F3C1AF8B9107A334C109F3C336F1553326463BD6911894ED3994C864E6D2A1E49D0F48A71139001F307A65C418676D60802F7092907CAF809";
-            return Algorithm.HMAC512(hexToBytes(hexKey));
+            var hexKey = "Secret key for development purposes";
+            return Algorithm.HMAC256(hexKey);
         }
 
         var random = SecureRandom.getInstanceStrong();
         var secretKey = new byte[64];
         random.nextBytes(secretKey);
-        return Algorithm.HMAC512(secretKey);
+        return Algorithm.HMAC256(secretKey);
 
     }
 

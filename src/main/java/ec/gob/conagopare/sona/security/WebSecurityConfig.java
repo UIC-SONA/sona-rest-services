@@ -2,32 +2,23 @@ package ec.gob.conagopare.sona.security;
 
 
 import ec.gob.conagopare.sona.security.authentication.AuthenticationOncePerRequestFilter;
-import ec.gob.conagopare.sona.utils.EnvironmentChecker;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
-import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-
-import java.util.List;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
@@ -41,8 +32,8 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    private final EnvironmentChecker environmentChecker;
     private final AuthenticationOncePerRequestFilter authenticationFilter;
+
 
     /**
      * Configura las cadenas de filtros de seguridad para las solicitudes HTTP.
@@ -52,7 +43,7 @@ public class WebSecurityConfig {
      * @throws Exception Si se produce un error durante la configuración.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, UserDetailsService userDetailsService, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver, @Value("${cors.allowed.origins:}") String[] allowedOrigins) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, UserDetailsService userDetailsService, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver, CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         log.info("Configurando seguridad de la aplicación");
         http.headers(head -> head.frameOptions(FrameOptionsConfig::disable));
@@ -61,7 +52,7 @@ public class WebSecurityConfig {
         http.csrf(CsrfConfigurer::disable);
 
         log.info("Configurando CORS");
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource(allowedOrigins)));
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource));
 
         log.info("Configurando autorización de solicitudes HTTP");
         http.authorizeHttpRequests(auth -> auth
@@ -88,7 +79,7 @@ public class WebSecurityConfig {
                 .anyRequest()
                 .authenticated()
 
-        ).exceptionHandling((exceptionHandling) -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> resolver.resolveException(request, response, null, authException)));
+        ).exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint((request, response, authException) -> resolver.resolveException(request, response, null, authException)));
 
         log.info("Configurando autenticación");
         http.sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -100,20 +91,8 @@ public class WebSecurityConfig {
         http.userDetailsService(userDetailsService);
 
         log.info("Configurando filtro de autenticación básica");
-        http.httpBasic(basic -> basic.authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage())));
+        http.httpBasic(basic -> basic.authenticationEntryPoint((request, response, authException) -> resolver.resolveException(request, response, null, authException)));
 
         return http.build();
-    }
-
-    public CorsConfigurationSource corsConfigurationSource(String[] allowedOrigins) {
-
-        var source = new UrlBasedCorsConfigurationSource();
-        var configuration = new CorsConfiguration();
-
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowedOrigins(List.of(allowedOrigins));
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }

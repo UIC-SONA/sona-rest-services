@@ -116,7 +116,9 @@ public class FilterQueryBuilder {
             query.append(limit);
         }
 
-        return new FilterQuery(query.toString(), parammeterBuilder.build());
+        var queryString = query.toString();
+        log.debug("Query: {}", queryString);
+        return new FilterQuery(queryString, parammeterBuilder.build());
     }
 
     private void clauseGenerator(List<String> conditions, StringBuilder query, String clause, String separator) {
@@ -127,7 +129,7 @@ public class FilterQueryBuilder {
     private void clauseGenerator(List<String> conditions, StringBuilder query, String clause, String separator, Consumer<StringBuilder> consumer) {
         if (!conditions.isEmpty()) {
             query.append(clause);
-            query.append(conditions.get(0));
+            query.append(conditions.getFirst());
             for (int i = 1; i < conditions.size(); i++) {
                 query.append(separator);
                 query.append(conditions.get(i));

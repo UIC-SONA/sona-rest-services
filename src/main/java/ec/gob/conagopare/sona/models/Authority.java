@@ -24,6 +24,10 @@ public class Authority implements GrantedAuthority {
     @Column(unique = true)
     private String name;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean professional = false;
+
     @JsonIgnore
     private String description;
 

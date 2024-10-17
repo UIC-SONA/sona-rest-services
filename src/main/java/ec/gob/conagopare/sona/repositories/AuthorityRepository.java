@@ -14,6 +14,4 @@ public interface AuthorityRepository extends JpaRepository<Authority, Long> {
 
     List<Authority> findAllByNameIn(List<String> names);
 
-    boolean existsByName(String name);
-
 }

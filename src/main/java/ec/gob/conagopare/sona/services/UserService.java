@@ -1,19 +1,16 @@
 package ec.gob.conagopare.sona.services;
 
 
-import com.ketoru.springframework.email.EmailDetails;
-import com.ketoru.springframework.email.EmailSenderService;
 import com.ketoru.springframework.errors.ApiError;
 import com.ketoru.store.core.FileStore;
 import com.ketoru.validations.FileContentType;
-import ec.gob.conagopare.sona.dto.Register;
 import ec.gob.conagopare.sona.dto.UpdateUser;
 import ec.gob.conagopare.sona.dto.UpdateUserFromAdmin;
 import ec.gob.conagopare.sona.models.Authority;
 import ec.gob.conagopare.sona.models.User;
 import ec.gob.conagopare.sona.repositories.AuthorityRepository;
 import ec.gob.conagopare.sona.repositories.UserRepository;
-import ec.gob.conagopare.sona.utils.MessageResolverI18n;
+import ec.gob.conagopare.sona.utils.MessageAccessor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Implementación de la interfaz UserDetailsService de Spring Security que carga los detalles de un usuario.
@@ -48,32 +45,28 @@ public class UserService implements UserDetailsService {
     private final UserRepository repository;
     private final AuthorityRepository authorityRepository;
     private final PasswordEncoder encoder;
-    private final MessageResolverI18n resolver;
     private final FileStore storage;
+    private final MessageAccessor messages;
 
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException, DataAccessResourceFailureException {
-        log.debug("Cargando detalles del usuario con el nombre de usuario: {}", username);
-        List<User> userOptional = repository.findAllByUsernameOrEmail(username, username);
-        if (!userOptional.isEmpty()) {
-            return userOptional.stream()
-                    .findFirst()
-                    .orElseThrow(() -> new UsernameNotFoundException("El usuario con el nombre" + username + " no existe"));
-        }
-        throw new UsernameNotFoundException("El usuario con el nombre" + username + " no existe");
+        return repository.findAllByUsernameOrEmail(username, username)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new UsernameNotFoundException(this.messages.getMessage("JdbcDaoImpl.notFound", new Object[]{username}, "User {0} not found")));
     }
 
 
-    public Collection<User> findAll() {
+    public List<User> list() {
         return repository.findAll();
     }
 
-    public User findById(Long id) {
-        return repository.findById(id).orElseThrow(() -> ApiError.badRequest(resolver.get("user.not-found")));
+    public User find(UUID id) {
+        return repository.findById(id).orElseThrow(() -> ApiError.badRequest(messages.getMessage("user.not-found")));
     }
 
-    public void updateDetails(Long id, @NotNull UpdateUserFromAdmin detailsUser) {
+    public void updateDetails(UUID id, @NotNull UpdateUserFromAdmin detailsUser) {
 
         var authorities = detailsUser.getAuthorities();
         var enabled = detailsUser.getEnabled();
@@ -81,10 +74,10 @@ public class UserService implements UserDetailsService {
         var password = detailsUser.getPassword();
 
         if (authorities == null && enabled == null && password == null && locked == null) {
-            throw ApiError.badRequest(resolver.get("user.no-data-to-update"));
+            throw ApiError.badRequest(messages.getMessage("user.no-data-to-update"));
         }
 
-        var user = findById(id);
+        var user = find(id);
 
         if (authorities != null) {
             var authoritiesAvailable = authorityRepository.findAllByNameIn(authorities);
@@ -99,28 +92,15 @@ public class UserService implements UserDetailsService {
         repository.save(user);
     }
 
-    private void validateAuthorities(List<Authority> authoritiesAvailable, List<String> authorities) {
-        if (authoritiesAvailable.size() != authorities.size()) {
-            var authorititesNotFound = authorities.stream().filter(filter -> authoritiesAvailable.stream().noneMatch(authority -> authority.is(filter))).toArray();
-            throw ApiError.notFound(resolver.get("user.role-not-found", Arrays.toString(authorititesNotFound)));
-        }
-    }
-
 
     public void update(
-
-            @Valid
-            UpdateUser updateUser,
-
-            @FileContentType({"image/jpeg", "image/png"})
-            MultipartFile profileImage,
-
-            User user
-
+            User user,
+            @Valid UpdateUser updateUser,
+            @FileContentType({"image/jpeg", "image/png"}) MultipartFile profileImage
     ) throws IOException {
 
         if (updateUser == null && profileImage == null) {
-            throw ApiError.badRequest(resolver.get("user.no-data-to-update"));
+            throw ApiError.badRequest(messages.getMessage("user.no-data-to-update"));
         }
 
         if (updateUser != null) {
@@ -145,13 +125,20 @@ public class UserService implements UserDetailsService {
         var username = updateUser.getUsername();
 
         if (username != null && !username.equals(user.getUsername()) && repository.existsByUsername(username)) {
-            throw ApiError.badRequest(resolver.get("user.username-exists"));
+            throw ApiError.badRequest(messages.getMessage("user.username-exists"));
         }
 
         if (username != null) user.setUsername(username);
         if (updateUser.getName() != null) user.setName(updateUser.getName());
         if (updateUser.getLastname() != null) user.setLastname(updateUser.getLastname());
         if (updateUser.getPassword() != null) user.setPassword(encoder.encode(updateUser.getPassword()));
+    }
+
+    private void validateAuthorities(List<Authority> authoritiesAvailable, List<String> authorities) {
+        if (authoritiesAvailable.size() != authorities.size()) {
+            var authorititesNotFound = authorities.stream().filter(filter -> authoritiesAvailable.stream().noneMatch(authority -> authority.is(filter))).toArray();
+            throw ApiError.notFound(messages.getMessage("user.role-not-found", new Object[]{Arrays.toString(authorititesNotFound)}));
+        }
     }
 
 }

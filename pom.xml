@@ -95,7 +95,7 @@
         <dependency>
             <groupId>com.ketoru.springframework</groupId>
             <artifactId>springframework-errors</artifactId>
-            <version>0.0.1</version>
+            <version>0.0.9</version>
         </dependency>
 
         <dependency>
@@ -112,8 +112,20 @@
 
         <dependency>
             <groupId>com.ketoru.store</groupId>
-            <artifactId>store-spring-data-jpa</artifactId>
+            <artifactId>store-disk</artifactId>
             <version>0.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78.1</version>
         </dependency>
 
     </dependencies>
