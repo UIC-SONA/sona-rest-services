@@ -4,11 +4,11 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import ec.gob.conagopare.sona.security.WebSecurityProperties;
-import ec.gob.conagopare.sona.utils.EnvironmentChecker;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -29,16 +29,14 @@ public class Jwt {
 
     @Getter
     private final String issuer;
-    private final long ttlMillis;
+    private final long expirationTimeMills;
     private final Algorithm algorithm;
     private final Set<String> revokedTokens = ConcurrentHashMap.newKeySet();
-    private final EnvironmentChecker environment;
 
-    public Jwt(EnvironmentChecker environment, WebSecurityProperties properties) throws NoSuchAlgorithmException {
-        this.environment = environment;
+    public Jwt(WebSecurityProperties properties) throws NoSuchAlgorithmException {
         this.issuer = properties.getJwt().getIssuer();
-        this.ttlMillis = properties.getJwt().getTtlMillis();
-        this.algorithm = getAlgorithm();
+        this.expirationTimeMills = properties.getJwt().getExpirationTime().toMillis();
+        this.algorithm = getAlgorithm(properties.getJwt().getSecretKey());
     }
 
     private boolean isExpired(String token) {
@@ -46,18 +44,18 @@ public class Jwt {
         return decodedJWT.getExpiresAt().before(new Date());
     }
 
-    private @NotNull Algorithm getAlgorithm() throws NoSuchAlgorithmException {
+    private Algorithm getAlgorithm(@Nullable String secretKey) throws NoSuchAlgorithmException {
 
-        if (environment.isDevelopment()) {
-            log.warn("Using hardcoded secret key for development purposes");
-            var hexKey = "Secret key for development purposes";
-            return Algorithm.HMAC256(hexKey);
+        if (secretKey != null && !secretKey.isBlank()) {
+            log.warn("Using provided secret key for JWT, this is not recommended for production environments");
+            return Algorithm.HMAC256(secretKey);
         }
 
+        log.info("Generating random secret key for JWT");
         var random = SecureRandom.getInstanceStrong();
-        var secretKey = new byte[64];
-        random.nextBytes(secretKey);
-        return Algorithm.HMAC256(secretKey);
+        var randomSecretKey = new byte[64];
+        random.nextBytes(randomSecretKey);
+        return Algorithm.HMAC256(randomSecretKey);
 
     }
 
@@ -82,8 +80,8 @@ public class Jwt {
                 .withIssuer(issuer); // Emisor del
 
 
-        if (ttlMillis >= 0) {
-            var expMillis = nowMillis + ttlMillis;
+        if (expirationTimeMills >= 0) {
+            var expMillis = nowMillis + expirationTimeMills;
             var exp = new Date(expMillis);
             builder.withExpiresAt(exp); // Fecha de expiración del token
         }

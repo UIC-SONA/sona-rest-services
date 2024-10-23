@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -38,7 +37,7 @@ public class AuthenticationOncePerRequestFilter extends OncePerRequestFilter {
             @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        SecurityContext context = SecurityContextHolder.getContext();
+        var context = SecurityContextHolder.getContext();
 
         if (context.getAuthentication() != null) {
             log.debug("Authentication already exists in the security context. Skipping authentication.");

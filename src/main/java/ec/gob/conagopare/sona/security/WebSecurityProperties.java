@@ -32,8 +32,11 @@ public class WebSecurityProperties {
 
     @Data
     public static class JwtProperties {
+
         private String issuer;
-        private long ttlMillis = 3600000;
+        private String secretKey;
+        @DurationUnit(ChronoUnit.MILLIS)
+        private Duration expirationTime = Duration.ofHours(1);
     }
 
     @Data

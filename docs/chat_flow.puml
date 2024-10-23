@@ -1,0 +1,30 @@
+@startuml
+start
+:Dialogflow pregunta:\n"¿Usted es víctima\n de violencia de género?";
+:Usuario responde (Ej: "Sí",\n"Claro", "Lamentablemente sí", "No",\n"Para nada", "Estoy bien");
+if (¿Respuesta es afirmativa?) then (Sí)
+  :Dialogflow detecta la\nintención de afirmación;
+  :Dialogflow responde:\n"Lamento escuchar eso. Aquí tienes\nalgunos recursos:";
+  :Proporcionar línea de ayuda\ny recursos (Teléfono, dirección web);
+  :Dialogflow pregunta:\n"¿Le fue útil la información\nproporcionada?";
+  :Usuario responde (Ej: "Sí",\n"Bastante", "Me ayudó mucho",\n"No", "No fue lo que buscaba");
+  if (¿Respuesta es afirmativa?) then (Sí)
+    :Dialogflow responde:\n"Nos alegra haber sido de ayuda.\nEstamos aquí para cualquier cosa\nque necesite.";
+  else (No)
+    :Dialogflow responde:\n"Lamentamos que no fuera útil.\nSi desea, puede buscar más recursos\nen nuestro sitio web.";
+  endif
+else (No)
+  :Dialogflow detecta la\nintención de negación;
+  :Dialogflow responde:\n"Nos alegra escuchar que está a salvo.";
+  :Dialogflow pregunta:\n"¿Está buscando información\npara ayudar a alguien más?";
+  :Usuario responde (Ej: "Sí",\n"Así es", "Estoy interesado",\n"No", "No, solo preguntaba");
+  if (¿Respuesta es afirmativa?) then (Sí)
+    :Dialogflow responde:\n"Aquí tiene algunos recursos\npara apoyar a otras personas:";
+    :Proporcionar información y\nrecursos para ayudar a víctimas\nde violencia;
+  else (No)
+    :Dialogflow responde:\n"Gracias por su tiempo. Si\nnecesita algo más, no dude en preguntar.";
+  endif
+endif
+:Fin de la interacción;
+stop
+@enduml

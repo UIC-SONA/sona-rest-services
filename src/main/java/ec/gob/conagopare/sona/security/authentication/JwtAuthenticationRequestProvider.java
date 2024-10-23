@@ -42,6 +42,6 @@ public class JwtAuthenticationRequestProvider implements AuthenticationRequestPr
 
         userDetailsChecker.check(user);
 
-        return AuthenticationResult.of(new UserDetailsAuthenticaction(user));
+        return AuthenticationResult.authenticated(new UserDetailsAuthenticaction(user));
     }
 }

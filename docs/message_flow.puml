@@ -1,0 +1,21 @@
+@startuml
+start
+:Usuario envía un mensaje;
+:Mensaje recibido por Dialogflow;
+if (¿Intención conocida?) then (Sí)
+  :Dialogflow detecta el intent correcto;
+  :Extrae entidades clave del mensaje;
+  if (¿Requiere acción externa?) then (Sí)
+    :Envía solicitud a un servicio externo\n(API, DB, etc);
+    :Obtiene respuesta del servicio;
+  else (No)
+    :Genera respuesta basada en el intent;
+  endif
+  :Devuelve la respuesta al usuario;
+else (No)
+  :Dialogflow activa el intent de fallback;
+  :Envía mensaje predeterminado\n("No se entendió la solicitud");
+endif
+:Fin de la interacción;
+stop
+@enduml

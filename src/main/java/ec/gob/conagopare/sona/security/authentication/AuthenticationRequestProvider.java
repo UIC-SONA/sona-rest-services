@@ -10,7 +10,8 @@ public interface AuthenticationRequestProvider<T extends Authentication> {
 
     record AuthenticationResult<T extends Authentication>(T authentication) {
 
-        public static <T extends Authentication> AuthenticationResult<T> of(T authentication) {
+        public static <T extends Authentication> AuthenticationResult<T> authenticated(T authentication) {
+            authentication.setAuthenticated(true);
             return new AuthenticationResult<>(authentication);
         }
 
