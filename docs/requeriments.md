@@ -61,29 +61,7 @@ adecuada al usuario, la cual puede generar una nueva interacción.
 
 A continuación se muestra un diagrama que ilustra el flujo de conversación entre una interacción de usuario y un agente
 
-```plantuml
-@startuml
-start
-:Usuario envía un mensaje;
-:Mensaje recibido por Dialogflow;
-if (¿Intención conocida?) then (Sí)
-  :Dialogflow detecta el intent correcto;
-  :Extrae entidades clave del mensaje;
-  if (¿Requiere acción externa?) then (Sí)
-    :Envía solicitud a un servicio externo\n(API, DB, etc);
-    :Obtiene respuesta del servicio;
-  else (No)
-    :Genera respuesta basada en el intent;
-  endif
-  :Devuelve la respuesta al usuario;
-else (No)
-  :Dialogflow activa el intent de fallback;
-  :Envía mensaje predeterminado\n("No se entendió la solicitud");
-endif
-:Fin de la interacción;
-stop
-@enduml
-```
+![Flujo de conversación](message_flow.png)
 
 ## Requerimientos para el entrenamiento de Agentes
 
@@ -107,39 +85,7 @@ que los usuarios pueden tener con el agente. Esto puede ser decrito mediante un 
 se describen las posibles interacciones y las respuestas que el agente debe dar en cada caso.
 A continuación se muestra un ejemplo de un diagrama de flujo de conversación:
 
-```plantuml
-@startuml
-start
-:Dialogflow pregunta:\n"¿Usted es víctima\n de violencia de género?";
-:Usuario responde (Ej: "Sí",\n"Claro", "Lamentablemente sí", "No",\n"Para nada", "Estoy bien");
-if (¿Respuesta es afirmativa?) then (Sí)
-  :Dialogflow detecta la\nintención de afirmación;
-  :Dialogflow responde:\n"Lamento escuchar eso. Aquí tienes\nalgunos recursos:";
-  :Proporcionar línea de ayuda\ny recursos (Teléfono, dirección web);
-  :Dialogflow pregunta:\n"¿Le fue útil la información\nproporcionada?";
-  :Usuario responde (Ej: "Sí",\n"Bastante", "Me ayudó mucho",\n"No", "No fue lo que buscaba");
-  if (¿Respuesta es afirmativa?) then (Sí)
-    :Dialogflow responde:\n"Nos alegra haber sido de ayuda.\nEstamos aquí para cualquier cosa\nque necesite.";
-  else (No)
-    :Dialogflow responde:\n"Lamentamos que no fuera útil.\nSi desea, puede buscar más recursos\nen nuestro sitio web.";
-  endif
-else (No)
-  :Dialogflow detecta la\nintención de negación;
-  :Dialogflow responde:\n"Nos alegra escuchar que está a salvo.";
-  :Dialogflow pregunta:\n"¿Está buscando información\npara ayudar a alguien más?";
-  :Usuario responde (Ej: "Sí",\n"Así es", "Estoy interesado",\n"No", "No, solo preguntaba");
-  if (¿Respuesta es afirmativa?) then (Sí)
-    :Dialogflow responde:\n"Aquí tiene algunos recursos\npara apoyar a otras personas:";
-    :Proporcionar información y\nrecursos para ayudar a víctimas\nde violencia;
-  else (No)
-    :Dialogflow responde:\n"Gracias por su tiempo. Si\nnecesita algo más, no dude en preguntar.";
-  endif
-endif
-:Fin de la interacción;
-stop
-@enduml
-
-```
+![Diagrama de flujo de conversación](chat_flow.png)
 
 Como se puede observar en el diagrama de ejemplo, se define el flujo de conversación entre una usuaria y el agente de
 DialogFlow. En este caso, el agente es un chatbot que brinda información y recursos a personas que han sido víctimas
