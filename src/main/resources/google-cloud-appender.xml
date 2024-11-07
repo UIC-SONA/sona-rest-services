@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Google cloud logging appender
+-->
+
+<included>
+    <appender name="CLOUD" class="com.google.cloud.logging.logback.LoggingAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <enhancer>com.google.cloud.logging.logback.MDCEventEnhancer</enhancer>
+        <credentialsFile>
+            google/service_account_logging.json
+        </credentialsFile>
+        <log>sona-backend.log</log>
+        <flushLevel>WARN</flushLevel>
+    </appender>
+</included>

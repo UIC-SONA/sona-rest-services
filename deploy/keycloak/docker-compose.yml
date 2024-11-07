@@ -1,0 +1,52 @@
+services:
+
+  postgres:
+    restart: always
+    container_name: db_keycloak
+    image: postgres:17
+    hostname: postgres_keycloak
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    networks:
+      - keycloak-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.2
+    container_name: keycloak
+    restart: always
+    ports:
+      - "8001:8080" #HTTP
+      - "8002:8443" #HTTPS
+    env_file:
+      - .env
+    volumes:
+      - ./keycloak-data:/opt/keycloak/data
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_DB=postgres
+      - KC_DB_USERNAME=${DB_USERNAME}
+      - KC_DB_PASSWORD=${DB_PASSWORD}
+      - KC_DB_URL=jdbc:postgresql://db_keycloak:5432/keycloak
+    #      - KC_PROFILE=prod
+    depends_on:
+      - postgres
+    networks:
+      - keycloak-network
+    command:
+      - start-dev
+      - --verbose
+
+
+
+networks:
+  keycloak-network:
+    driver: bridge
+
+

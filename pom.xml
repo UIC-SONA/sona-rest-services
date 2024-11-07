@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.3.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>ec.gob.conagopare</groupId>
@@ -19,10 +19,10 @@
     </licenses>
     <developers>
         <developer>
-            <name>Luis Miguel Vasquez Basurto</name>
+            <name>Melany Mayerly Vera Delgado</name>
         </developer>
         <developer>
-            <name>Melany Mayerli Vera Delgado</name>
+            <name>Luis Miguel Vasquez Basurto</name>
         </developer>
     </developers>
     <scm>
@@ -80,12 +80,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>4.4.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>24.1.0</version>
@@ -93,27 +87,27 @@
         </dependency>
 
         <dependency>
-            <groupId>com.ketoru.springframework</groupId>
-            <artifactId>springframework-errors</artifactId>
-            <version>0.0.9</version>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-admin-client</artifactId>
+            <version>26.0.1</version>
         </dependency>
 
         <dependency>
-            <groupId>com.ketoru.springframework</groupId>
-            <artifactId>springframework-email</artifactId>
-            <version>0.0.1</version>
+            <groupId>io.github.luidmidev</groupId>
+            <artifactId>spring-web-problem-details</artifactId>
+            <version>0.0.4</version>
         </dependency>
 
         <dependency>
-            <groupId>com.ketoru</groupId>
-            <artifactId>validations</artifactId>
-            <version>0.0.1</version>
+            <groupId>io.github.luidmidev</groupId>
+            <artifactId>jakarta-validations</artifactId>
+            <version>0.0.4</version>
         </dependency>
 
         <dependency>
-            <groupId>com.ketoru.store</groupId>
-            <artifactId>store-disk</artifactId>
-            <version>0.0.1</version>
+            <groupId>io.github.luidmidev</groupId>
+            <artifactId>storage-google-cloud</artifactId>
+            <version>0.0.5</version>
         </dependency>
 
         <dependency>
@@ -126,6 +120,17 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
             <version>1.78.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-logging-logback</artifactId>
+            <version>0.131.10-alpha</version>
         </dependency>
 
     </dependencies>
