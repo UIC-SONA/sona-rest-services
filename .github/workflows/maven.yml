@@ -35,6 +35,14 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_logging_storage.json
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_dialogflow_storage.json
 
+      - name: Check directory and service account files
+        run: |
+          pwd
+          ls -l google/
+          cat google/service_storage_storage.json
+          cat google/service_logging_storage.json
+          cat google/service_dialogflow_storage.json
+          
       - name: Build and Package with Maven
         run: mvn -B clean package
 
