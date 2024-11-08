@@ -48,7 +48,7 @@ jobs:
           name: sona-rest-services
           path: target/*.jar
 
-      - name: Deploy to Remote Server
+      - name: Send artifact to remote server
         if: success()
         env:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
@@ -70,26 +70,30 @@ jobs:
           else
             echo "Failed to copy files" && exit 1
           fi
-          
-          # Ejecutar todo en una sola sesión SSH para eficiencia (después de copiar los archivos)
-          ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST << 'EOF'
-          
-            # Verificar la versión de Docker
-            docker --version
-          
-            # Detener y eliminar los contenedores, si ya están corriendo
-            cd $REMOTE_PATH && docker compose down
 
-            # Reconstruir las imágenes sin usar el cache
-            docker compose build --no-cache
+      - name: Deploy to remote server
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_KEY }}
+        script: |
+          
+          # Verificar la versión de Docker
+          docker --version
+          
+          # Detener y eliminar los contenedores, si ya están corriendo
+          cd $REMOTE_PATH && docker compose down
 
-            # Levantar los contenedores en segundo plano
-            docker compose up -d
+          # Reconstruir las imágenes sin usar el cache
+          docker compose build --no-cache
+
+          # Levantar los contenedores en segundo plano
+          docker compose up -d
           
-            # Eliminar imágenes no usadas
-            docker image prune -f
+          # Eliminar imágenes no usadas
+          docker image prune -f
           
-          EOF
           
           echo "--------------------------------------------------"
           echo "      Deployment completed successfully :3"
