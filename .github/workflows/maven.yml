@@ -59,6 +59,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
           ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH"
           if scp -i ~/.ssh/deploy_key target/*.jar $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH; then
             echo "Files successfully copied"
