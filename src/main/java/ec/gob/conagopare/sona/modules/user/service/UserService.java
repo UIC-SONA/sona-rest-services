@@ -4,6 +4,7 @@ import ec.gob.conagopare.sona.application.common.concurrent.CompletableFutureThr
 import ec.gob.conagopare.sona.application.common.functions.FunctionThrowable;
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
+import ec.gob.conagopare.sona.modules.user.dto.OnboardUser;
 import ec.gob.conagopare.sona.modules.user.dto.SignupUser;
 import ec.gob.conagopare.sona.modules.user.dto.UpdateUser;
 import ec.gob.conagopare.sona.modules.user.entities.User;
@@ -53,13 +54,13 @@ public class UserService {
         repository.save(user);
     }
 
-    public User onboard(@Valid UpdateUser updateUser, Jwt jwt) {
-        if (hasOnboarded(jwt)) throw ApiError.conflict("El usuario ya ha sido registrado");
+    public User onboard(@Valid OnboardUser onboardUser, Jwt jwt) {
+        if (hasOnboarded(jwt)) throw ApiError.conflict("El usuario ya ha sido incorporado");
 
         var user = User.builder()
                 .keycloakId(jwt.getSubject())
-                .ci(updateUser.getCi())
-                .dateOfBirth(updateUser.getDateOfBirth())
+                .ci(onboardUser.getCi())
+                .dateOfBirth(onboardUser.getDateOfBirth())
                 .build();
 
         return repository.save(user);
@@ -68,9 +69,7 @@ public class UserService {
     public User update(@Valid UpdateUser updateUser, Jwt jwt) {
         var user = getUser(jwt);
 
-        user.setCi(updateUser.getCi());
         user.setDateOfBirth(updateUser.getDateOfBirth());
-
         var saved = repository.save(user);
 
         keycloakUserManager.update(user.getKeycloakId(), u -> {

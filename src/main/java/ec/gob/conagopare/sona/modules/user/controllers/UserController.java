@@ -3,6 +3,7 @@ package ec.gob.conagopare.sona.modules.user.controllers;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
+import ec.gob.conagopare.sona.modules.user.dto.OnboardUser;
 import ec.gob.conagopare.sona.modules.user.dto.SignupUser;
 import ec.gob.conagopare.sona.modules.user.dto.UpdateUser;
 import ec.gob.conagopare.sona.modules.user.entities.User;
@@ -39,7 +40,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/onboard")
     public ResponseEntity<User> onboard(
-            @RequestBody UpdateUser dto,
+            @RequestBody OnboardUser dto,
             @AuthenticationPrincipal Jwt jwt
     ) {
         return ResponseEntity.ok(service.onboard(dto, jwt));

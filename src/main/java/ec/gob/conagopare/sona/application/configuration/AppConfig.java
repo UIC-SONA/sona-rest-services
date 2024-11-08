@@ -31,7 +31,7 @@ public class AppConfig {
 
     @EventListener(ApplicationStartedEvent.class)
     public void onApplicationStarted() {
-        log.info("Hola, Melany, que tal.");
+        log.info("Hola, Melany, que tal...?");
         LocaleContext.setLocaleSupplier(LocaleContextHolder::getLocale);
     }
 
