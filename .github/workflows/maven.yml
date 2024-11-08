@@ -73,6 +73,8 @@ jobs:
 
       - name: Deploy to remote server
         uses: appleboy/ssh-action@v1.1.0
+        env:
+          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
@@ -83,8 +85,12 @@ jobs:
             # Verificar la versión de Docker
             docker --version
             
-            # Detener y eliminar los contenedores, si ya están corriendo
-            cd $REMOTE_PATH && docker compose down
+            # Cambiar al directorio de destino
+            cd $REMOTE_PATH 
+            pwd
+            
+            # Detener los contenedores
+            docker compose down
             
             # Reconstruir las imágenes sin usar el cache
             docker compose build --no-cache
