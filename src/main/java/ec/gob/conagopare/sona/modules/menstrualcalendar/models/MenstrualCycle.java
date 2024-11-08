@@ -16,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "appointment")
+@Table(name = "menstrual_cycles")
 public class MenstrualCycle {
 
     @Id
