@@ -58,8 +58,11 @@ jobs:
         run: |
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-
-          echo -e "Host remote-server\n\tHostName $REMOTE_HOST\n\tUser $REMOTE_USER\n\tIdentityFile ~/.ssh/deploy_key\n\tStrictHostKeyChecking no" > ~/.ssh/config
-
-          scp -F ~/.ssh/config target/*.jar remote-server:$REMOTE_PATH
-          scp -r google remote-server:$REMOTE_PATH
+          ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH"
+          if scp -i ~/.ssh/deploy_key target/*.jar $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH; then
+            echo "Files successfully copied"
+          else
+            echo "Failed to copy files" && exit 1
+          fi
+          ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "docker --version && docker-compose --version"
+          ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "cd $REMOTE_PATH && docker-compose up -d"
