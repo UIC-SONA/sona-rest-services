@@ -80,25 +80,32 @@ jobs:
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
+          envs: REMOTE_PATH
           script: |
             
             # Verificar la versión de Docker
+            echo "--------------------------------------------------"
             docker --version
             
             # Cambiar al directorio de destino
+            echo "--------------------------------------------------"
             cd $REMOTE_PATH 
             pwd
             
             # Detener los contenedores
+            echo "--------------------------------------------------"
             docker compose down
             
             # Reconstruir las imágenes sin usar el cache
+            echo "--------------------------------------------------"
             docker compose build --no-cache
             
             # Levantar los contenedores en segundo plano
+            echo "--------------------------------------------------"
             docker compose up -d
             
             # Eliminar imágenes no usadas
+            echo "--------------------------------------------------"
             docker image prune -f
             
             
