@@ -2,15 +2,19 @@ package ec.gob.conagopare.sona.application.configuration;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
+import io.github.luidmidev.jakarta.validations.utils.LocaleContext;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.google.cloud.GoogleCloudStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -24,6 +28,12 @@ import java.io.IOException;
 @Configuration
 @RequiredArgsConstructor
 public class AppConfig {
+
+    @EventListener(ApplicationStartedEvent.class)
+    public void onApplicationStarted() {
+        log.info("Hola, Melany");
+        LocaleContext.setLocaleSupplier(LocaleContextHolder::getLocale);
+    }
 
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource(CorsProperties properties) {
