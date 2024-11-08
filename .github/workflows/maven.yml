@@ -31,15 +31,10 @@ jobs:
       - name: Set up Configurations pre-build
         run: |
           mkdir -p google
-          echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" > google/service_account_storage.json
-          echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" > google/service_account_logging.json
-          echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" > google/service_account_dialogflow.json
+          echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" | base64 -d > google/service_account_storage.json
+          echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
+          echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
-          
-          cat google/service_account_storage.json
-          cat google/service_account_logging.json
-          cat google/service_account_dialogflow.json
-          cat src/main/resources/application.properties
 
       - name: Test with Maven
         run: mvn -B test
