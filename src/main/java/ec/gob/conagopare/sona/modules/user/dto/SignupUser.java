@@ -2,7 +2,7 @@ package ec.gob.conagopare.sona.modules.user.dto;
 
 import io.github.luidmidev.jakarta.validations.EquatorCi;
 import io.github.luidmidev.jakarta.validations.Password;
-import io.github.luidmidev.jakarta.validations.structs.DefaultPasswordRules;
+import io.github.luidmidev.jakarta.validations.utils.DefaultPasswordRules;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
