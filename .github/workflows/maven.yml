@@ -36,11 +36,11 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
 
-      - name: Test with Maven
+      - name: Integration Test & Unit Test
         run: mvn -B test
 
       - name: Build and Package with Maven
-        run: mvn -B clean package
+        run: mvn -B clean package -DskipTests
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -77,25 +77,25 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_KEY }}
-        script: |
-          
-          # Verificar la versión de Docker
-          docker --version
-          
-          # Detener y eliminar los contenedores, si ya están corriendo
-          cd $REMOTE_PATH && docker compose down
-
-          # Reconstruir las imágenes sin usar el cache
-          docker compose build --no-cache
-
-          # Levantar los contenedores en segundo plano
-          docker compose up -d
-          
-          # Eliminar imágenes no usadas
-          docker image prune -f
-          
-          
-          echo "--------------------------------------------------"
-          echo "      Deployment completed successfully :3"
-          echo "--------------------------------------------------"
+          script: |
+            
+            # Verificar la versión de Docker
+            docker --version
+            
+            # Detener y eliminar los contenedores, si ya están corriendo
+            cd $REMOTE_PATH && docker compose down
+            
+            # Reconstruir las imágenes sin usar el cache
+            docker compose build --no-cache
+            
+            # Levantar los contenedores en segundo plano
+            docker compose up -d
+            
+            # Eliminar imágenes no usadas
+            docker image prune -f
+            
+            
+            echo "--------------------------------------------------"
+            echo "      Deployment completed successfully :3"
+            echo "--------------------------------------------------"
 
