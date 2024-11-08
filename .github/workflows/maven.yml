@@ -56,6 +56,7 @@ jobs:
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
+          mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH"
