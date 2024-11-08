@@ -21,7 +21,7 @@ public class MenstrualCalendarService {
 
     public void saveCycle(@Valid MenstrualCycleDto dto, Jwt jwt) {
 
-        var user = userService.getOnboardedUser(jwt);
+        var user = userService.getUser(jwt);
         var cycle = menstrualCycleRepository.findByUser(user).orElseGet(() -> MenstrualCycle.builder().user(user).build());
 
         cycle.setCycleDuration(dto.getCycleDuration());
@@ -32,7 +32,7 @@ public class MenstrualCalendarService {
     }
 
     public MenstrualCycle getCycle(Jwt jwt) {
-        var user = userService.getOnboardedUser(jwt);
+        var user = userService.getUser(jwt);
         return menstrualCycleRepository.findByUser(user).orElseThrow(() -> ApiError.notFound("Menstrual cycle not found"));
     }
 

@@ -79,4 +79,10 @@ public class UserController {
         service.deleteProfilePicture(jwt);
         return ResponseEntity.ok(new Message("Profile photo deleted"));
     }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/has-onboarded")
+    public ResponseEntity<Boolean> hasOnboarded(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.hasOnboarded(jwt));
+    }
 }

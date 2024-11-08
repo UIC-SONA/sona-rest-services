@@ -38,3 +38,6 @@ application.properties
 # GOOGLE CLOUD
 service_account.json
 service_account_*.json
+
+# ENVIRONMENT
+.env

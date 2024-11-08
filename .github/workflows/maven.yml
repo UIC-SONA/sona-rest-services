@@ -28,16 +28,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
-      - name: Create Google Service Account Keys
+      - name: Set up Configurations pre-build
         run: |
           mkdir -p google
-          echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" | base64 -d > google/service_account_storage.json
-          echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
-          echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
-
-      - name: Setup properties
-        run: |
+          echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" > google/service_account_storage.json
+          echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" > google/service_account_logging.json
+          echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" > google/service_account_dialogflow.json
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
+
+      - name: Test with Maven
+        run: mvn -B test
 
       - name: Build and Package with Maven
         run: mvn -B clean package
@@ -60,11 +60,38 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
+
+          # Crear directorio de destino en el servidor remoto
           ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "mkdir -p $REMOTE_PATH"
+
+          # Copiar los archivos .jar al servidor remoto
           if scp -i ~/.ssh/deploy_key target/*.jar $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH; then
             echo "Files successfully copied"
           else
             echo "Failed to copy files" && exit 1
           fi
-          ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "docker --version && docker-compose --version"
-          ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST "cd $REMOTE_PATH && docker-compose up -d"
+          
+          # Ejecutar todo en una sola sesión SSH para eficiencia (después de copiar los archivos)
+          ssh -i ~/.ssh/deploy_key $REMOTE_USER@$REMOTE_HOST << 'EOF'
+          
+            # Verificar la versión de Docker
+            docker --version
+          
+            # Detener y eliminar los contenedores, si ya están corriendo
+            cd $REMOTE_PATH && docker compose down
+
+            # Reconstruir las imágenes sin usar el cache
+            docker compose build --no-cache
+
+            # Levantar los contenedores en segundo plano
+            docker compose up -d
+          
+            # Eliminar imágenes no usadas
+            docker image prune -f
+          
+          EOF
+          
+          echo "--------------------------------------------------"
+          echo "      Deployment completed successfully :3"
+          echo "--------------------------------------------------"
+

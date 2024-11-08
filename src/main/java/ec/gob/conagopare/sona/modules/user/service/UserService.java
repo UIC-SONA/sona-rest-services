@@ -66,7 +66,7 @@ public class UserService {
     }
 
     public User update(@Valid UpdateUser updateUser, Jwt jwt) {
-        var user = getOnboardedUser(jwt);
+        var user = getUser(jwt);
 
         user.setCi(updateUser.getCi());
         user.setDateOfBirth(updateUser.getDateOfBirth());
@@ -82,16 +82,16 @@ public class UserService {
     }
 
     public Stored getProfilePicture(Jwt jwt) {
-        var user = getOnboardedUser(jwt);
+        var user = getUser(jwt);
         return Optional.ofNullable(user.getProfilePicturePath())
                 .map(FunctionThrowable.unchecked(storage::download))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .orElseThrow(() -> ApiError.notFound("Profile picture not found"));
+                .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
     }
 
     public void uploadProfilePicture(@Image MultipartFile photo, Jwt jwt) throws IOException {
-        var user = getOnboardedUser(jwt);
+        var user = getUser(jwt);
 
         var previousProfilePicturePath = user.getProfilePicturePath();
         var profilePictureName = UUID.randomUUID() + "." + FileUtils.getExtension(Objects.requireNonNull(photo.getOriginalFilename()));
@@ -106,7 +106,7 @@ public class UserService {
     }
 
     public void deleteProfilePicture(Jwt jwt) {
-        var user = getOnboardedUser(jwt);
+        var user = getUser(jwt);
 
         var previousProfilePicturePath = user.getProfilePicturePath();
         if (previousProfilePicturePath == null) {
@@ -123,12 +123,12 @@ public class UserService {
         return repository.existsByKeycloakId(jwt.getSubject());
     }
 
-    public User getOnboardedUser(Jwt jwt) {
-        return repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("User not onboarded"));
+    public User getUser(Jwt jwt) {
+        return repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("El usuario no ha sido incorporado"));
     }
 
     public User getUser(Long userId) {
-        return repository.findById(userId).orElseThrow(() -> ApiError.notFound("User not found"));
+        return repository.findById(userId).orElseThrow(() -> ApiError.notFound("No se encontró el usuario"));
     }
 
 
