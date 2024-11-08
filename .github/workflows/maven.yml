@@ -28,6 +28,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
+      - name: Create Google Service Account Keys
+        run: |
+          mkdir -p google
+          echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" | base64 -d > google/service_storage_storage.json
+          echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_logging_storage.json
+          echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_dialogflow_storage.json
+
       - name: Build and Package with Maven
         run: mvn -B clean package
 
@@ -36,14 +43,7 @@ jobs:
         with:
           name: sona-rest-services
           path: target/*.jar
-
-      - name: Create Google Service Account Keys
-        run: |
-          mkdir -p google
-          echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" | base64 -d > google/service_storage_storage.json
-          echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_logging_storage.json
-          echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_dialogflow_storage.json
-
+          
       - name: Deploy to Remote Server
         if: success()
         env:
