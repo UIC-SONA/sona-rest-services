@@ -1,4 +1,4 @@
-name: Java CI with Maven and Remote Deploy
+name: CI SONA REST Services
 
 on:
   push:
@@ -34,7 +34,11 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" | base64 -d > google/service_account_storage.json
           echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
-          
+
+      - name: Setup properties
+        run: |
+          echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
+
       - name: Build and Package with Maven
         run: mvn -B clean package
 
@@ -43,7 +47,7 @@ jobs:
         with:
           name: sona-rest-services
           path: target/*.jar
-          
+
       - name: Deploy to Remote Server
         if: success()
         env:
