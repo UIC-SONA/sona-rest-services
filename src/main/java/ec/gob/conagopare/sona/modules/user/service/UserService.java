@@ -119,6 +119,7 @@ public class UserService {
     }
 
     public boolean hasOnboarded(Jwt jwt) {
+        log.info("Checking if user has onboarded");
         return repository.existsByKeycloakId(jwt.getSubject());
     }
 
