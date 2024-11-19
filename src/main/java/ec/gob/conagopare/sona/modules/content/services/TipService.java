@@ -12,6 +12,7 @@ import io.github.luidmidev.storage.Stored;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -34,21 +35,21 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
 
     @Override
     protected void mapModel(TipDto dto, Tip model, MapAction action) {
-
-        try {
-
-            if (action == MapAction.CREATE) {
-                setImage(dto, model);
-            } else if (action == MapAction.UPDATE) {
-                var oldImage = model.getImage();
-                setImage(dto, model);
-                StorageUtils.tryRemoveFileAsync(storage, oldImage);
+        var image = dto.getImage();
+        if (image != null) {
+            try {
+                if (action == MapAction.CREATE) {
+                    setImage(model, image);
+                } else if (action == MapAction.UPDATE) {
+                    var oldImage = model.getImage();
+                    setImage(model, image);
+                    StorageUtils.tryRemoveFileAsync(storage, oldImage);
+                }
+            } catch (IOException e) {
+                throw ApiError.internalServerError("Error al guardar la imagen: " + e.getMessage());
             }
 
-        } catch (IOException e) {
-            throw ApiError.internalServerError("Error al guardar la imagen: " + e.getMessage());
         }
-
         model.setTitle(dto.getTitle());
         model.setSummary(dto.getSummary());
         model.setDescription(dto.getDescription());
@@ -57,7 +58,6 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
     }
 
     public List<Tip> active() {
-        log.info("Getting active tips");
         return repository.findAllByActiveTrue();
     }
 
@@ -66,14 +66,20 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
         return storage.download(imagePath).orElseThrow(() -> ApiError.notFound("No se encontró la imagen"));
     }
 
+    public void deleteImage(UUID id) {
+        var imagePath = repository.findById(id).orElseThrow(() -> ApiError.notFound("Tip no encontrado: " + id));
+        StorageUtils.tryRemoveFileAsync(storage, imagePath.getImage());
 
-    private void setImage(TipDto dto, Tip model) throws IOException {
-        var image = dto.getImage();
-        if (image != null) {
-            var fileName = "tip-img-" + LocalDateTime.now().toString().replace(":", "-") + "." + FileUtils.getExtension(Objects.requireNonNull(image.getOriginalFilename()));
-            var path = storage.store(image.getInputStream(), fileName, TIPS_IMAGES_PATH);
-            model.setImage(path);
-        }
+        imagePath.setImage(null);
+        repository.save(imagePath);
+    }
+
+
+    private void setImage(Tip model, MultipartFile image) throws IOException {
+        var fileName = "tip-img-" + LocalDateTime.now().toString().replace(":", "-") + "." + FileUtils.getExtension(Objects.requireNonNull(image.getOriginalFilename()));
+        var path = storage.store(image.getInputStream(), fileName, TIPS_IMAGES_PATH);
+        model.setImage(path);
+
     }
 
 

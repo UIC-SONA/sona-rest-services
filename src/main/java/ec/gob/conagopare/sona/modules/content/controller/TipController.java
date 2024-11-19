@@ -134,4 +134,11 @@ public class TipController {
     public ResponseEntity<ByteArrayResource> image(@PathVariable("id") UUID id) throws IOException {
         return ResponseEntityUtils.resource(service.image(id));
     }
+
+    @PreAuthorize("hasRole('admin')")
+    @DeleteMapping("/image/{id}")
+    public ResponseEntity<String> deleteImage(@PathVariable("id") UUID id) {
+        service.deleteImage(id);
+        return ResponseEntity.ok("Imagen eliminada correctamente");
+    }
 }
