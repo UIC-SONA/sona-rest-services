@@ -54,7 +54,7 @@ public class TipController {
     }
 
     @PreAuthorize("hasRole('admin')")
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> update(
             @PathVariable("id") UUID id,
             @RequestParam String title,
@@ -130,13 +130,13 @@ public class TipController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/image/{id}")
+    @GetMapping("/{id}/image")
     public ResponseEntity<ByteArrayResource> image(@PathVariable("id") UUID id) throws IOException {
         return ResponseEntityUtils.resource(service.image(id));
     }
 
     @PreAuthorize("hasRole('admin')")
-    @DeleteMapping("/image/{id}")
+    @DeleteMapping("/{id}/image")
     public ResponseEntity<String> deleteImage(@PathVariable("id") UUID id) {
         service.deleteImage(id);
         return ResponseEntity.ok("Imagen eliminada correctamente");

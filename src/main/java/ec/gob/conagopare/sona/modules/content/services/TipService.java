@@ -68,10 +68,10 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
 
     public void deleteImage(UUID id) {
         var imagePath = repository.findById(id).orElseThrow(() -> ApiError.notFound("Tip no encontrado: " + id));
-        StorageUtils.tryRemoveFileAsync(storage, imagePath.getImage());
 
         imagePath.setImage(null);
         repository.save(imagePath);
+        StorageUtils.tryRemoveFileAsync(storage, imagePath.getImage());
     }
 
 
