@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.modules.content.dto;
 
+import io.github.luidmidev.jakarta.validations.Distincs;
 import io.github.luidmidev.jakarta.validations.Image;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -27,6 +28,7 @@ public class TipDto {
 
     @NotNull
     @NotEmpty
+    @Distincs
     private List<String> tags;
 
     @NotNull

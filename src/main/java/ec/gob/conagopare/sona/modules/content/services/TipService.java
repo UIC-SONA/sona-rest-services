@@ -48,8 +48,8 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
             } catch (IOException e) {
                 throw ApiError.internalServerError("Error al guardar la imagen: " + e.getMessage());
             }
-
         }
+
         model.setTitle(dto.getTitle());
         model.setSummary(dto.getSummary());
         model.setDescription(dto.getDescription());
