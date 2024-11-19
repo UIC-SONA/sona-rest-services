@@ -6,8 +6,6 @@ import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
 import io.github.luidmidev.springframework.data.crud.core.CRUDMessagesResolver;
 import io.github.luidmidev.springframework.data.crud.core.utils.PageableUtils;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterStyle;
 import lombok.Getter;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
@@ -43,11 +41,11 @@ public class TipController {
     @PreAuthorize("hasRole('admin')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> create(
-            @RequestPart String title,
-            @RequestPart String summary,
+            @RequestParam String title,
+            @RequestParam String summary,
+            @RequestParam boolean active,
+            @RequestParam List<String> tags,
             @RequestPart String description,
-            @RequestPart List<String> tags,
-            @RequestPart boolean active,
             @RequestPart MultipartFile image
     ) {
         var dto = new TipDto(title, summary, description, tags, active, image);
@@ -59,11 +57,11 @@ public class TipController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> update(
             @PathVariable("id") UUID id,
-            @RequestPart String title,
-            @RequestPart String summary,
+            @RequestParam String title,
+            @RequestParam String summary,
+            @RequestParam boolean active,
+            @RequestParam List<String> tags,
             @RequestPart String description,
-            @RequestPart List<String> tags,
-            @RequestPart boolean active,
             @RequestPart(required = false) MultipartFile image
     ) {
         var dto = new TipDto(title, summary, description, tags, active, image);
