@@ -1,12 +1,8 @@
 package ec.gob.conagopare.sona.modules.user.controllers;
 
-
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
-import ec.gob.conagopare.sona.modules.user.dto.OnboardUser;
-import ec.gob.conagopare.sona.modules.user.dto.SignupUser;
-import ec.gob.conagopare.sona.modules.user.dto.UpdateUser;
-import ec.gob.conagopare.sona.modules.user.entities.User;
+import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -29,30 +25,9 @@ public class UserController {
 
     @PreAuthorize("permitAll()")
     @PostMapping("/sign-up")
-    public ResponseEntity<Message> signup(
-            @RequestBody SignupUser signupUser
-    ) {
-        service.signup(signupUser);
-        return ResponseEntity.ok(new Message("Usuario creado correctamente"));
-    }
-
-
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/onboard")
-    public ResponseEntity<User> onboard(
-            @RequestBody OnboardUser dto,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        return ResponseEntity.ok(service.onboard(dto, jwt));
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @PutMapping("/profile")
-    public ResponseEntity<User> update(
-            @RequestBody UpdateUser dto,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        return ResponseEntity.ok(service.update(dto, jwt));
+    public ResponseEntity<Message> signUp(@RequestBody SingUpUser singUpUser) {
+        service.signUp(singUpUser);
+        return ResponseEntity.ok(new Message("Usuario registrado correctamente"));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -69,7 +44,7 @@ public class UserController {
             @AuthenticationPrincipal Jwt jwt
     ) throws IOException {
         service.uploadProfilePicture(photo, jwt);
-        return ResponseEntity.ok(new Message("Profile photo updated"));
+        return ResponseEntity.ok(new Message("Foto de perfil establecida corrextamente"));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -78,12 +53,7 @@ public class UserController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         service.deleteProfilePicture(jwt);
-        return ResponseEntity.ok(new Message("Profile photo deleted"));
+        return ResponseEntity.ok(new Message("Foto de perfil eliminada correctamente"));
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping("/has-onboarded")
-    public ResponseEntity<Boolean> hasOnboarded(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(service.hasOnboarded(jwt));
-    }
 }

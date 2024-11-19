@@ -2,9 +2,12 @@ package ec.gob.conagopare.sona.application.configuration.security;
 
 
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
-import ec.gob.conagopare.sona.application.filters.PostAuthMDCFilter;
+import ec.gob.conagopare.sona.application.common.functions.Extractor;
+import ec.gob.conagopare.sona.application.filters.AuthenticationMDCFilter;
+import ec.gob.conagopare.sona.modules.user.models.Authority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +45,7 @@ import java.util.stream.Collectors;
 public class WebSecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver, CorsConfigurationSource corsConfigurationSource, PostAuthMDCFilter postAuthMDCFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver, CorsConfigurationSource corsConfigurationSource, AuthenticationMDCFilter authenticationMDCFilter) throws Exception {
         log.info("Configuring SecurityFilterChain");
         return http
                 .csrf(CsrfConfigurer::disable)
@@ -61,34 +64,40 @@ public class WebSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .addFilterAfter(postAuthMDCFilter, BearerTokenAuthenticationFilter.class)
+                .addFilterAfter(authenticationMDCFilter, BearerTokenAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
-    @SuppressWarnings("unchecked")
     public JwtAuthenticationConverter jwtAuthenticationConverterForKeycloak(@Value("${keycloak.client-id}") String clientId) {
-        Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter = jwt -> {
+        var jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(authorityConverter(clientId));
+        return jwtAuthenticationConverter;
+    }
 
+
+    @SuppressWarnings("unchecked")
+    public static Converter<Jwt, Collection<GrantedAuthority>> authorityConverter(String clientId) {
+        return jwt -> {
             Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
 
-            var client = resourceAccess.get(clientId);
-            var clientRoleMap = (LinkedTreeMap<String, List<String>>) client;
+            var clientRoleMap = (LinkedTreeMap<String, List<String>>) resourceAccess.get(clientId);
             var clientRoles = new ArrayList<>(clientRoleMap.get("roles"));
 
-            List<GrantedAuthority> athorities = clientRoles.stream()
+            return clientRoles.stream()
                     .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
-
-            if (athorities.isEmpty()) {
-                athorities.add(new SimpleGrantedAuthority("ROLE_user"));
-            }
-
-            return athorities;
+                    .collect(Collectors.toUnmodifiableList());
         };
+    }
 
-        var jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter);
-        return jwtAuthenticationConverter;
+    @Bean
+    public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(@Value("${keycloak.client-id}") String clientId) {
+        return representation -> {
+            var clientRoles = representation.getClientRoles().get(clientId);
+            return clientRoles.stream()
+                    .filter(Authority::exists)
+                    .map(Authority::valueOf)
+                    .toList();
+        };
     }
 }

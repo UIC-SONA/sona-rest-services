@@ -101,13 +101,19 @@
         <dependency>
             <groupId>io.github.luidmidev</groupId>
             <artifactId>jakarta-validations</artifactId>
-            <version>0.0.5</version>
+            <version>0.0.6</version>
         </dependency>
 
         <dependency>
             <groupId>io.github.luidmidev</groupId>
             <artifactId>storage-google-cloud</artifactId>
             <version>0.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.luidmidev</groupId>
+            <artifactId>spring-data-crud-jpa</artifactId>
+            <version>0.0.2</version>
         </dependency>
 
         <dependency>
@@ -131,6 +137,12 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-logging-logback</artifactId>
             <version>0.131.10-alpha</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-dialogflow-cx</artifactId>
+            <version>0.64.0</version>
         </dependency>
 
     </dependencies>

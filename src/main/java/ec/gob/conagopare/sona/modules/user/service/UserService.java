@@ -1,21 +1,23 @@
 package ec.gob.conagopare.sona.modules.user.service;
 
-import ec.gob.conagopare.sona.application.common.concurrent.CompletableFutureThrowables;
+import ec.gob.conagopare.sona.application.common.functions.Extractor;
 import ec.gob.conagopare.sona.application.common.functions.FunctionThrowable;
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
+import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
-import ec.gob.conagopare.sona.modules.user.dto.OnboardUser;
-import ec.gob.conagopare.sona.modules.user.dto.SignupUser;
-import ec.gob.conagopare.sona.modules.user.dto.UpdateUser;
-import ec.gob.conagopare.sona.modules.user.entities.User;
+import ec.gob.conagopare.sona.modules.user.UserConfig;
+import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
+import ec.gob.conagopare.sona.modules.user.models.Authority;
+import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +25,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
-@Slf4j
 @Service
 @Validated
 @Transactional
@@ -36,48 +39,27 @@ public class UserService {
 
     private static final String USERS_PROFILE_PICTURES_PATH = "users/%d/profile-pictures";
 
+    private final UserConfig config;
     private final UserRepository repository;
     private final KeycloakUserManager keycloakUserManager;
     private final Storage storage;
+    private final Extractor<UserRepresentation, Collection<Authority>> authorityExtractor;
 
+    @PostConstruct
+    public void init() {
+        var bootstrap = config.getBootstrap();
 
-    public void signup(@Valid SignupUser signupUser) {
-        var userRepresentation = signupUser.toUserRepresentation();
-        var keycloakId = keycloakUserManager.create(userRepresentation, signupUser.getPassword());
+        if (!bootstrap.isEnabled()) return;
 
-        var user = User.builder()
-                .keycloakId(keycloakId)
-                .ci(signupUser.getCi())
-                .dateOfBirth(signupUser.getDateOfBirth())
-                .build();
+        var admin = bootstrap.getAdmin();
 
-        repository.save(user);
+        if (admin != null && !repository.existsById(admin.getId())) {
+            createUser(admin.toInfo(), user -> user.setId(admin.getId()), Authority.ADMIN);
+        }
     }
 
-    public User onboard(@Valid OnboardUser onboardUser, Jwt jwt) {
-        if (hasOnboarded(jwt)) throw ApiError.conflict("El usuario ya ha sido incorporado");
-
-        var user = User.builder()
-                .keycloakId(jwt.getSubject())
-                .ci(onboardUser.getCi())
-                .dateOfBirth(onboardUser.getDateOfBirth())
-                .build();
-
-        return repository.save(user);
-    }
-
-    public User update(@Valid UpdateUser updateUser, Jwt jwt) {
-        var user = getUser(jwt);
-
-        user.setDateOfBirth(updateUser.getDateOfBirth());
-        var saved = repository.save(user);
-
-        keycloakUserManager.update(user.getKeycloakId(), u -> {
-            u.setFirstName(updateUser.getFirstName());
-            u.setLastName(updateUser.getLastName());
-        });
-
-        return saved;
+    public void signUp(@Valid SingUpUser singUpUser) {
+        createUser(singUpUser, Authority.USER);
     }
 
     public Stored getProfilePicture(Jwt jwt) {
@@ -99,9 +81,7 @@ public class UserService {
 
         repository.save(user);
 
-        if (previousProfilePicturePath != null) {
-            CompletableFutureThrowables.runAsync(() -> storage.remove(previousProfilePicturePath));
-        }
+        StorageUtils.tryRemoveFileAsync(storage, previousProfilePicturePath);
     }
 
     public void deleteProfilePicture(Jwt jwt) {
@@ -115,21 +95,47 @@ public class UserService {
         user.setProfilePicturePath(null);
         repository.save(user);
 
-        CompletableFutureThrowables.runAsync(() -> storage.remove(previousProfilePicturePath));
-    }
-
-    public boolean hasOnboarded(Jwt jwt) {
-        log.info("Checking if user has onboarded");
-        return repository.existsByKeycloakId(jwt.getSubject());
+        StorageUtils.tryRemoveFileAsync(storage, previousProfilePicturePath);
     }
 
     public User getUser(Jwt jwt) {
-        return repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("El usuario no ha sido incorporado"));
+        return dispathUser(repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
     }
 
     public User getUser(Long userId) {
-        return repository.findById(userId).orElseThrow(() -> ApiError.notFound("No se encontró el usuario"));
+        return dispathUser(repository.findById(userId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
     }
 
 
+    public User dispathUser(User user) {
+
+        var representation = keycloakUserManager.get(user.getKeycloakId());
+        var authorities = authorityExtractor.extract(representation);
+
+        user.setRepresentation(representation);
+        user.setAuthorities(authorities);
+
+        return user;
+    }
+
+    private void createUser(SingUpUser newUser, Authority authority) {
+        createUser(newUser, user -> {
+        }, authority);
+    }
+
+    private void createUser(SingUpUser newUser, Consumer<User> beforeSave, Authority authority) {
+
+        var keycloakId = keycloakUserManager.create(
+                newUser.toUserRepresentation(),
+                newUser.getPassword(),
+                authority.getAuthority()
+        );
+
+        var user = User.builder()
+                .keycloakId(keycloakId)
+                .build();
+
+        beforeSave.accept(user);
+        repository.save(user);
+    }
 }

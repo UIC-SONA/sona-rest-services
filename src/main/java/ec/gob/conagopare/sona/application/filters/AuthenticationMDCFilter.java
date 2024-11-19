@@ -17,30 +17,28 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-public class PostAuthMDCFilter extends OncePerRequestFilter {
+public class AuthenticationMDCFilter extends OncePerRequestFilter {
 
-    private static final String IPADDRESS = "address";
     private static final String SUBJECT = "subject";
-    private static final String PATH = "path";
+    private static final String TYPE = "type";
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+
         var context = SecurityContextHolder.getContext();
         var authentication = context.getAuthentication();
 
-        if (authentication instanceof JwtAuthenticationToken token) {
-            var jwt = token.getToken();
-            MDC.put(SUBJECT, jwt.getSubject());
-        } else if (authentication == null) {
-            MDC.put(SUBJECT, "anonymous");
+        if (authentication != null) {
+            MDC.put(TYPE, authentication.getClass().getSimpleName());
+            if (authentication instanceof JwtAuthenticationToken token) {
+                var jwt = token.getToken();
+                MDC.put(SUBJECT, jwt.getSubject());
+            } else {
+                MDC.put(SUBJECT, authentication.getName());
+            }
         } else {
-            MDC.put(SUBJECT, authentication.getName());
+            MDC.put(SUBJECT, "<anonymous>");
         }
-
-        var address = request.getRemoteAddr();
-
-        MDC.put(IPADDRESS, address);
-        MDC.put(PATH, request.getRequestURI());
 
         super.doFilter(request, response, filterChain);
     }

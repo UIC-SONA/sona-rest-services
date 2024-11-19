@@ -102,6 +102,7 @@ public class KeycloakUserManager {
 
     private String create(UserRepresentation newUser, String password, RoleRepresentation... roles) {
 
+        newUser.setEnabled(true);
         try (var response = cli.users().create(newUser)) {
 
             var status = response.getStatus();

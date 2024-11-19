@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.modules.menstrualcalendar.service;
+package ec.gob.conagopare.sona.modules.menstrualcalendar.services;
 
 import ec.gob.conagopare.sona.modules.menstrualcalendar.dto.MenstrualCycleDto;
 import ec.gob.conagopare.sona.modules.menstrualcalendar.models.MenstrualCycle;

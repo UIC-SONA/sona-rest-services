@@ -5,8 +5,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 @Configuration
@@ -15,7 +18,19 @@ public class AuditConfig {
 
     @Bean
     public AuditorAware<String> auditorProvider() {
-        return new AuditorAwareImpl();
+        return () -> {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (Objects.isNull(authentication)) {
+                return Optional.of("System");
+            }
+
+            if (authentication.getPrincipal() instanceof Jwt jwt) {
+                return Optional.of(jwt.getSubject());
+            } else {
+                return Optional.of(authentication.getName());
+            }
+        };
     }
 
     @Bean

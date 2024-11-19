@@ -1,12 +1,13 @@
-package ec.gob.conagopare.sona.modules.user.entities;
+package ec.gob.conagopare.sona.modules.user.models;
 
 
 import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
 import io.github.luidmidev.storage.PurgableStored;
 import jakarta.persistence.*;
 import lombok.*;
+import org.keycloak.representations.idm.UserRepresentation;
 
-import java.time.LocalDate;
+import java.util.Collection;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -24,14 +25,14 @@ public class User extends Auditable implements PurgableStored {
     @Column(nullable = false, unique = true)
     private String keycloakId;
 
-    @Column(unique = true)
-    private String ci;
-
-    @Column(nullable = false)
-    protected LocalDate dateOfBirth;
-
     @Column
     private String profilePicturePath;
+
+    @Transient
+    private UserRepresentation representation;
+
+    @Transient
+    private Collection<Authority> authorities;
 
     @Override
     public String[] filesFullPaths() {
