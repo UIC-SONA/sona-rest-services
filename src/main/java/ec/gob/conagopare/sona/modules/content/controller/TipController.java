@@ -1,18 +1,22 @@
 package ec.gob.conagopare.sona.modules.content.controller;
 
+import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
 import io.github.luidmidev.springframework.data.crud.core.CRUDMessagesResolver;
 import io.github.luidmidev.springframework.data.crud.core.utils.PageableUtils;
 import lombok.Getter;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,7 +39,7 @@ public class TipController {
     }
 
     @PreAuthorize("hasRole('admin')")
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> create(
             @RequestParam String title,
             @RequestParam String summary,
@@ -123,5 +127,11 @@ public class TipController {
     @GetMapping("/active")
     public ResponseEntity<List<Tip>> active() {
         return ResponseEntity.ok(service.active());
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/image/{id}")
+    public ResponseEntity<ByteArrayResource> image(@PathVariable("id") UUID id) throws IOException {
+        return ResponseEntityUtils.resource(service.image(id));
     }
 }

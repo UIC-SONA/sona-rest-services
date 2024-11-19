@@ -9,5 +9,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByKeycloakId(String keykloaId);
 
-    boolean existsByCi(String ci);
 }

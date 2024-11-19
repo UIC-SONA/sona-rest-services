@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.modules.content.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ec.gob.conagopare.sona.application.common.converters.JsonConverter;
 import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
 import io.github.luidmidev.springframework.data.crud.core.CRUDModel;
@@ -36,6 +37,7 @@ public class Tip extends Auditable implements PurgableStored, CRUDModel<UUID> {
     @Convert(converter = JsonConverter.ListStringConverter.class)
     private List<String> tags;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String image;
 

@@ -103,6 +103,8 @@ public class KeycloakUserManager {
     private String create(UserRepresentation newUser, String password, RoleRepresentation... roles) {
 
         newUser.setEnabled(true);
+        newUser.setEmailVerified(true);
+
         try (var response = cli.users().create(newUser)) {
 
             var status = response.getStatus();
@@ -182,6 +184,7 @@ public class KeycloakUserManager {
     }
 
     private RoleRepresentation searchRole(String roleName) {
+        log.info("Search role {}", roleName);
         return cli.roles().get(roleName).toRepresentation();
     }
 
