@@ -52,34 +52,35 @@ public class OpenAPIConfig {
                 .info(new Info()
                         .title("SONA API Documentation")
                         .description("DOCUMENTATION FOR SONA")
+                        .version("1.0.0")
                 )
                 .components(new Components()
-                        .addSecuritySchemes(
-                                OPEN_ID_SCHEME_NAME,
-                                new SecurityScheme()
-                                        .description("OpenID Connect authentication")
-                                        .type(SecurityScheme.Type.OPENIDCONNECT)
-                                        .openIdConnectUrl(openIdConnectUrl)
-                        )
-                        .addSecuritySchemes(
-                                OAUTH2_SCHEME_NAME,
-                                new SecurityScheme()
-                                        .description("OAuth2 authentication")
-                                        .type(SecurityScheme.Type.OAUTH2)
-                                        .flows(new OAuthFlows()
-                                                .authorizationCode(new OAuthFlow()
-                                                        .authorizationUrl((String) openIdConnectConfig.get("authorization_endpoint"))
-                                                        .tokenUrl((String) openIdConnectConfig.get("token_endpoint"))
-                                                        .refreshUrl((String) openIdConnectConfig.get("token_endpoint"))
-                                                        .scopes(getScopesSupported())
-                                                        .extensions(rapidocExtensions())
+//                        .addSecuritySchemes(
+//                                OPEN_ID_SCHEME_NAME,
+//                                new SecurityScheme()
+//                                        .description("OpenID Connect authentication")
+//                                        .type(SecurityScheme.Type.OPENIDCONNECT)
+//                                        .openIdConnectUrl(openIdConnectUrl)
+//                        )
+                                .addSecuritySchemes(
+                                        OAUTH2_SCHEME_NAME,
+                                        new SecurityScheme()
+                                                .description("OAuth2 authentication")
+                                                .type(SecurityScheme.Type.OAUTH2)
+                                                .flows(new OAuthFlows()
+                                                        .authorizationCode(new OAuthFlow()
+                                                                .authorizationUrl((String) openIdConnectConfig.get("authorization_endpoint"))
+                                                                .tokenUrl((String) openIdConnectConfig.get("token_endpoint"))
+                                                                .refreshUrl((String) openIdConnectConfig.get("token_endpoint"))
+                                                                .scopes(getScopesSupported())
+                                                                .extensions(rapidocExtensions())
+                                                        )
                                                 )
-                                        )
-                        )
+                                )
                 )
                 .addSecurityItem(new SecurityRequirement()
-                        .addList(OPEN_ID_SCHEME_NAME)
-                        .addList(OAUTH2_SCHEME_NAME)
+//                        .addList(OPEN_ID_SCHEME_NAME)
+                                .addList(OAUTH2_SCHEME_NAME)
                 );
     }
 

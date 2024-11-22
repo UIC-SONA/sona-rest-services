@@ -30,7 +30,7 @@ import java.io.IOException;
 public class AppConfig {
 
     @EventListener(ApplicationStartedEvent.class)
-    public void onApplicationStarted() {
+    public void startedEvent() {
         LocaleContext.setLocaleSupplier(LocaleContextHolder::getLocale);
     }
 

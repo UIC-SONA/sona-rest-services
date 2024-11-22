@@ -1,13 +1,13 @@
 package ec.gob.conagopare.sona.application.common.functions;
 
-public interface RunnableThrowable<V extends Throwable> {
+public interface RunnableThrowable<V extends Exception> {
     void run() throws V;
 
-    static <V extends Throwable> RunnableThrowable<V> unchecked(RunnableThrowable<V> runnable) {
+    static <V extends Exception> RunnableThrowable<V> unchecked(RunnableThrowable<V> runnable) {
         return () -> {
             try {
                 runnable.run();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         };

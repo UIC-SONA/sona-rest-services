@@ -6,6 +6,9 @@ import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
 import io.github.luidmidev.springframework.data.crud.core.CRUDMessagesResolver;
 import io.github.luidmidev.springframework.data.crud.core.utils.PageableUtils;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,10 +45,11 @@ public class TipController {
     @PreAuthorize("hasRole('admin')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> create(
-            @RequestParam String title,
-            @RequestParam String summary,
-            @RequestParam boolean active,
-            @RequestParam List<String> tags,
+            @RequestPart int[] aaa,
+            @RequestPart String title,
+            @RequestPart String summary,
+            @RequestPart List<String> tags,
+            @RequestPart boolean active,
             @RequestPart String description,
             @RequestPart MultipartFile image
     ) {
@@ -57,10 +62,10 @@ public class TipController {
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> update(
             @PathVariable("id") UUID id,
-            @RequestParam String title,
-            @RequestParam String summary,
-            @RequestParam boolean active,
-            @RequestParam List<String> tags,
+            @RequestPart String title,
+            @RequestPart String summary,
+            @RequestPart boolean active,
+            @RequestPart List<String> tags,
             @RequestPart String description,
             @RequestPart(required = false) MultipartFile image
     ) {

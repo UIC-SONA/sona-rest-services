@@ -52,7 +52,7 @@ public class FilterQueryBuilder {
     }
 
     /**
-     * @param inners Tablas que se van a unir a la consulta
+     * @param inners Tablas que se  unirán a la consulta
      * @return this
      */
     public FilterQueryBuilder addInners(String... inners) {

@@ -3,11 +3,12 @@ package ec.gob.conagopare.sona.application.common.converters;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.Converter;
 import lombok.SneakyThrows;
 
 import java.util.List;
 
+@Converter
 public abstract class JsonConverter<T> implements AttributeConverter<T, String> {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

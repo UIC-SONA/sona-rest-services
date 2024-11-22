@@ -3,14 +3,14 @@ package ec.gob.conagopare.sona.application.common.functions;
 import java.util.function.Supplier;
 
 @FunctionalInterface
-public interface SupplierThrowable<T, V extends Throwable> {
+public interface SupplierThrowable<T, V extends Exception> {
     T get() throws V;
 
-    static <T, V extends Throwable> Supplier<T> unchecked(SupplierThrowable<T, V> supplier) {
+    static <T, V extends Exception> Supplier<T> unchecked(SupplierThrowable<T, V> supplier) {
         return () -> {
             try {
                 return supplier.get();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         };

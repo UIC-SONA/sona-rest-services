@@ -40,7 +40,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Message> uploadProfilePicture(
-            @RequestParam("photo") MultipartFile photo,
+            @RequestPart MultipartFile photo,
             @AuthenticationPrincipal Jwt jwt
     ) throws IOException {
         service.uploadProfilePicture(photo, jwt);

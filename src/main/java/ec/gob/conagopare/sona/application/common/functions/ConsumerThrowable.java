@@ -3,14 +3,14 @@ package ec.gob.conagopare.sona.application.common.functions;
 import java.util.function.Consumer;
 
 @FunctionalInterface
-public interface ConsumerThrowable<T, V extends Throwable> {
+public interface ConsumerThrowable<T, V extends Exception> {
     void accept(T t) throws V;
 
-    static <T, V extends Throwable> Consumer<T> unchecked(ConsumerThrowable<T, V> consumer) {
+    static <T, V extends Exception> Consumer<T> unchecked(ConsumerThrowable<T, V> consumer) {
         return t -> {
             try {
                 consumer.accept(t);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         };
