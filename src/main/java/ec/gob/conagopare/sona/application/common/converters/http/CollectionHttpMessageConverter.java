@@ -47,8 +47,11 @@ public class CollectionHttpMessageConverter extends StringGenericHttpMessageConv
             return Optional.empty();
         }
 
-        var elementType = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-        return Optional.ofNullable(FromString.from(elementType));
+        if (parameterizedType.getActualTypeArguments()[0] instanceof Class<?> elementType) {
+            return Optional.of(FromString.from(elementType));
+        }
+
+        return Optional.empty();
     }
 
     private static Optional<ParameterizedType> toParameterizedType(Type type) {
