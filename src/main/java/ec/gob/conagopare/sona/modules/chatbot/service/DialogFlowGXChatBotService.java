@@ -6,6 +6,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.cx.v3.*;
 import ec.gob.conagopare.sona.modules.chatbot.ChaBotConfig;
 import ec.gob.conagopare.sona.modules.chatbot.repositories.ChatBotSessionRepository;
+import ec.gob.conagopare.sona.modules.chatbot.repositories.PromptResponseRepository;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -34,8 +35,8 @@ public class DialogFlowGXChatBotService extends ChatBotService {
         }
     }
 
-    public DialogFlowGXChatBotService(ChaBotConfig config, ChatBotSessionRepository chatBotSessionRepository) {
-        super(chatBotSessionRepository);
+    public DialogFlowGXChatBotService(ChaBotConfig config, ChatBotSessionRepository chatBotSessionRepository, PromptResponseRepository promptResponseRepository) {
+        super(chatBotSessionRepository, promptResponseRepository);
         this.config = config;
     }
 
