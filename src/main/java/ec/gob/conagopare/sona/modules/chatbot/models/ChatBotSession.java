@@ -25,6 +25,6 @@ public class ChatBotSession {
     private String session;
 
     @Builder.Default
-    @DBRef
-    private List<PromptResponse> promptResponses = new ArrayList<>();
+    @DBRef(lazy = true)
+    private List<PromptResponses> promptResponses = new ArrayList<>();
 }

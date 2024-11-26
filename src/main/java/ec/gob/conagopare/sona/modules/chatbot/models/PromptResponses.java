@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "prompt_responses")
-public class PromptResponse {
+public class PromptResponses {
 
     private String prompt;
 

@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.chatbot.controllers;
 
-import ec.gob.conagopare.sona.modules.chatbot.models.PromptResponse;
+import ec.gob.conagopare.sona.modules.chatbot.models.PromptResponses;
 import ec.gob.conagopare.sona.modules.chatbot.service.ChatBotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +20,13 @@ public class ChatBotController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(value = "/send-message")
-    public ResponseEntity<PromptResponse> sendMessage(@RequestParam String prompt, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<PromptResponses> sendMessage(@RequestParam String prompt, @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(service.sendMessage(jwt.getSubject(), prompt));
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/history")
-    public List<PromptResponse> getChatHistory(@AuthenticationPrincipal Jwt jwt) {
+    public List<PromptResponses> getChatHistory(@AuthenticationPrincipal Jwt jwt) {
         return service.getChatHistory(jwt.getSubject());
     }
 

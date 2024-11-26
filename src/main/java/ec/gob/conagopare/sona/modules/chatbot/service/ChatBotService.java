@@ -1,8 +1,9 @@
 package ec.gob.conagopare.sona.modules.chatbot.service;
 
 import ec.gob.conagopare.sona.modules.chatbot.models.ChatBotSession;
-import ec.gob.conagopare.sona.modules.chatbot.models.PromptResponse;
+import ec.gob.conagopare.sona.modules.chatbot.models.PromptResponses;
 import ec.gob.conagopare.sona.modules.chatbot.repositories.ChatBotSessionRepository;
+import ec.gob.conagopare.sona.modules.chatbot.repositories.PromptResponseRepository;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public abstract class ChatBotService {
 
     private final ChatBotSessionRepository sessionRepository;
+    private final PromptResponseRepository promptResponseRepository;
 
     /**
      * MEtodo abstracto para realizar la lógica interna de chat.
@@ -27,7 +29,7 @@ public abstract class ChatBotService {
     /**
      * MEtodo principal para manejar un mensaje de chat.
      */
-    public PromptResponse sendMessage(@NotNull @NotEmpty String session, String prompt) {
+    public PromptResponses sendMessage(@NotNull @NotEmpty String session, String prompt) {
         var response = internalChat(session, prompt);
         var chatBotSession = getOrCreateSession(session);
 
@@ -53,23 +55,21 @@ public abstract class ChatBotService {
     /**
      * Guarda una respuesta de un prompt en la sesión y retorna su DTO.
      */
-    public PromptResponse savePromptResponse(ChatBotSession session, String prompt, List<String> responses) {
-        var promptResponse = PromptResponse.builder()
+    public PromptResponses savePromptResponse(ChatBotSession session, String prompt, List<String> responses) {
+        var promptResponse = PromptResponses.builder()
+                .session(session)
                 .prompt(prompt)
                 .responses(responses)
                 .timestamp(LocalDateTime.now(ZoneOffset.UTC))
                 .build();
 
-        session.getPromptResponses().add(promptResponse);
-        sessionRepository.save(session);
-
-        return promptResponse;
+        return promptResponseRepository.save(promptResponse);
     }
 
     /**
      * Convierte la lista de respuestas a su representación en DTO.
      */
-    public List<PromptResponse> getChatHistory(String session) {
+    public List<PromptResponses> getChatHistory(String session) {
         return findSession(session)
                 .map(ChatBotSession::getPromptResponses)
                 .orElse(List.of());
