@@ -25,17 +25,27 @@ public abstract class StringHttpMessageConverter<T> extends AbstractHttpMessageC
 
 
     @Override
-    public @NotNull T readInternal(@NotNull Class<? extends T> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+    public @NotNull T readInternal(@NotNull Class<? extends T> clazz, @NotNull HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
         var bytes = inputMessage.getBody().readAllBytes();
-        var content = new String(bytes, Objects.requireNonNull(getDefaultCharset()));
-        return fromString(content, clazz);
+        try {
+            var content = new String(bytes, Objects.requireNonNull(getDefaultCharset()));
+            return fromString(content, clazz);
+        } catch (Exception e) {
+            throw new HttpMessageNotReadableException("Failed to read HTTP message", e, inputMessage);
+        }
     }
 
 
     @Override
     public void writeInternal(@NotNull T value, @NotNull HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        var content = toString(value);
-        outputMessage.getBody().write(content.getBytes(Objects.requireNonNull(getDefaultCharset())));
+        try {
+            var content = toString(value);
+            outputMessage.getBody().write(content.getBytes(Objects.requireNonNull(getDefaultCharset())));
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new HttpMessageNotWritableException("Failed to write HTTP message", e);
+        }
     }
 
     protected abstract T fromString(String content, Class<? extends T> clazz);

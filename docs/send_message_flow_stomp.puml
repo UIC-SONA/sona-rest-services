@@ -1,11 +1,32 @@
 @startuml
-'https://plantuml.com/sequence-diagram
 
-autonumber
+skinparam participant {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+}
 
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
+skinparam actor {
+    BackgroundColor LightGreen
+    BorderColor DarkGreen
+}
 
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
+skinparam sequence {
+    ArrowColor DarkRed
+    LineThickness 2
+}
+
+actor Cliente1
+entity Broker
+actor Cliente2
+
+Cliente1 -> Broker : SEND(destination, content-type, cuerpo del mensaje)
+Broker -> Broker : Validar destino y encabezados
+alt Si el mensaje es válido
+    Broker -> Broker : Almacenar mensaje en destino
+    Broker -> Cliente1 : OK (Procesamiento exitoso)
+    Broker -> Cliente2 : Entregar mensaje (si suscrito)
+else Si ocurre un error
+    Broker -> Broker : Generar error (por ejemplo, destino inválido)
+    Broker -> Cliente1 : ERROR (fallo en el procesamiento)
+end
 @enduml

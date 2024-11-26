@@ -9,12 +9,20 @@ import org.springframework.lang.Nullable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toCollection;
 
 @Slf4j
 public class CollectionHttpMessageConverter extends StringGenericHttpMessageConverter<Collection<?>> {
+
+    private static final Map<Class<?>, Function<Stream<?>, Collection<?>>> COLLECTION_PROVIDERS = Map.of(
+            List.class, Stream::toList,
+            Set.class, stream -> stream.collect(Collectors.toSet()),
+            Queue.class, stream -> stream.collect(Collectors.toCollection(ArrayDeque::new)),
+            Deque.class, stream -> stream.collect(Collectors.toCollection(LinkedList::new))
+    );
 
     @Override
     public boolean supports(@NotNull Class<?> clazz) {
@@ -27,7 +35,10 @@ public class CollectionHttpMessageConverter extends StringGenericHttpMessageConv
     }
 
     private static Optional<FromString<?>> parser(Type type) {
-        var parameterizedType = toParameterizedType(type).orElseGet(() -> type instanceof Class<?> clazz ? toParameterizedType(clazz.getGenericSuperclass()).orElse(null) : null);
+        var parameterizedType = (type instanceof Class<?> clazz
+                ? toParameterizedType(clazz.getGenericSuperclass())
+                : toParameterizedType(type)).orElse(null);
+
         if (parameterizedType == null) {
             return Optional.empty();
         }
@@ -50,23 +61,17 @@ public class CollectionHttpMessageConverter extends StringGenericHttpMessageConv
 
     @Override
     protected Collection<?> fromString(String content, Type type) {
-
         var values = Arrays.asList(content.split(","));
         var parser = parser(type).orElseThrow();
         var clazz = type instanceof Class<?> aClazz ? aClazz : (Class<?>) toParameterizedType(type).orElseThrow().getRawType();
+        var mapped = values.stream().map(parser::parse);
+        return toCollection(clazz, mapped);
+    }
 
-        return values.stream().map(parser::parse).collect(toCollection(() -> {
-            if (List.class.isAssignableFrom(clazz)) {
-                return new ArrayList<>();
-            }
-            if (Set.class.isAssignableFrom(clazz)) {
-                return new HashSet<>();
-            }
-            if (Queue.class.isAssignableFrom(clazz)) {
-                return new ArrayDeque<>();
-            }
-            throw new IllegalArgumentException("Unsupported collection type: " + clazz);
-        }));
+    private static Collection<?> toCollection(Class<?> clazz, Stream<?> mapped) {
+        return Optional.ofNullable(COLLECTION_PROVIDERS.get(clazz))
+                .map(provider -> provider.apply(mapped))
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported collection type: " + clazz + ". Supported types: " + COLLECTION_PROVIDERS.keySet()));
     }
 
     @Override

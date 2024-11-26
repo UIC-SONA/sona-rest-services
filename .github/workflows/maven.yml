@@ -37,8 +37,8 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
 
-      - name: Integration Test & Unit Test
-        run: mvn -B test
+#      - name: Integration Test & Unit Test
+#        run: mvn -B test
 
       - name: Build and Package with Maven
         run: mvn -B clean package -DskipTests

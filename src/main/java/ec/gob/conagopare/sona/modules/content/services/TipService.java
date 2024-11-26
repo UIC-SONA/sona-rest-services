@@ -57,6 +57,11 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
         model.setActive(dto.isActive());
     }
 
+    @Override
+    public void onAfterDelete(Tip uuid) {
+        StorageUtils.tryRemoveFileAsync(storage, uuid.getImage());
+    }
+
     public List<Tip> active() {
         return repository.findAllByActiveTrue();
     }
@@ -79,8 +84,5 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
         var fileName = "tip-img-" + LocalDateTime.now().toString().replace(":", "-") + "." + FileUtils.getExtension(Objects.requireNonNull(image.getOriginalFilename()));
         var path = storage.store(image.getInputStream(), fileName, TIPS_IMAGES_PATH);
         model.setImage(path);
-
     }
-
-
 }

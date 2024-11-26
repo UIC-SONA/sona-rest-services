@@ -1,7 +1,7 @@
 package ec.gob.conagopare.sona.modules.user.service;
 
-import ec.gob.conagopare.sona.application.common.functions.Extractor;
-import ec.gob.conagopare.sona.application.common.functions.FunctionThrowable;
+import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
+import ec.gob.conagopare.sona.application.common.utils.functions.FunctionThrowable;
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
@@ -25,10 +25,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 @Service
@@ -62,7 +59,7 @@ public class UserService {
         createUser(singUpUser, Authority.USER);
     }
 
-    public Stored getProfilePicture(Jwt jwt) {
+    public Stored profilePicture(Jwt jwt) {
         var user = getUser(jwt);
         return Optional.ofNullable(user.getProfilePicturePath())
                 .map(FunctionThrowable.unchecked(storage::download))
@@ -116,6 +113,10 @@ public class UserService {
         user.setAuthorities(authorities);
 
         return user;
+    }
+
+    public List<User> users() {
+        return repository.findAll();
     }
 
     private void createUser(SingUpUser newUser, Authority authority) {

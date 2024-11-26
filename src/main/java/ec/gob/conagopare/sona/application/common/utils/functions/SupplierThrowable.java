@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.application.common.functions;
+package ec.gob.conagopare.sona.application.common.utils.functions;
 
 import java.util.function.Supplier;
 

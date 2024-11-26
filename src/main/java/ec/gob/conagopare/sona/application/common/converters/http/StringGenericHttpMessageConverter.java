@@ -27,10 +27,14 @@ public abstract class StringGenericHttpMessageConverter<T> extends AbstractGener
 
 
     @Override
-    public @NotNull T read(@NotNull Type type, Class<?> contextClass, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+    public @NotNull T read(@NotNull Type type, Class<?> contextClass, @NotNull HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
         var bytes = inputMessage.getBody().readAllBytes();
-        var content = new String(bytes, Objects.requireNonNull(getDefaultCharset()));
-        return fromString(content, type);
+        try {
+            var content = new String(bytes, Objects.requireNonNull(getDefaultCharset()));
+            return fromString(content, type);
+        } catch (Exception e) {
+            throw new HttpMessageNotReadableException("Failed to read HTTP message", e, inputMessage);
+        }
     }
 
 
@@ -41,8 +45,14 @@ public abstract class StringGenericHttpMessageConverter<T> extends AbstractGener
 
     @Override
     protected void writeInternal(@NotNull T value, Type type, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        var content = toString(value, type);
-        outputMessage.getBody().write(content.getBytes(Objects.requireNonNull(getDefaultCharset())));
+        try {
+            var content = toString(value, type);
+            outputMessage.getBody().write(content.getBytes(Objects.requireNonNull(getDefaultCharset())));
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new HttpMessageNotWritableException("Failed to write HTTP message", e);
+        }
     }
 
     protected abstract T fromString(String content, Type type);

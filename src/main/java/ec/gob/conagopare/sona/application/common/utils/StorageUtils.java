@@ -1,11 +1,13 @@
 package ec.gob.conagopare.sona.application.common.utils;
 
-import ec.gob.conagopare.sona.application.common.concurrent.CompletableFutureThrowables;
+import ec.gob.conagopare.sona.application.common.utils.concurrent.CompletableFutureThrowables;
 import io.github.luidmidev.storage.Storage;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 
 import java.util.function.Function;
+
+import static ec.gob.conagopare.sona.application.common.utils.concurrent.CompletableFutureThrowables.runAsync;
 
 @Slf4j
 public final class StorageUtils {
@@ -24,7 +26,7 @@ public final class StorageUtils {
 
     public static void tryRemoveFileAsync(Storage storage, String fullPath) {
         if (fullPath == null) return;
-        CompletableFutureThrowables.runAsync(() -> storage.remove(fullPath)).exceptionally(canNotRemoveFile(fullPath));
+        runAsync(() -> storage.remove(fullPath)).exceptionally(canNotRemoveFile(fullPath));
     }
 
 

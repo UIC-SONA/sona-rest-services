@@ -1,43 +1,50 @@
 package ec.gob.conagopare.sona.modules.chat.controllers;
 
 import ec.gob.conagopare.sona.modules.chat.dto.MessageSent;
+import ec.gob.conagopare.sona.modules.chat.models.ChatMessage;
+import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
 import ec.gob.conagopare.sona.modules.chat.services.ChatService;
+import ec.gob.conagopare.sona.modules.user.models.User;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@Slf4j
+import java.util.List;
+
 @RestController
 @RequestMapping("/chat")
 @RequiredArgsConstructor
-public class RealTimeChatController {
+@PreAuthorize("isAuthenticated()")
+public class ChatController {
 
     private final ChatService service;
-    private final SimpMessagingTemplate messaging;
 
     @PostMapping("/send")
-    public void send(@RequestBody MessageSent message, @AuthenticationPrincipal Jwt jwt) {
-        var chatMessage = service.send(message, jwt);
-        var chatRoom = chatMessage.getChatRoom();
-        messaging.convertAndSend("/chat.room." + chatRoom.getId(), chatMessage);
-        for (var participant : chatRoom.getParticipants()) {
-            messaging.convertAndSend("/chat.inbox." + participant, chatMessage);
-        }
+    public ResponseEntity<ChatMessage> send(@RequestBody MessageSent message, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.send(message, jwt));
     }
 
-    @MessageExceptionHandler
-    public void handleException(Exception e) {
-        log.error("Error processing message", e);
-        messaging.convertAndSend("/chat.error", e.getMessage());
+    @GetMapping("/rooms")
+    public ResponseEntity<List<ChatRoom>> rooms(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.rooms(jwt));
+    }
+
+    @GetMapping("/room/{roomId}")
+    public ResponseEntity<ChatRoom> room(@PathVariable String roomId) {
+        return ResponseEntity.ok(service.room(roomId));
+    }
+
+    @GetMapping("/user/{userId}/room")
+    public ResponseEntity<ChatRoom> room(@PathVariable Long userId, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.room(userId, jwt));
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> users(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.users(jwt));
     }
 
 }

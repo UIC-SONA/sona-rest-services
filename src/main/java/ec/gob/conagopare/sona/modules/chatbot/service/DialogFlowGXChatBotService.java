@@ -5,7 +5,8 @@ import com.google.auth.Credentials;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.cx.v3.*;
 import ec.gob.conagopare.sona.modules.chatbot.ChaBotConfig;
-import lombok.RequiredArgsConstructor;
+import ec.gob.conagopare.sona.modules.chatbot.repositories.ChatBotSessionRepository;
+import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class ChatBotService {
+public class DialogFlowGXChatBotService extends ChatBotService {
 
     private final ChaBotConfig config;
     private final Set<String> activeIntentsDetection = ConcurrentHashMap.newKeySet();
@@ -34,44 +34,60 @@ public class ChatBotService {
         }
     }
 
-    public
+    public DialogFlowGXChatBotService(ChaBotConfig config, ChatBotSessionRepository chatBotSessionRepository) {
+        super(chatBotSessionRepository);
+        this.config = config;
+    }
 
+    @Override
+    protected List<String> internalChat(String session, String prompt) {
+        try {
+            if (!activeIntentsDetection.add(session)) {
+                throw ApiError.badRequest("Ya se está detectando la intención");
+            }
 
-    public List<ResponseMessage> detectIntent(String sessionId, String text) throws IOException {
+            var responses = getResponseMessages(session, prompt).stream()
+                    .filter(ResponseMessage::hasText)
+                    .flatMap(message -> message.getText().getTextList().stream())
+                    .toList();
 
-        if (activeIntentsDetection.contains(sessionId)) {
-            return List.of();
+            return responses.isEmpty() ? List.of("Lo siento, no puedo responder en este momento") : responses;
+
+        } catch (Exception e) {
+            log.error("Error al detectar la intención", e);
+            return List.of("Lo siento, no puedo responder en este momento, ocurrió un error %s".formatted(e.getMessage()));
+        } finally {
+            activeIntentsDetection.remove(session);
         }
+    }
 
+
+    private List<ResponseMessage> getResponseMessages(String session, String prompt) throws IOException {
         try (var sessionsClient = getSessionsClient()) {
 
-            var textInput = TextInput.newBuilder().setText(text);
+            var textInput = TextInput.newBuilder().setText(prompt);
             var queryInput = QueryInput.newBuilder()
                     .setText(textInput)
                     .setLanguageCode(LocaleContextHolder.getLocale().getLanguage())
                     .build();
 
             var request = DetectIntentRequest.newBuilder()
-                    .setSession(getSessionName(sessionId).toString())
+                    .setSession(getSession(session))
                     .setQueryInput(queryInput)
                     .build();
 
             var response = sessionsClient.detectIntent(request);
 
             var queryResult = response.getQueryResult();
+
             return queryResult.getResponseMessagesList();
         }
     }
 
 
-    public SessionName getSessionName(String session) {
+    public String getSession(String session) {
         var sessionConfig = config.getSession();
-        return SessionName.ofProjectLocationAgentSessionName(
-                sessionConfig.getProject(),
-                sessionConfig.getLocation(),
-                sessionConfig.getAgent(),
-                session
-        );
+        return SessionName.ofProjectLocationAgentSessionName(sessionConfig.getProject(), sessionConfig.getLocation(), sessionConfig.getAgent(), session).toString();
     }
 
     public static SessionsClient getSessionsClient() throws IOException {
@@ -81,5 +97,4 @@ public class ChatBotService {
 
         return SessionsClient.create(settings);
     }
-
 }

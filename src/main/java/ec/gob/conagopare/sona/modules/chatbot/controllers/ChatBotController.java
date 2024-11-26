@@ -1,16 +1,15 @@
 package ec.gob.conagopare.sona.modules.chatbot.controllers;
 
+import ec.gob.conagopare.sona.modules.chatbot.models.PromptResponse;
 import ec.gob.conagopare.sona.modules.chatbot.service.ChatBotService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/chatbot")
@@ -20,9 +19,15 @@ public class ChatBotController {
     private final ChatBotService service;
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping(value = "/send-message", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter sendMessage(@RequestParam String message, @AuthenticationPrincipal Jwt jwt) {
-        return service.sendMessage(message, jwt);
+    @PostMapping(value = "/send-message")
+    public ResponseEntity<PromptResponse> sendMessage(@RequestParam String prompt, @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.sendMessage(jwt.getSubject(), prompt));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(value = "/history")
+    public List<PromptResponse> getChatHistory(@AuthenticationPrincipal Jwt jwt) {
+        return service.getChatHistory(jwt.getSubject());
     }
 
 }

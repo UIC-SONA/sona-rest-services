@@ -1,7 +1,7 @@
-package ec.gob.conagopare.sona.application.common.concurrent;
+package ec.gob.conagopare.sona.application.common.utils.concurrent;
 
-import ec.gob.conagopare.sona.application.common.functions.RunnableThrowable;
-import ec.gob.conagopare.sona.application.common.functions.SupplierThrowable;
+import ec.gob.conagopare.sona.application.common.utils.functions.RunnableThrowable;
+import ec.gob.conagopare.sona.application.common.utils.functions.SupplierThrowable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;

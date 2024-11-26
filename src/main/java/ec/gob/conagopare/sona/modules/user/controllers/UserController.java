@@ -3,6 +3,7 @@ package ec.gob.conagopare.sona.modules.user.controllers;
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
+import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -32,8 +34,8 @@ public class UserController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/profile-picture")
-    public ResponseEntity<ByteArrayResource> getProfilePicture(@AuthenticationPrincipal Jwt jwt) {
-        var stored = service.getProfilePicture(jwt);
+    public ResponseEntity<ByteArrayResource> profilePicture(@AuthenticationPrincipal Jwt jwt) {
+        var stored = service.profilePicture(jwt);
         return ResponseEntityUtils.resource(stored);
     }
 
@@ -54,6 +56,12 @@ public class UserController {
     ) {
         service.deleteProfilePicture(jwt);
         return ResponseEntity.ok(new Message("Foto de perfil eliminada correctamente"));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping
+    public ResponseEntity<List<User>> users(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.users());
     }
 
 }

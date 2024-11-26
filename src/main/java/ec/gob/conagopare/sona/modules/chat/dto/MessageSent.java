@@ -5,16 +5,11 @@ import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
 @Data
-public class PrivateMessageSent {
-    /**
-     * For private chat, this is the target user id
-     */
-    @NotNull
-    private Long recipientId;
+public class MessageSent {
 
-    /**
-     * Message content
-     */
+    @NotNull
+    private String chatRoomId;
+    @NotNull
     @NotEmpty
     private String content;
 }

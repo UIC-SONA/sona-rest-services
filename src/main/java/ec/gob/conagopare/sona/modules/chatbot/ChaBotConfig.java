@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "chatbot")
 public class ChaBotConfig {
 
-
     private final Session session = new Session();
 
     @Data
@@ -18,6 +17,4 @@ public class ChaBotConfig {
         private String location;
         private String agent;
     }
-
-
 }

@@ -1,8 +1,8 @@
-package ec.gob.conagopare.sona.application.configuration.security;
+package ec.gob.conagopare.sona.application.configuration;
 
 
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
-import ec.gob.conagopare.sona.application.common.functions.Extractor;
+import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
 import ec.gob.conagopare.sona.application.filters.AuthenticationMDCFilter;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import lombok.RequiredArgsConstructor;
