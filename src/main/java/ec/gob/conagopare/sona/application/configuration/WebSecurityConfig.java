@@ -97,11 +97,11 @@ public class WebSecurityConfig {
         return representation -> {
             var clientsRoles = keycloakUserManager.userRoles(representation.getId());
 
-            return clientsRoles.stream()
-                    .map(RoleRepresentation::getName)
-                    .filter(Authority::exists)
-                    .map(Authority::valueOf)
-                    .toList();
+            List<Authority> authorities = new ArrayList<>();
+            for (RoleRepresentation role : clientsRoles) {
+                Authority.from(role.getName()).ifPresent(authorities::add);
+            }
+            return authorities;
         };
     }
 }

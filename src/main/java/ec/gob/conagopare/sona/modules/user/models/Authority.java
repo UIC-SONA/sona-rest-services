@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public enum Authority implements GrantedAuthority {
@@ -19,7 +20,7 @@ public enum Authority implements GrantedAuthority {
         return value;
     }
 
-    public static boolean exists(String name) {
-        return Arrays.stream(Authority.values()).anyMatch(authority -> authority.getAuthority().equals(name));
+    public static Optional<Authority> from(String name) {
+        return Arrays.stream(Authority.values()).filter(authority -> authority.getAuthority().equals(name)).findFirst();
     }
 }
