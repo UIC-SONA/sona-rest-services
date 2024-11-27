@@ -70,9 +70,7 @@ public abstract class ChatBotService {
      * Convierte la lista de respuestas a su representación en DTO.
      */
     public List<PromptResponses> getChatHistory(String session) {
-        return findSession(session)
-                .map(ChatBotSession::getPromptResponses)
-                .orElse(List.of());
+        return promptResponseRepository.findAllBySessionId(session);
     }
 
 

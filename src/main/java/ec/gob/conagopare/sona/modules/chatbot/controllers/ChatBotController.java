@@ -26,8 +26,8 @@ public class ChatBotController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(value = "/history")
-    public List<PromptResponses> getChatHistory(@AuthenticationPrincipal Jwt jwt) {
-        return service.getChatHistory(jwt.getSubject());
+    public ResponseEntity<List<PromptResponses>> getChatHistory(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.getChatHistory(jwt.getSubject()));
     }
 
 }
