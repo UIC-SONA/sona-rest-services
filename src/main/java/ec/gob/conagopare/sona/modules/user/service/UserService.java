@@ -116,7 +116,10 @@ public class UserService {
     }
 
     public List<User> users() {
-        return repository.findAll();
+        return repository.findAll()
+                .stream()
+                .map(this::dispathUser)
+                .toList();
     }
 
     private void createUser(SingUpUser newUser, Authority authority) {
