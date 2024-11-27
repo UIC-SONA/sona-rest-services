@@ -93,8 +93,9 @@ public class WebSecurityConfig {
     @Bean
     public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(@Value("${keycloak.client-id}") String clientId) {
         return representation -> {
+            log.info("Representation: {}", representation);
             var clientsRoles = representation.getClientRoles();
-            if (!clientsRoles.containsKey(clientId)) {
+            if (clientsRoles == null) {
                 return List.of();
             }
 
