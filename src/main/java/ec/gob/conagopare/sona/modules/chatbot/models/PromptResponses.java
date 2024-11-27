@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,7 +25,6 @@ public class PromptResponses {
 
     private LocalDateTime timestamp;
 
-    @JsonIgnore
-    @DBRef(lazy = true)
-    private ChatBotSession session;
+    @Indexed
+    private String session;
 }
