@@ -3,10 +3,12 @@ package ec.gob.conagopare.sona.application.configuration;
 
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
+import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
 import ec.gob.conagopare.sona.application.filters.AuthenticationMDCFilter;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,16 +93,12 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(@Value("${keycloak.client-id}") String clientId) {
+    public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(@Value("${keycloak.client-id}") String clientId, KeycloakUserManager keycloakUserManager) {
         return representation -> {
-            log.info("Representation: {}", representation);
-            var clientsRoles = representation.getClientRoles();
-            if (clientsRoles == null) {
-                return List.of();
-            }
+            var clientsRoles = keycloakUserManager.userRoles(representation.getId());
 
-            var clientRoles = clientsRoles.get(clientId);
-            return clientRoles.stream()
+            return clientsRoles.stream()
+                    .map(RoleRepresentation::getName)
                     .filter(Authority::exists)
                     .map(Authority::valueOf)
                     .toList();
