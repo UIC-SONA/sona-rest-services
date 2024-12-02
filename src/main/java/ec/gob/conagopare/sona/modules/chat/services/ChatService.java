@@ -62,6 +62,7 @@ public class ChatService {
 
     public List<ChatRoom> rooms(Jwt jwt) {
         var user = userService.getUser(jwt);
+        assert user.getId() != null;
         return chatRoomRepository.findAllByParticipantsContaining(List.of(user.getId()));
     }
 

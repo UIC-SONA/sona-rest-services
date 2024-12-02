@@ -17,12 +17,11 @@ public class CrudConfig {
     public Customizer<AuthorizationManagerCrudMatcherRegistry> authorizationCrudConfigurer() {
         var adminRole = Authority.ADMIN.getRole();
 
-        return registry -> registry
-                .targetType(UserService.class)
-                .hasRole(adminRole)
-                .targetType(TipService.class)
-                .hasRole(adminRole)
-                .anyOperation().permitAll();
+        return registry ->
+                registry
+                        .targetReadOnly(UserService.class).authenticated()
+                        .targets(UserService.class, TipService.class).hasRole(adminRole)
+                        .anyOperation().permitAll();
     }
 
 }
