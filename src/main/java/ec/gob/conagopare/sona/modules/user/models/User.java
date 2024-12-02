@@ -6,6 +6,7 @@ import io.github.luidmidev.storage.PurgableStored;
 import jakarta.persistence.*;
 import lombok.*;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.data.domain.Persistable;
 
 import java.util.Collection;
 
@@ -16,7 +17,7 @@ import java.util.Collection;
 @NoArgsConstructor
 @Entity
 @Table(name = "sona_user")
-public class User extends Auditable implements PurgableStored {
+public class User extends Auditable implements Persistable<Long>, PurgableStored {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,5 +38,10 @@ public class User extends Auditable implements PurgableStored {
     @Override
     public String[] filesFullPaths() {
         return new String[]{profilePicturePath};
+    }
+
+    @Override
+    public boolean isNew() {
+        return id == null;
     }
 }

@@ -21,16 +21,13 @@ import java.util.Map;
 @ConditionalOnExpression("${springdoc.api-docs.enabled:false}")
 public class OpenAPIConfig {
 
-    private final String openIdConnectUrl;
     private final String clientId;
     private final Map<String, ?> openIdConnectConfig;
 
-    private static final String OPEN_ID_SCHEME_NAME = "open-id-connect";
     private static final String OAUTH2_SCHEME_NAME = "oauth2";
 
     public OpenAPIConfig(@Value("${openapi.openid-connect-url}") String openIdConnectUrl, RestTemplate restTemplate, @Value("${keycloak.client-id}") String clientId) {
 
-        this.openIdConnectUrl = openIdConnectUrl;
         this.clientId = clientId;
         this.openIdConnectConfig = restTemplate.exchange(openIdConnectUrl, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, ?>>() {
         }).getBody();
@@ -55,28 +52,21 @@ public class OpenAPIConfig {
                         .version("1.0.0")
                 )
                 .components(new Components()
-//                        .addSecuritySchemes(
-//                                OPEN_ID_SCHEME_NAME,
-//                                new SecurityScheme()
-//                                        .description("OpenID Connect authentication")
-//                                        .type(SecurityScheme.Type.OPENIDCONNECT)
-//                                        .openIdConnectUrl(openIdConnectUrl)
-//                        )
-                                .addSecuritySchemes(
-                                        OAUTH2_SCHEME_NAME,
-                                        new SecurityScheme()
-                                                .description("OAuth2 authentication")
-                                                .type(SecurityScheme.Type.OAUTH2)
-                                                .flows(new OAuthFlows()
-                                                        .authorizationCode(new OAuthFlow()
-                                                                .authorizationUrl((String) openIdConnectConfig.get("authorization_endpoint"))
-                                                                .tokenUrl((String) openIdConnectConfig.get("token_endpoint"))
-                                                                .refreshUrl((String) openIdConnectConfig.get("token_endpoint"))
-                                                                .scopes(getScopesSupported())
-                                                                .extensions(rapidocExtensions())
-                                                        )
+                        .addSecuritySchemes(
+                                OAUTH2_SCHEME_NAME,
+                                new SecurityScheme()
+                                        .description("OAuth2 authentication")
+                                        .type(SecurityScheme.Type.OAUTH2)
+                                        .flows(new OAuthFlows()
+                                                .authorizationCode(new OAuthFlow()
+                                                        .authorizationUrl((String) openIdConnectConfig.get("authorization_endpoint"))
+                                                        .tokenUrl((String) openIdConnectConfig.get("token_endpoint"))
+                                                        .refreshUrl((String) openIdConnectConfig.get("token_endpoint"))
+                                                        .scopes(getScopesSupported())
+                                                        .extensions(rapidocExtensions())
                                                 )
-                                )
+                                        )
+                        )
                 )
                 .addSecurityItem(new SecurityRequirement()
 //                        .addList(OPEN_ID_SCHEME_NAME)

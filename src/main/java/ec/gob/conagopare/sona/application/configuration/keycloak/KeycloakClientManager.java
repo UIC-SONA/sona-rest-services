@@ -34,11 +34,11 @@ public class KeycloakClientManager {
         return realm().users();
     }
 
-    public ClientResource clients() {
+    public ClientResource client() {
         return realm().clients().get(clientUiid);
     }
 
     public RolesResource roles() {
-        return clients().roles();
+        return client().roles();
     }
 }

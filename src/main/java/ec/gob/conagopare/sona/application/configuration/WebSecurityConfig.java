@@ -8,7 +8,6 @@ import ec.gob.conagopare.sona.application.filters.AuthenticationMDCFilter;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -93,14 +92,16 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(@Value("${keycloak.client-id}") String clientId, KeycloakUserManager keycloakUserManager) {
+    public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(KeycloakUserManager keycloakUserManager) {
         return representation -> {
+
             var clientsRoles = keycloakUserManager.userRoles(representation.getId());
 
-            List<Authority> authorities = new ArrayList<>();
-            for (RoleRepresentation role : clientsRoles) {
+            var authorities = new ArrayList<Authority>();
+            for (var role : clientsRoles) {
                 Authority.from(role.getName()).ifPresent(authorities::add);
             }
+
             return authorities;
         };
     }

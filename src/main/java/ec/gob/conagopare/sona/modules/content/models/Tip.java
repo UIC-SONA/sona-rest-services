@@ -3,10 +3,10 @@ package ec.gob.conagopare.sona.modules.content.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import ec.gob.conagopare.sona.application.common.converters.JsonConverter;
 import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
-import io.github.luidmidev.springframework.data.crud.core.CRUDModel;
 import io.github.luidmidev.storage.PurgableStored;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.domain.Persistable;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "tip")
-public class Tip extends Auditable implements PurgableStored, CRUDModel<UUID> {
+public class Tip extends Auditable implements Persistable<UUID>, PurgableStored {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -47,5 +47,10 @@ public class Tip extends Auditable implements PurgableStored, CRUDModel<UUID> {
     @Override
     public String[] filesFullPaths() {
         return new String[]{image};
+    }
+
+    @Override
+    public boolean isNew() {
+        return id == null;
     }
 }

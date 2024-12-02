@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -20,7 +21,19 @@ public enum Authority implements GrantedAuthority {
         return value;
     }
 
+    public String getRole() {
+        return value.replace("ROLE_", "");
+    }
+
     public static Optional<Authority> from(String name) {
         return Arrays.stream(Authority.values()).filter(authority -> authority.getAuthority().equals(name)).findFirst();
+    }
+
+    public static String[] getAuthorities(List<Authority> authorities) {
+        return authorities.stream().map(Authority::getAuthority).toArray(String[]::new);
+    }
+
+    public static String[] getAuthorities(Authority... authorities) {
+        return getAuthorities(List.of(authorities));
     }
 }

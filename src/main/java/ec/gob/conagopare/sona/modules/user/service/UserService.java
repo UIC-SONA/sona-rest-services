@@ -4,20 +4,25 @@ import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
 import ec.gob.conagopare.sona.application.common.utils.functions.FunctionThrowable;
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
+import ec.gob.conagopare.sona.application.common.utils.functions.NoOpt;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
 import ec.gob.conagopare.sona.modules.user.UserConfig;
+import ec.gob.conagopare.sona.modules.user.dto.BaseUser;
+import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
+import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,16 +36,22 @@ import java.util.function.Consumer;
 @Service
 @Validated
 @Transactional
-@RequiredArgsConstructor
-public class UserService {
+public class UserService extends JpaCrudService<User, UserDto, Long, UserRepository> {
 
     private static final String USERS_PROFILE_PICTURES_PATH = "users/%d/profile-pictures";
 
     private final UserConfig config;
-    private final UserRepository repository;
     private final KeycloakUserManager keycloakUserManager;
     private final Storage storage;
     private final Extractor<UserRepresentation, Collection<Authority>> authorityExtractor;
+
+    public UserService(UserConfig config, UserRepository repository, EntityManager entityManager, KeycloakUserManager keycloakUserManager, Storage storage, Extractor<UserRepresentation, Collection<Authority>> authorityExtractor) {
+        super(repository, User.class, entityManager);
+        this.config = config;
+        this.keycloakUserManager = keycloakUserManager;
+        this.storage = storage;
+        this.authorityExtractor = authorityExtractor;
+    }
 
     @PostConstruct
     public void init() {
@@ -51,14 +62,42 @@ public class UserService {
         var admin = bootstrap.getAdmin();
 
         if (admin != null && !repository.existsById(admin.getId())) {
-            createUser(admin.toInfo(), user -> user.setId(admin.getId()), Authority.ADMIN);
+            var singUpUser = admin.toSingUpUser();
+            create(singUpUser.toRepresentation(), singUpUser.getPassword(), user -> user.setId(admin.getId()), Authority.ADMIN);
         }
     }
 
+    @PreAuthorize("permitAll()")
     public void signUp(@Valid SingUpUser singUpUser) {
-        createUser(singUpUser, Authority.USER);
+        create(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
     }
 
+
+    @Override
+    protected void mapModel(UserDto dto, User model) {
+        if (model.isNew()) {
+
+            var authorityToAdd = dto.getAuthorityToAdd();
+            var password = dto.getPassword();
+
+            if (authorityToAdd.isEmpty()) {
+                throw ApiError.badRequest("No se puede crear un usuario sin roles");
+            }
+
+            if (password == null) {
+                throw ApiError.badRequest("No se puede crear un usuario sin contraseña");
+            }
+
+
+            create(dto.toRepresentation(), password, authorityToAdd.toArray(Authority[]::new));
+        } else {
+            update(model, dto);
+        }
+
+        dispathUser(model);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     public Stored profilePicture(Jwt jwt) {
         var user = getUser(jwt);
         return Optional.ofNullable(user.getProfilePicturePath())
@@ -68,6 +107,7 @@ public class UserService {
                 .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
     }
 
+    @PreAuthorize("isAuthenticated()")
     public void uploadProfilePicture(@Image MultipartFile photo, Jwt jwt) throws IOException {
         var user = getUser(jwt);
 
@@ -81,6 +121,7 @@ public class UserService {
         StorageUtils.tryRemoveFileAsync(storage, previousProfilePicturePath);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public void deleteProfilePicture(Jwt jwt) {
         var user = getUser(jwt);
 
@@ -105,7 +146,6 @@ public class UserService {
 
 
     public User dispathUser(User user) {
-
         var representation = keycloakUserManager.get(user.getKeycloakId());
         var authorities = authorityExtractor.extract(representation);
 
@@ -115,24 +155,16 @@ public class UserService {
         return user;
     }
 
-    public List<User> users() {
-        return repository.findAll()
-                .stream()
-                .map(this::dispathUser)
-                .toList();
+    private void create(UserRepresentation representation, String password, Authority... authority) {
+        create(representation, password, NoOpt.consumer(), authority);
     }
 
-    private void createUser(SingUpUser newUser, Authority authority) {
-        createUser(newUser, user -> {
-        }, authority);
-    }
-
-    private void createUser(SingUpUser newUser, Consumer<User> beforeSave, Authority authority) {
+    private void create(UserRepresentation representation, String password, Consumer<User> beforeSave, Authority... authority) {
 
         var keycloakId = keycloakUserManager.create(
-                newUser.toUserRepresentation(),
-                newUser.getPassword(),
-                authority.getAuthority()
+                representation,
+                password,
+                Authority.getAuthorities(authority)
         );
 
         var user = User.builder()
@@ -141,5 +173,25 @@ public class UserService {
 
         beforeSave.accept(user);
         repository.save(user);
+    }
+
+    private void update(String keycloakId, BaseUser userDto) {
+        keycloakUserManager.update(keycloakId, userDto::transferToRepresentation);
+    }
+
+    private void update(User user, UserDto userDto) {
+        var keycloakId = user.getKeycloakId();
+        update(keycloakId, userDto);
+
+        var password = userDto.getPassword();
+        if (password != null) {
+            keycloakUserManager.resetPassword(keycloakId, password);
+        }
+
+        var authoritiesToRemove = userDto.getAuthorityToRemove();
+        var authoritiesToAdd = userDto.getAuthorityToAdd();
+
+        keycloakUserManager.removeRoles(keycloakId, Authority.getAuthorities(authoritiesToRemove));
+        keycloakUserManager.addRoles(keycloakId, Authority.getAuthorities(authoritiesToAdd));
     }
 }

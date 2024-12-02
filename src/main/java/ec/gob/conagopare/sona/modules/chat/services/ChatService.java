@@ -6,7 +6,6 @@ import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
 import ec.gob.conagopare.sona.modules.chat.models.ChatRoomType;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatMessageRepository;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
-import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.validation.Valid;
@@ -44,9 +43,9 @@ public class ChatService {
 
         var chatMessage = chatMessageRepository.save(ChatMessage.builder()
                 .chatRoom(chatRoom)
-                .sender(user.getId())
-                .content(message.getContent())
-                .timestamp(LocalDateTime.now())
+                .sentBy(user.getId())
+                .message(message.getContent())
+                .createdAt(LocalDateTime.now())
                 .build());
 
         runAsync(() -> messaging.convertAndSend("/chat.room." + chatRoom.getId(), chatMessage));
@@ -86,9 +85,5 @@ public class ChatService {
                 .build();
 
         return chatRoomRepository.save(newRoom);
-    }
-
-    public List<User> users(Jwt jwt) {
-        return userService.users();
     }
 }

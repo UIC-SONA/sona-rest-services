@@ -28,7 +28,7 @@ public class UserConfig {
         private String email;
         private String password;
 
-        public SingUpUser toInfo() {
+        public SingUpUser toSingUpUser() {
             var info = new SingUpUser();
             info.setFirstName(firstname);
             info.setLastName(lastname);

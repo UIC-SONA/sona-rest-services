@@ -4,7 +4,6 @@ import ec.gob.conagopare.sona.modules.chat.dto.MessageSent;
 import ec.gob.conagopare.sona.modules.chat.models.ChatMessage;
 import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
 import ec.gob.conagopare.sona.modules.chat.services.ChatService;
-import ec.gob.conagopare.sona.modules.user.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,10 +40,4 @@ public class ChatController {
     public ResponseEntity<ChatRoom> room(@PathVariable Long userId, @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(service.room(userId, jwt));
     }
-
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> users(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(service.users(jwt));
-    }
-
 }

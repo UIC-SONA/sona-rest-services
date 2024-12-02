@@ -5,12 +5,17 @@ import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.repositories.TipRepository;
-import io.github.luidmidev.springframework.data.crud.jpa.JpaCRUDService;
+import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,11 +27,14 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository> {
+public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository> {
 
     private static final String TIPS_IMAGES_PATH = "tips";
+    private final AdditionsSearch<Tip> andActiveTrue = new AdditionsSearch<Tip>()
+            .and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("active"), true));
 
     private final Storage storage;
+
 
     public TipService(TipRepository repository, EntityManager entityManager, Storage storage) {
         super(repository, Tip.class, entityManager);
@@ -34,13 +42,13 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
     }
 
     @Override
-    protected void mapModel(TipDto dto, Tip model, MapAction action) {
+    protected void mapModel(TipDto dto, Tip model) {
         var image = dto.getImage();
         if (image != null) {
             try {
-                if (action == MapAction.CREATE) {
+                if (model.isNew()) {
                     setImage(model, image);
-                } else if (action == MapAction.UPDATE) {
+                } else {
                     var oldImage = model.getImage();
                     setImage(model, image);
                     StorageUtils.tryRemoveFileAsync(storage, oldImage);
@@ -62,15 +70,28 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
         StorageUtils.tryRemoveFileAsync(storage, uuid.getImage());
     }
 
-    public List<Tip> active() {
-        return repository.findAllByActiveTrue();
+    @PreAuthorize("isAuthenticated()")
+    public List<Tip> actives(String search) {
+
+        return search == null
+                ? repository.findAllByActiveTrue()
+                : AdvanceSearch.search(entityManager, search, andActiveTrue, Tip.class);
     }
 
+    public Page<Tip> actives(Pageable pageable, String search) {
+        return search == null
+                ? repository.findAllByActiveTrue(pageable)
+                : AdvanceSearch.search(entityManager, search, pageable, andActiveTrue, Tip.class);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     public Stored image(UUID id) throws IOException {
         var imagePath = repository.getImagePathById(id).orElseThrow(() -> ApiError.notFound("Tip no encontrado: " + id));
         return storage.download(imagePath).orElseThrow(() -> ApiError.notFound("No se encontró la imagen"));
     }
 
+
+    @PreAuthorize("hasRole('admin')")
     public void deleteImage(UUID id) {
         var imagePath = repository.findById(id).orElseThrow(() -> ApiError.notFound("Tip no encontrado: " + id));
 
@@ -85,4 +106,6 @@ public class TipService extends JpaCRUDService<Tip, TipDto, UUID, TipRepository>
         var path = storage.store(image.getInputStream(), fileName, TIPS_IMAGES_PATH);
         model.setImage(path);
     }
+
+
 }

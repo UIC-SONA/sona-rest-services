@@ -25,13 +25,16 @@ public class ChatMessage {
     @JsonIgnore
     private ChatRoom chatRoom;
 
-    private Long sender;
+    private String message;
 
-    private String content;
+    private LocalDateTime createdAt;
+
+    private Long sentBy;
+
+    private ChatMessageType messageType;
 
     private String attachment;
 
-    private LocalDateTime timestamp;
 
     @JsonProperty
     public String getChatRoomId() {
