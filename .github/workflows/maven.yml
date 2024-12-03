@@ -24,9 +24,9 @@ jobs:
           for env in envs:
             print(env)
             for q in (os.getenv(env)):
-              print(q, end="")
+              print(q)
               data.write(q)
-
+            print("\n")
 
       - name: Check out the code
         uses: actions/checkout@v3
