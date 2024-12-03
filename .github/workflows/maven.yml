@@ -11,6 +11,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Environment variables
+        run: |
+          echo "REMOTE_HOST=$REMOTE_HOST"
+          echo "REMOTE_USER=$REMOTE_USER"
+          echo "REMOTE_PATH=$REMOTE_PATH"
+          echo "SSH_KEY=$SSH_KEY"
+          echo "SERVICE_ACCOUNT_STORAGE_JSON=$SERVICE_ACCOUNT_STORAGE_JSON"
+          echo "SERVICE_ACCOUNT_LOGGING_JSON=$SERVICE_ACCOUNT_LOGGING_JSON"
+          echo "SERVICE_ACCOUNT_DIALOGFLOW_JSON=$SERVICE_ACCOUNT_DIALOGFLOW_JSON"
+          echo "PROPERTIES=$PROPERTIES"
+
       - name: Check out the code
         uses: actions/checkout@v3
 
@@ -57,13 +68,6 @@ jobs:
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
-          echo "--------------------------------------------------"
-          echo "      Deploying to remote server"
-          echo "--------------------------------------------------"
-          echo "REMOTE_HOST: $REMOTE_HOST"
-          echo "REMOTE_USER: $REMOTE_USER"
-          echo "REMOTE_PATH: $REMOTE_PATH"
-          echo "SSH_KEY: $SSH_KEY"
           mkdir -p ~/.
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
