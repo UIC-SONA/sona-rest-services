@@ -35,8 +35,6 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
-          echo "${{ secrets.SSL_KEY }}" > SSL_KEY
-          cat SSL_KEY
           
 
       #      - name: Integration Test & Unit Test
@@ -60,6 +58,7 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
           mkdir -p ~/.
+          mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
