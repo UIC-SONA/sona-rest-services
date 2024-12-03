@@ -21,10 +21,6 @@ jobs:
           echo ${{ secrets.REMOTE_PATH }}
           echo "SSH_KEY:"
           echo ${{ secrets.SSH_KEY }}
-          echo "SERVICE_ACCOUNT_STORAGE_JSON:"
-          echo ${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}
-          echo "SERVICE_ACCOUNT_LOGGING_JSON:"
-          echo ${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}
 
       - name: Check out the code
         uses: actions/checkout@v3
