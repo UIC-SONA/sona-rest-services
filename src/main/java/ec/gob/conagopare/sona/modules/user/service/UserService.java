@@ -22,6 +22,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -136,6 +137,8 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         StorageUtils.tryRemoveFileAsync(storage, previousProfilePicturePath);
     }
 
+
+
     public User getUser(Jwt jwt) {
         return dispathUser(repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
     }
@@ -153,6 +156,21 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         user.setAuthorities(authorities);
 
         return user;
+    }
+
+    @Override
+    protected void onFind(User model) {
+        dispathUser(model);
+    }
+
+    @Override
+    protected void onList(List<User> models) {
+        models.forEach(this::dispathUser);
+    }
+
+    @Override
+    protected void onPage(Page<User> page) {
+        page.forEach(this::dispathUser);
     }
 
     private void create(UserRepresentation representation, String password, Authority... authority) {
