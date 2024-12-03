@@ -15,12 +15,11 @@ public class CrudConfig {
 
     @Bean
     public Customizer<AuthorizationManagerCrudMatcherRegistry> authorizationCrudConfigurer() {
-        var adminRole = Authority.ADMIN.getRole();
 
         return registry ->
                 registry
                         .targetReadOnly(UserService.class).authenticated()
-                        .targets(UserService.class, TipService.class).hasRole(adminRole)
+                        .targets(UserService.class, TipService.class).hasAuthority(Authority.ADMIN)
                         .anyOperation().permitAll();
     }
 
