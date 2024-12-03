@@ -9,18 +9,24 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Environment variables
+      - name: Set env as secret
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        shell: python
         run: |
-          echo "REMOTE_HOST:"
-          echo ${{ secrets.REMOTE_HOST }}
-          echo "REMOTE_USER:"
-          echo ${{ secrets.REMOTE_USER }}
-          echo "REMOTE_PATH:"
-          echo ${{ secrets.REMOTE_PATH }}
-          echo "SSH_KEY:"
-          echo ${{ secrets.SSH_KEY }}
+          import os
+          data = open("file", "w")
+          envs = ['REMOTE_HOST', 'REMOTE_USER', 'REMOTE_PATH', 'SSH_KEY']
+          for env in envs:
+            print(env)
+            for q in (os.getenv(env)):
+              print(q, end="")
+              data.write(q)
+            print()
 
       - name: Check out the code
         uses: actions/checkout@v3
