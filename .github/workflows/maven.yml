@@ -10,24 +10,6 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Set env as secret
-        env:
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-        shell: python
-        run: |
-          import os
-          data = open("file", "w")
-          envs = ['REMOTE_HOST', 'REMOTE_USER', 'REMOTE_PATH', 'SSH_KEY']
-          for env in envs:
-            print(env)
-            for q in (os.getenv(env)):
-              print(q, end="")
-              data.write(q)
-            print()
-
       - name: Check out the code
         uses: actions/checkout@v3
 
@@ -53,6 +35,9 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
+          echo "${{ secrets.SSL_KEY }}" > SSL_KEY
+          cat SSL_KEY
+          
 
       #      - name: Integration Test & Unit Test
       #        run: mvn -B test
