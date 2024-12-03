@@ -37,8 +37,8 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
           echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
 
-#      - name: Integration Test & Unit Test
-#        run: mvn -B test
+      #      - name: Integration Test & Unit Test
+      #        run: mvn -B test
 
       - name: Build and Package with Maven
         run: mvn -B clean package -DskipTests
@@ -57,8 +57,14 @@ jobs:
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
           SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
+          echo "--------------------------------------------------"
+          echo "      Deploying to remote server"
+          echo "--------------------------------------------------"
+          echo "REMOTE_HOST: $REMOTE_HOST"
+          echo "REMOTE_USER: $REMOTE_USER"
+          echo "REMOTE_PATH: $REMOTE_PATH"
+          echo "SSH_KEY: $SSH_KEY"
           mkdir -p ~/.
-          echo "$SSH_KEY"
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H $REMOTE_HOST >> ~/.ssh/known_hosts
