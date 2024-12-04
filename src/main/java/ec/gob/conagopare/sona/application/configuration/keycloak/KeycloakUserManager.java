@@ -1,10 +1,18 @@
 package ec.gob.conagopare.sona.application.configuration.keycloak;
 
+import io.github.luidmidev.springframework.data.crud.core.utils.PageableUtils;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.*;
 import org.keycloak.representations.idm.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -54,6 +62,21 @@ public class KeycloakUserManager {
         return cli.users().list();
     }
 
+
+    public Page<UserRepresentation> search(String search, Pageable pageable) {
+        var first = pageable.getPageNumber() * pageable.getPageSize();
+        var max = pageable.getPageSize();
+        var result = cli.users().search(search, first, max);
+        return PageableExecutionUtils.getPage(
+                result,
+                pageable,
+                () -> cli.users().count(search)
+        );
+    }
+
+    public List<UserRepresentation> search(String search) {
+        return cli.users().search(search, 0, Integer.MAX_VALUE);
+    }
 
     /**
      * Find a user by email

@@ -23,16 +23,19 @@ import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Service
 @Validated
@@ -144,17 +147,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         return dispathUser(repository.findById(userId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
     }
 
-
-    public User dispathUser(User user) {
-        var representation = keycloakUserManager.get(user.getKeycloakId());
-        var authorities = authorityExtractor.extract(representation);
-
-        user.setRepresentation(representation);
-        user.setAuthorities(authorities);
-
-        return user;
-    }
-
     @Override
     protected void onFind(User model) {
         dispathUser(model);
@@ -213,5 +205,50 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     @PreAuthorize("authenticated()")
     public User profile(Jwt jwt) {
         return getUser(jwt);
+    }
+
+    @Override
+    public List<User> search(String search) {
+        var representations = keycloakUserManager.search(search);
+        var keycloakIds = representations.stream().map(UserRepresentation::getId).toList();
+        var users = repository.findAllByKeycloakIdIn(keycloakIds);
+        return representations.stream()
+                .map(convertRepresentationToUser(users))
+                .toList();
+    }
+
+    @Override
+    public Page<User> search(String search, Pageable pageable) {
+        var representations = keycloakUserManager.search(search, pageable);
+        var keycloakIds = representations.stream().map(UserRepresentation::getId).toList();
+
+        var users = repository.findAllByKeycloakIdIn(keycloakIds);
+
+        return representations.map(convertRepresentationToUser(users));
+    }
+
+    private User dispathUser(User user) {
+        var representation = keycloakUserManager.get(user.getKeycloakId());
+        return dispathUser(user, representation);
+    }
+
+    private User dispathUser(User user, UserRepresentation representation) {
+        Assert.isTrue(user.getKeycloakId().equals(representation.getId()), "User keycloak id does not match with representation id");
+
+        var authorities = authorityExtractor.extract(representation);
+
+        user.setRepresentation(representation);
+        user.setAuthorities(authorities);
+        return user;
+    }
+
+    private Function<UserRepresentation, User> convertRepresentationToUser(List<User> users) {
+        return (UserRepresentation representation) -> {
+            var user = users.stream()
+                    .filter(u -> u.getKeycloakId().equals(representation.getId()))
+                    .findFirst()
+                    .orElseThrow(() -> ApiError.internalServerError("Inconsistencia de datos, usuario no encontrado. Keycloak id: " + representation.getId()));
+            return dispathUser(user, representation);
+        };
     }
 }
