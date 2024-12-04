@@ -56,4 +56,9 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
         service.deleteProfilePicture(jwt);
         return ResponseEntity.ok(new Message("Foto de perfil eliminada correctamente"));
     }
+
+    @GetMapping("/profile")
+    public ResponseEntity<User> profile(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.profile(jwt));
+    }
 }

@@ -77,7 +77,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     @Override
     protected void mapModel(UserDto dto, User model) {
         if (model.isNew()) {
-
             var authorityToAdd = dto.getAuthorityToAdd();
             var password = dto.getPassword();
 
@@ -88,7 +87,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             if (password == null) {
                 throw ApiError.badRequest("No se puede crear un usuario sin contraseña");
             }
-
 
             create(dto.toRepresentation(), password, authorityToAdd.toArray(Authority[]::new));
         } else {
@@ -136,7 +134,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
         StorageUtils.tryRemoveFileAsync(storage, previousProfilePicturePath);
     }
-
 
 
     public User getUser(Jwt jwt) {
@@ -211,5 +208,10 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
         keycloakUserManager.removeRoles(keycloakId, Authority.getAuthorities(authoritiesToRemove));
         keycloakUserManager.addRoles(keycloakId, Authority.getAuthorities(authoritiesToAdd));
+    }
+
+    @PreAuthorize("authenticated()")
+    public User profile(Jwt jwt) {
+        return getUser(jwt);
     }
 }
