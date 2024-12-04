@@ -11,6 +11,7 @@ import java.util.Optional;
 public enum Authority implements GrantedAuthority {
     ADMIN("ROLE_admin"),
     ADMINISTRATIVE("ROLE_administrative"),
+    PROFESSIONAL("ROLE_professional"),
     USER("ROLE_user");
 
 
@@ -19,10 +20,6 @@ public enum Authority implements GrantedAuthority {
     @Override
     public String getAuthority() {
         return value;
-    }
-
-    public String getRole() {
-        return value.replace("ROLE_", "");
     }
 
     public static Optional<Authority> from(String name) {
