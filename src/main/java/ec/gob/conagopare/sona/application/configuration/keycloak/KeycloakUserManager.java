@@ -1,10 +1,5 @@
 package ec.gob.conagopare.sona.application.configuration.keycloak;
 
-import io.github.luidmidev.springframework.data.crud.core.utils.PageableUtils;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -63,6 +58,12 @@ public class KeycloakUserManager {
     }
 
 
+    /**
+     * Search users
+     * @param search the search query
+     * @param pageable the pageable
+     * @return a page with the users found
+     */
     public Page<UserRepresentation> search(String search, Pageable pageable) {
         var first = pageable.getPageNumber() * pageable.getPageSize();
         var max = pageable.getPageSize();
@@ -74,9 +75,24 @@ public class KeycloakUserManager {
         );
     }
 
+    /**
+     * Search users
+     * @param search the search query
+     * @return a list with the users found
+     */
     public List<UserRepresentation> search(String search) {
         return cli.users().search(search, 0, Integer.MAX_VALUE);
     }
+
+    /**
+     * Search users by role
+     * @param roleName the role name
+     * @return a list with the users found
+     */
+    public List<UserRepresentation> searchByRole(String roleName) {
+        return cli.client().roles().get(roleName).getUserMembers();
+    }
+
 
     /**
      * Find a user by email

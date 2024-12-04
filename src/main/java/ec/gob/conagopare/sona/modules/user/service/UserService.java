@@ -23,7 +23,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Service
 @Validated
@@ -210,22 +214,52 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     @Override
     public List<User> search(String search) {
         var representations = keycloakUserManager.search(search);
-        var keycloakIds = representations.stream().map(UserRepresentation::getId).toList();
-        var users = repository.findAllByKeycloakIdIn(keycloakIds);
+
         return representations.stream()
-                .map(convertRepresentationToUser(users))
+                .map(convertRepresentationToUser(representations))
                 .toList();
     }
 
     @Override
     public Page<User> search(String search, Pageable pageable) {
         var representations = keycloakUserManager.search(search, pageable);
-        var keycloakIds = representations.stream().map(UserRepresentation::getId).toList();
-
-        var users = repository.findAllByKeycloakIdIn(keycloakIds);
-
-        return representations.map(convertRepresentationToUser(users));
+        return representations.map(convertRepresentationToUser(representations.toList()));
     }
+
+    public List<User> listByRole(String search, Authority role) {
+        var representations = findRepresentations(search, role);
+
+        return representations.stream()
+                .map(convertRepresentationToUser(representations))
+                .toList();
+    }
+
+    public Page<User> pageByRole(String search, Authority role, Pageable pageable) {
+        var representations = findRepresentations(search, role);
+
+        var result = sortRepresentations(representations.stream(), pageable)
+                .skip(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .map(convertRepresentationToUser(representations))
+                .toList();
+
+        return PageableExecutionUtils.getPage(result, pageable, representations::size);
+    }
+
+    private List<Comparator<UserRepresentation>> getSortComparators(Pageable pageable) {
+        var sort = pageable.getSort();
+        return sort.stream()
+                .map(order -> switch (order.getProperty()) {
+                    case "email" -> Comparator.comparing(UserRepresentation::getEmail);
+                    case "username" -> Comparator.comparing(UserRepresentation::getUsername);
+                    case "firstName" -> Comparator.comparing(UserRepresentation::getFirstName);
+                    case "lastName" -> Comparator.comparing(UserRepresentation::getLastName);
+                    default -> null;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
 
     private User dispathUser(User user) {
         var representation = keycloakUserManager.get(user.getKeycloakId());
@@ -242,13 +276,68 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         return user;
     }
 
-    private Function<UserRepresentation, User> convertRepresentationToUser(List<User> users) {
-        return (UserRepresentation representation) -> {
+    private List<User> findUsers(List<UserRepresentation> representations) {
+        var keycloakIds = extractKeycloakIds(representations);
+        return repository.findAllByKeycloakIdIn(keycloakIds);
+    }
+
+    private Function<UserRepresentation, User> convertRepresentationToUser(List<UserRepresentation> representations) {
+        var users = findUsers(representations);
+        return representation -> {
             var user = users.stream()
                     .filter(u -> u.getKeycloakId().equals(representation.getId()))
                     .findFirst()
                     .orElseThrow(() -> ApiError.internalServerError("Inconsistencia de datos, usuario no encontrado. Keycloak id: " + representation.getId()));
             return dispathUser(user, representation);
+        };
+    }
+
+    private List<UserRepresentation> findRepresentations(String search, Authority role) {
+        var representations = findRepresentations(role);
+        return search == null ? representations : representations
+                .stream()
+                .filter(filterRepresentations(search))
+                .toList();
+    }
+
+    private List<UserRepresentation> findRepresentations(Authority role) {
+        return keycloakUserManager.searchByRole(role.getAuthority());
+    }
+
+    private static List<String> extractKeycloakIds(List<UserRepresentation> representations) {
+        return representations.stream()
+                .map(UserRepresentation::getId)
+                .toList();
+    }
+
+    private Stream<UserRepresentation> sortRepresentations(Stream<UserRepresentation> representations, Pageable pageable) {
+        var sort = pageable.getSort();
+        if (sort.isSorted()) {
+            var comparators = getSortComparators(pageable);
+            if (!comparators.isEmpty()) {
+                representations = representations.sorted((a, b) -> {
+                    for (var comparator : comparators) {
+                        var result = comparator.compare(a, b);
+                        if (result != 0) return result;
+                    }
+                    return 0;
+                });
+            }
+        }
+        return representations;
+    }
+
+    private static Predicate<UserRepresentation> filterRepresentations(String search) {
+        return representation -> {
+            var searchLowerCase = search.toLowerCase();
+            var email = representation.getEmail().toLowerCase();
+            var username = representation.getUsername().toLowerCase();
+            var firstName = representation.getFirstName().toLowerCase();
+            var lastName = representation.getLastName().toLowerCase();
+            return email.contains(searchLowerCase)
+                    || username.contains(searchLowerCase)
+                    || firstName.contains(searchLowerCase)
+                    || lastName.contains(searchLowerCase);
         };
     }
 }
