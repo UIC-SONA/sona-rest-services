@@ -205,7 +205,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         keycloakUserManager.addRoles(keycloakId, Authority.getAuthorities(authoritiesToAdd));
     }
 
-    @PreAuthorize("authenticated()")
+    @PreAuthorize("isAuthenticated()")
     public User profile(Jwt jwt) {
         return getUser(jwt);
     }
