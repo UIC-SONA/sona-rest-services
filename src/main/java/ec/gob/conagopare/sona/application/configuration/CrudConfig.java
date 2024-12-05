@@ -18,8 +18,13 @@ public class CrudConfig {
 
         return registry ->
                 registry
-                        .targetReadOnly(UserService.class).authenticated()
-                        .targets(UserService.class, TipService.class).hasAuthority(Authority.ADMIN)
+                        .targetReadOnly(
+                                UserService.class
+                        ).authenticated()
+                        .targets(
+                                UserService.class,
+                                TipService.class
+                        ).hasAuthority(Authority.ADMIN)
                         .anyOperation().permitAll();
     }
 

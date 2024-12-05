@@ -4,4 +4,5 @@ public enum ChatMessageType {
     IMAGE,
     TEXT,
     VOICE,
+    CUSTOM
 }

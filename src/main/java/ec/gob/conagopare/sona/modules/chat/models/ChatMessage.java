@@ -1,29 +1,17 @@
 package ec.gob.conagopare.sona.modules.chat.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "chat_messages")
 public class ChatMessage {
-    @Id
-    private String id;
 
-    @DBRef
-    @JsonIgnore
-    private ChatRoom chatRoom;
+    private UUID id;
 
     private String message;
 
@@ -33,11 +21,4 @@ public class ChatMessage {
 
     private ChatMessageType messageType;
 
-    private String attachment;
-
-
-    @JsonProperty
-    public String getChatRoomId() {
-        return chatRoom.getId();
-    }
 }
