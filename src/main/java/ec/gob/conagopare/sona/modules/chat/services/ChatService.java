@@ -151,6 +151,7 @@ public class ChatService {
                 .type(ChatRoomType.PRIVATE)
                 .participants(List.of(senderId, recipientId))
                 .name("Private Chat between " + senderId + " and " + recipientId)
+                .updatedAt(Instant.now())
                 .build();
 
         return roomRepository.save(newRoom);
