@@ -24,7 +24,7 @@ public class ChatController {
     @PostMapping("/send/{roomId}")
     public ResponseEntity<ChatMessageSent> send(
             @PathVariable String roomId,
-            @PathVariable String requestId,
+            @RequestParam String requestId,
             @RequestBody String message,
             @AuthenticationPrincipal Jwt jwt
     ) {
