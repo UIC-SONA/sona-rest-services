@@ -19,6 +19,6 @@ public class ChatMessage {
 
     private Long sentBy;
 
-    private ChatMessageType messageType;
+    private ChatMessageType type;
 
 }

@@ -1,10 +1,7 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
 import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
-import ec.gob.conagopare.sona.modules.chat.models.ChatChunk;
-import ec.gob.conagopare.sona.modules.chat.models.ChatMessage;
-import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
-import ec.gob.conagopare.sona.modules.chat.models.ChatRoomType;
+import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
@@ -60,6 +57,7 @@ public class ChatService {
                 .sentBy(user.getId())
                 .message(message)
                 .createdAt(Instant.now())
+                .type(ChatMessageType.TEXT)
                 .build();
 
         addMessage(chatRoom, chatMessage);
