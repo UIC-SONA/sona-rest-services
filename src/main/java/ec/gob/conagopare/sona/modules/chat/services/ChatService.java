@@ -92,7 +92,7 @@ public class ChatService {
 
     public ChatMessage lastMessage(String roomId) {
         String[] pipeline = {
-                "{ $match: { " + CHAT_CHUNK_ROOM_KEY + ": { $oid: '" + roomId + "' } } }",
+                "{ $match: { \"" + CHAT_CHUNK_ROOM_KEY + "\": { $oid: '" + roomId + "' } } }",
                 "{ $sort: { " + CHAT_CHUNK_NUMBER_KEY + ": -1 } }",
                 "{ $limit: 1 }",
                 "{ $project: { lastMessage: { $last: '$messages' } } }"
