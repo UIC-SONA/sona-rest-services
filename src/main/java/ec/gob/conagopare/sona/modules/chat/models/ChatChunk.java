@@ -33,7 +33,6 @@ public class ChatChunk {
     @DBRef(lazy = true)
     private ChatRoom room;
 
-    @DBRef
     private List<ChatMessage> messages = new ArrayList<>();
 
 
