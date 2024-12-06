@@ -70,15 +70,10 @@ public class ChatService {
                 .build();
 
         var roomDestination = "/topic/chat.room." + roomId;
-        log.info("Enviando mensaje a la sala de chat: {}", roomDestination);
-
         runAsync(() -> messaging.convertAndSend(roomDestination, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
         for (var participant : chatRoom.getParticipants()) {
             runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
-
-        chatRoom.setUpdatedAt(Instant.now());
-        roomRepository.save(chatRoom);
 
         return chatMessageSent;
     }
@@ -151,7 +146,6 @@ public class ChatService {
                 .type(ChatRoomType.PRIVATE)
                 .participants(List.of(senderId, recipientId))
                 .name("Private Chat between " + senderId + " and " + recipientId)
-                .updatedAt(Instant.now())
                 .build();
 
         return roomRepository.save(newRoom);
@@ -212,7 +206,7 @@ public class ChatService {
         }
     }
 
-    private Function<Throwable, Void> logExpecionally(String message) {
+    private static Function<Throwable, Void> logExpecionally(String message) {
         return ex -> {
             log.error(message, (Throwable) null);
             return null;

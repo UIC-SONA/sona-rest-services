@@ -26,6 +26,4 @@ public class ChatRoom {
     private ChatRoomType type;
 
     private List<Long> participants = new ArrayList<>();
-
-    private Instant updatedAt;
 }
