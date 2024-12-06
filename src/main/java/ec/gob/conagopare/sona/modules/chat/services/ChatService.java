@@ -98,8 +98,15 @@ public class ChatService {
                 "{ $project: { lastMessage: { $last: '$messages' } } }"
         };
 
+        List<Document> list = new ArrayList<>();
+        for (String s : pipeline) {
+            log.info("Parsing pipeline: {}", s);
+            Document parse = Document.parse(s);
+            list.add(parse);
+        }
+
         var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
-                .aggregate(Stream.of(pipeline).map(Document::parse).toList())
+                .aggregate(list)
                 .into(new ArrayList<>());
 
         if (results.isEmpty()) return null;
@@ -107,6 +114,21 @@ public class ChatService {
         if (lastMessageDoc == null) return null;
 
         return mongoTemplate.getConverter().read(ChatMessage.class, lastMessageDoc);
+    }
+
+    public long getDocumentSize(String id, Class<?> collectionType) {
+        String[] pipeline = {
+                "{ $match: { _id: { $oid: '" + id + "' } } }",
+                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
+        };
+
+        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
+                .aggregate(List.of(Document.parse(pipeline[0]), Document.parse(pipeline[1])))
+                .into(new ArrayList<>());
+
+
+        var sizeValue = results.getFirst().get("size", Number.class);
+        return sizeValue != null ? sizeValue.longValue() : 0;
     }
 
     public ChatRoom room(Long userId, Jwt jwt) {
@@ -170,21 +192,6 @@ public class ChatService {
         }
 
 
-    }
-
-    public long getDocumentSize(String id, Class<?> collectionType) {
-        String[] pipeline = {
-                "{ $match: { _id: { $oid: '" + id + "' } } }",
-                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
-        };
-
-        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
-                .aggregate(List.of(Document.parse(pipeline[0]), Document.parse(pipeline[1])))
-                .into(new ArrayList<>());
-
-
-        var sizeValue = results.getFirst().get("size", Number.class);
-        return sizeValue != null ? sizeValue.longValue() : 0;
     }
 
     public List<ChatMessage> messages(String roomId, long chunk) {
