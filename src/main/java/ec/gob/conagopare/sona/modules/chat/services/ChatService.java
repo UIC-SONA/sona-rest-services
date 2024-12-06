@@ -154,7 +154,9 @@ public class ChatService {
                 .aggregate(List.of(Document.parse(pipeline[0]), Document.parse(pipeline[1])))
                 .into(new ArrayList<>());
 
-        return !results.isEmpty() ? results.getFirst().getLong("size") : 0L;
+
+        var sizeValue = results.getFirst().get("size", Number.class);
+        return sizeValue != null ? sizeValue.longValue() : 0;
     }
 
     public List<ChatMessage> messages(String roomId, long chunk) {
