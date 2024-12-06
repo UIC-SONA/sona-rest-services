@@ -143,21 +143,34 @@ public class ChatService {
 
     }
 
+    /**
+     * Calcula el tamaño en bytes de un documento MongoDB
+     * @param id ID del documento
+     * @param collectionType Clase que representa la colección
+     * @return tamaño del documento en bytes, 0 si no se encuentra
+     */
     public long getDocumentSize(String id, Class<?> collectionType) {
         var aggregation = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("_id").is(new ObjectId(id))),
+                // $match stage
+                Aggregation.match(
+                        Criteria.where("_id").is(new ObjectId(id))
+                ),
+                // $project stage
                 Aggregation.project()
                         .andExclude("_id")
-                        .andExpression("bsonSize($$ROOT)").as("size")
+                        .andExpression("$bsonSize($$ROOT)").as("size")
         );
 
-        var results = mongoTemplate.aggregate(aggregation, mongoTemplate.getCollectionName(collectionType), Document.class);
+        var result = mongoTemplate.aggregate(
+                aggregation,
+                mongoTemplate.getCollectionName(collectionType),
+                Document.class
+        );
 
-        if (!results.getMappedResults().isEmpty()) {
-            return results.getMappedResults().getFirst().getLong("size");
-        }
-
-        return 0;
+        return result.getMappedResults().stream()
+                .findFirst()
+                .map(doc -> doc.getLong("size"))
+                .orElse(0L);
     }
 
     public List<ChatMessage> messages(String roomId, long chunk) {
