@@ -78,6 +78,7 @@ public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository>
                 : AdvanceSearch.search(entityManager, search, andActiveTrue, Tip.class);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public Page<Tip> actives(Pageable pageable, String search) {
         return search == null
                 ? repository.findAllByActiveTrue(pageable)
