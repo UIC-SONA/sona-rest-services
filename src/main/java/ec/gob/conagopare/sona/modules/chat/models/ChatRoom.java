@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,4 +26,6 @@ public class ChatRoom {
     private ChatRoomType type;
 
     private List<Long> participants = new ArrayList<>();
+
+    private Instant updatedAt;
 }

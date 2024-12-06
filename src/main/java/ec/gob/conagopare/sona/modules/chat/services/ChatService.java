@@ -77,6 +77,9 @@ public class ChatService {
             runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
 
+        chatRoom.setUpdatedAt(Instant.now());
+        roomRepository.save(chatRoom);
+
         return chatMessageSent;
     }
 
@@ -87,8 +90,24 @@ public class ChatService {
     public List<ChatRoom> rooms(Jwt jwt) {
         var user = userService.getUser(jwt);
         assert user.getId() != null;
-        return roomRepository.findByParticipant(user.getId());
+        return roomRepository.findByParticipant(user.getId())
+                .stream()
+                .filter(room -> existsChunk(room.getId()))
+                .toList();
     }
+
+
+    public List<ChatMessage> messages(String roomId, long chunk) {
+        var room = room(roomId);
+        var query = new Query();
+        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(room.getId())).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
+        var chatChunk = mongoTemplate.findOne(query, ChatChunk.class);
+
+        if (chatChunk == null) return List.of();
+
+        return chatChunk.getMessages();
+    }
+
 
     public ChatMessage lastMessage(String roomId) {
         String[] pipeline = {
@@ -98,15 +117,8 @@ public class ChatService {
                 "{ $project: { lastMessage: { $last: '$messages' } } }"
         };
 
-        List<Document> list = new ArrayList<>();
-        for (String s : pipeline) {
-            log.info("Parsing pipeline: {}", s);
-            Document parse = Document.parse(s);
-            list.add(parse);
-        }
-
         var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
-                .aggregate(list)
+                .aggregate(Stream.of(pipeline).map(Document::parse).toList())
                 .into(new ArrayList<>());
 
         if (results.isEmpty()) return null;
@@ -114,21 +126,6 @@ public class ChatService {
         if (lastMessageDoc == null) return null;
 
         return mongoTemplate.getConverter().read(ChatMessage.class, lastMessageDoc);
-    }
-
-    public long getDocumentSize(String id, Class<?> collectionType) {
-        String[] pipeline = {
-                "{ $match: { _id: { $oid: '" + id + "' } } }",
-                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
-        };
-
-        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
-                .aggregate(List.of(Document.parse(pipeline[0]), Document.parse(pipeline[1])))
-                .into(new ArrayList<>());
-
-
-        var sizeValue = results.getFirst().get("size", Number.class);
-        return sizeValue != null ? sizeValue.longValue() : 0;
     }
 
     public ChatRoom room(Long userId, Jwt jwt) {
@@ -159,7 +156,29 @@ public class ChatService {
         return roomRepository.save(newRoom);
     }
 
-    public void addMessage(ChatRoom chatRoom, ChatMessage message) {
+    private boolean existsChunk(String roomId) {
+        var query = new Query();
+        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(roomId)));
+        return mongoTemplate.exists(query, ChatChunk.class);
+    }
+
+
+    public long getDocumentSize(String id, Class<?> collectionType) {
+        String[] pipeline = {
+                "{ $match: { _id: { $oid: '" + id + "' } } }",
+                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
+        };
+
+        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
+                .aggregate(List.of(Document.parse(pipeline[0]), Document.parse(pipeline[1])))
+                .into(new ArrayList<>());
+
+
+        var sizeValue = results.getFirst().get("size", Number.class);
+        return sizeValue != null ? sizeValue.longValue() : 0;
+    }
+
+    private void addMessage(ChatRoom chatRoom, ChatMessage message) {
 
         var query = new Query();
         query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(chatRoom.getId())));
@@ -190,19 +209,6 @@ public class ChatService {
         if (result.getModifiedCount() == 0) {
             throw ApiError.internalServerError("No se pudo agregar el mensaje al chat, resultado de la operación: " + result);
         }
-
-
-    }
-
-    public List<ChatMessage> messages(String roomId, long chunk) {
-        var room = room(roomId);
-        var query = new Query();
-        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(room.getId())).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
-        var chatChunk = mongoTemplate.findOne(query, ChatChunk.class);
-
-        if (chatChunk == null) return List.of();
-
-        return chatChunk.getMessages();
     }
 
     private Function<Throwable, Void> logExpecionally(String message) {
