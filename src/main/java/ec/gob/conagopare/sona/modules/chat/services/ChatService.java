@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -143,34 +144,17 @@ public class ChatService {
 
     }
 
-    /**
-     * Calcula el tamaño en bytes de un documento MongoDB
-     * @param id ID del documento
-     * @param collectionType Clase que representa la colección
-     * @return tamaño del documento en bytes, 0 si no se encuentra
-     */
     public long getDocumentSize(String id, Class<?> collectionType) {
-        var aggregation = Aggregation.newAggregation(
-                // $match stage
-                Aggregation.match(
-                        Criteria.where("_id").is(new ObjectId(id))
-                ),
-                // $project stage
-                Aggregation.project()
-                        .andExclude("_id")
-                        .andExpression("$bsonSize($$ROOT)").as("size")
-        );
+        String[] pipeline = {
+                "{ $match: { _id: { $oid: '" + id + "' } } }",
+                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
+        };
 
-        var result = mongoTemplate.aggregate(
-                aggregation,
-                mongoTemplate.getCollectionName(collectionType),
-                Document.class
-        );
+        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
+                .aggregate(List.of(Document.parse(pipeline[0]), Document.parse(pipeline[1])))
+                .into(new ArrayList<>());
 
-        return result.getMappedResults().stream()
-                .findFirst()
-                .map(doc -> doc.getLong("size"))
-                .orElse(0L);
+        return !results.isEmpty() ? results.getFirst().getLong("size") : 0L;
     }
 
     public List<ChatMessage> messages(String roomId, long chunk) {
