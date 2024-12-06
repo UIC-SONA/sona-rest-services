@@ -12,7 +12,6 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -27,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 
@@ -37,8 +37,8 @@ import static java.util.concurrent.CompletableFuture.runAsync;
 @RequiredArgsConstructor
 public class ChatService {
 
-
     private static final String CHAT_CHUNK_NUMBER_KEY = "number";
+    private static final String CHAT_CHUNK_ROOM_KEY = "room.$id";
 
     private final SimpMessagingTemplate messaging;
     private final UserService userService;
@@ -90,10 +90,35 @@ public class ChatService {
         return roomRepository.findByParticipant(user.getId());
     }
 
+    public ChatMessage lastMessage(String roomId) {
+        String[] pipeline = {
+                "{ $match: { " + CHAT_CHUNK_ROOM_KEY + ": { $oid: '" + roomId + "' } } }",
+                "{ $sort: { " + CHAT_CHUNK_NUMBER_KEY + ": -1 } }",
+                "{ $limit: 1 }",
+                "{ $project: { lastMessage: { $last: '$messages' } } }"
+        };
+
+        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
+                .aggregate(Stream.of(pipeline).map(Document::parse).toList())
+                .into(new ArrayList<>());
+
+        if (results.isEmpty()) return null;
+        var lastMessageDoc = results.getFirst().get("lastMessage", Document.class);
+        if (lastMessageDoc == null) return null;
+
+        return mongoTemplate.getConverter().read(ChatMessage.class, lastMessageDoc);
+    }
+
     public ChatRoom room(Long userId, Jwt jwt) {
         var user = userService.getUser(jwt);
         var recipient = userService.getUser(userId);
         return findOrCreatePrivateRoom(user.getId(), recipient.getId());
+    }
+
+    public long chunkCount(String roomId) {
+        var query = new Query();
+        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(roomId)));
+        return mongoTemplate.count(query, ChatChunk.class);
     }
 
     private ChatRoom findOrCreatePrivateRoom(Long senderId, Long recipientId) {
@@ -115,7 +140,7 @@ public class ChatService {
     public void addMessage(ChatRoom chatRoom, ChatMessage message) {
 
         var query = new Query();
-        query.addCriteria(Criteria.where("room.$id").is(new ObjectId(chatRoom.getId())));
+        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(chatRoom.getId())));
         query.with(Sort.by(Sort.Order.desc(CHAT_CHUNK_NUMBER_KEY)));
 
         var projectedQuery = Query.of(query);
@@ -165,7 +190,7 @@ public class ChatService {
     public List<ChatMessage> messages(String roomId, long chunk) {
         var room = room(roomId);
         var query = new Query();
-        query.addCriteria(Criteria.where("room.$id").is(new ObjectId(room.getId())).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
+        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(room.getId())).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
         var chatChunk = mongoTemplate.findOne(query, ChatChunk.class);
 
         if (chatChunk == null) return List.of();

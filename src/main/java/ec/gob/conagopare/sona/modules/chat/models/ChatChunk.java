@@ -35,7 +35,6 @@ public class ChatChunk {
 
     private List<ChatMessage> messages = new ArrayList<>();
 
-
     public static ChatChunk withFirstMessage(ChatRoom room, long number, ChatMessage message) {
         return ChatChunk.builder()
                 .room(room)

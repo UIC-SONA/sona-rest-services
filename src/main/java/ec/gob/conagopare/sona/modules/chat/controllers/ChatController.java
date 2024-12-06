@@ -50,4 +50,15 @@ public class ChatController {
     public ResponseEntity<List<ChatMessage>> messages(@PathVariable String roomId, @RequestParam long chunk) {
         return ResponseEntity.ok(service.messages(roomId, chunk));
     }
+
+    @GetMapping("/room/{roomId}/last-message")
+    public ResponseEntity<ChatMessage> lastMessage(@PathVariable String roomId) {
+        return ResponseEntity.ok(service.lastMessage(roomId));
+    }
+
+    @GetMapping("/room/{roomId}/chunk-count")
+    public ResponseEntity<Long> chunkCount(@PathVariable String roomId) {
+        return ResponseEntity.ok(service.chunkCount(roomId));
+    }
+
 }
