@@ -134,7 +134,11 @@ public class ChatService {
         var update = new Update();
         update.push("messages", message);
 
-        mongoTemplate.updateFirst(query, update, ChatChunk.class);
+        var result = mongoTemplate.updateFirst(query, update, ChatChunk.class);
+
+        if (result.getModifiedCount() == 0) {
+            throw ApiError.internalServerError("No se pudo agregar el mensaje al chat, resultado de la operación: " + result);
+        }
 
 
     }
