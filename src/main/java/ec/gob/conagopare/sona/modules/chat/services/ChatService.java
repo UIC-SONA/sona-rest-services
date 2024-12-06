@@ -25,8 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -60,7 +59,7 @@ public class ChatService {
                 .id(UUID.randomUUID())
                 .sentBy(user.getId())
                 .message(message)
-                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
+                .createdAt(Instant.now())
                 .build();
 
         addMessage(chatRoom, chatMessage);

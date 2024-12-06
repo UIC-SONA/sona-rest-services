@@ -2,7 +2,7 @@ package ec.gob.conagopare.sona.modules.chat.models;
 
 import lombok.*;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -15,7 +15,7 @@ public class ChatMessage {
 
     private String message;
 
-    private ZonedDateTime createdAt;
+    private Instant createdAt;
 
     private Long sentBy;
 
