@@ -69,7 +69,10 @@ public class ChatService {
                 .message(chatMessage)
                 .build();
 
-        runAsync(() -> messaging.convertAndSend("/topic/chat.room." + roomId, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
+        var roomDestination = "/topic/chat.room." + roomId;
+        log.info("Enviando mensaje a la sala de chat: {}", roomDestination);
+
+        runAsync(() -> messaging.convertAndSend(roomDestination, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
         for (var participant : chatRoom.getParticipants()) {
             runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
