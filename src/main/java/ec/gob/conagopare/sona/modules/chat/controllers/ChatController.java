@@ -1,7 +1,6 @@
 package ec.gob.conagopare.sona.modules.chat.controllers;
 
-import ec.gob.conagopare.sona.modules.chat.dto.MessageSent;
-import ec.gob.conagopare.sona.modules.chat.models.ChatChunk;
+import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
 import ec.gob.conagopare.sona.modules.chat.models.ChatMessage;
 import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
 import ec.gob.conagopare.sona.modules.chat.services.ChatService;
@@ -22,9 +21,14 @@ public class ChatController {
 
     private final ChatService service;
 
-    @PostMapping("/send")
-    public ResponseEntity<ChatMessage> send(@RequestBody MessageSent message, @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(service.send(message, jwt));
+    @PostMapping("/send/{roomId}")
+    public ResponseEntity<ChatMessageSent> send(
+            @PathVariable String roomId,
+            @PathVariable String requestId,
+            @RequestBody String message,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return ResponseEntity.ok(service.send(message, roomId, requestId, jwt));
     }
 
     @GetMapping("/rooms")
@@ -42,8 +46,8 @@ public class ChatController {
         return ResponseEntity.ok(service.room(userId, jwt));
     }
 
-    @GetMapping("/room/{roomId}/messages/{chunk}")
-    public ResponseEntity<List<ChatMessage>> messages(@PathVariable String roomId, @PathVariable long chunk) {
+    @GetMapping("/room/{roomId}/messages")
+    public ResponseEntity<List<ChatMessage>> messages(@PathVariable String roomId, @RequestParam long chunk) {
         return ResponseEntity.ok(service.messages(roomId, chunk));
     }
 }

@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
-import ec.gob.conagopare.sona.modules.chat.dto.MessageSent;
+import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
 import ec.gob.conagopare.sona.modules.chat.models.ChatChunk;
 import ec.gob.conagopare.sona.modules.chat.models.ChatMessage;
 import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
@@ -8,8 +8,9 @@ import ec.gob.conagopare.sona.modules.chat.models.ChatRoomType;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
@@ -24,12 +25,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 
+@Slf4j
 @Service
 @Validated
 @Transactional
@@ -44,9 +48,9 @@ public class ChatService {
     private final MongoTemplate mongoTemplate;
     private final ChatRoomRepository roomRepository;
 
-    public ChatMessage send(@Valid MessageSent message, Jwt jwt) {
+    public ChatMessageSent send(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
         var user = userService.getUser(jwt);
-        var chatRoom = room(message.getChatRoomId());
+        var chatRoom = room(roomId);
 
         if (!chatRoom.getParticipants().contains(user.getId())) {
             throw ApiError.forbidden("No tienes permiso para enviar mensajes");
@@ -55,18 +59,24 @@ public class ChatService {
         var chatMessage = ChatMessage.builder()
                 .id(UUID.randomUUID())
                 .sentBy(user.getId())
-                .message(message.getContent())
-                .createdAt(LocalDateTime.now())
+                .message(message)
+                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
                 .build();
 
         addMessage(chatRoom, chatMessage);
 
-        runAsync(() -> messaging.convertAndSend("/chat.room." + chatRoom.getId(), chatMessage));
+        var chatMessageSent = ChatMessageSent.builder()
+                .requestId(requestId)
+                .roomId(roomId)
+                .message(chatMessage)
+                .build();
+
+        runAsync(() -> messaging.convertAndSend("/chat.room." + roomId, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
         for (var participant : chatRoom.getParticipants()) {
-            runAsync(() -> messaging.convertAndSend("/chat.inbox." + participant, chatMessage));
+            runAsync(() -> messaging.convertAndSend("/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
 
-        return chatMessage;
+        return chatMessageSent;
     }
 
     public ChatRoom room(String chatRoomId) {
@@ -158,6 +168,13 @@ public class ChatService {
         if (chatChunk == null) return List.of();
 
         return chatChunk.getMessages();
+    }
+
+    private Function<Throwable, Void> logExpecionally(String message) {
+        return ex -> {
+            log.error(message, (Throwable) null);
+            return null;
+        };
     }
 }
 
