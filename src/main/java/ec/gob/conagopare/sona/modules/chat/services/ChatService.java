@@ -92,14 +92,12 @@ public class ChatService {
 
 
     public List<ChatMessage> messages(String roomId, long chunk) {
-        var room = room(roomId);
         var query = new Query();
-        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(room.getId())).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
+        query.addCriteria(roomCriteria(roomId).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
         var chatChunk = mongoTemplate.findOne(query, ChatChunk.class);
 
         return chatChunk == null ? List.of() : chatChunk.getMessages();
     }
-
 
     public ChatMessage lastMessage(String roomId) {
         String[] pipeline = {
@@ -115,10 +113,8 @@ public class ChatService {
 
         if (result == null) return null;
 
-        var lastMessageDoc = result.get("lastMessage", Document.class);
-        if (lastMessageDoc == null) return null;
-
-        return mongoTemplate.getConverter().read(ChatMessage.class, lastMessageDoc);
+        var lastMessage = result.get("lastMessage", Document.class);
+        return mongoTemplate.getConverter().read(ChatMessage.class, lastMessage);
     }
 
     public ChatRoom room(Long userId, Jwt jwt) {
@@ -129,7 +125,7 @@ public class ChatService {
 
     public long chunkCount(String roomId) {
         var query = new Query();
-        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(roomId)));
+        query.addCriteria(roomCriteria(roomId));
         return mongoTemplate.count(query, ChatChunk.class);
     }
 
@@ -151,7 +147,7 @@ public class ChatService {
 
     private boolean existsChunk(String roomId) {
         var query = new Query();
-        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(roomId)));
+        query.addCriteria(roomCriteria(roomId));
         return mongoTemplate.exists(query, ChatChunk.class);
     }
 
@@ -175,7 +171,7 @@ public class ChatService {
     private void addMessage(ChatRoom chatRoom, ChatMessage message) {
 
         var query = new Query();
-        query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(chatRoom.getId())));
+        query.addCriteria(roomCriteria(chatRoom.getId()));
         query.with(Sort.by(Sort.Order.desc(CHAT_CHUNK_NUMBER_KEY)));
 
         var projectedQuery = Query.of(query);
@@ -203,6 +199,11 @@ public class ChatService {
         if (result.getModifiedCount() == 0) {
             throw ApiError.internalServerError("No se pudo agregar el mensaje al chat, resultado de la operación: " + result);
         }
+    }
+
+
+    private static Criteria roomCriteria(String roomId) {
+        return Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(roomId));
     }
 
     private static Function<Throwable, Void> logExpecionally(String message) {
