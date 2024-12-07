@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
+import ec.gob.conagopare.sona.application.common.utils.MongoUtils;
 import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
 import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
@@ -22,11 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 
@@ -98,9 +97,7 @@ public class ChatService {
         query.addCriteria(Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(room.getId())).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
         var chatChunk = mongoTemplate.findOne(query, ChatChunk.class);
 
-        if (chatChunk == null) return List.of();
-
-        return chatChunk.getMessages();
+        return chatChunk == null ? List.of() : chatChunk.getMessages();
     }
 
 
@@ -112,12 +109,13 @@ public class ChatService {
                 "{ $project: { lastMessage: { $last: '$messages' } } }"
         };
 
-        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
-                .aggregate(Stream.of(pipeline).map(Document::parse).toList())
-                .into(new ArrayList<>());
+        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
+                .aggregate(MongoUtils.toDocuments(pipeline))
+                .first();
 
-        if (results.isEmpty()) return null;
-        var lastMessageDoc = results.getFirst().get("lastMessage", Document.class);
+        if (result == null) return null;
+
+        var lastMessageDoc = result.get("lastMessage", Document.class);
         if (lastMessageDoc == null) return null;
 
         return mongoTemplate.getConverter().read(ChatMessage.class, lastMessageDoc);
@@ -164,12 +162,13 @@ public class ChatService {
                 "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
         };
 
-        var results = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
-                .aggregate(List.of(Document.parse(pipeline[0]), Document.parse(pipeline[1])))
-                .into(new ArrayList<>());
+        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
+                .aggregate(MongoUtils.toDocuments(pipeline))
+                .first();
 
+        if (result == null) return 0;
 
-        var sizeValue = results.getFirst().get("size", Number.class);
+        var sizeValue = result.get("size", Number.class);
         return sizeValue != null ? sizeValue.longValue() : 0;
     }
 
