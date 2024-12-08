@@ -33,6 +33,7 @@ public class ChatChunk {
     @DBRef(lazy = true)
     private ChatRoom room;
 
+    @Builder.Default
     private List<ChatMessage> messages = new ArrayList<>();
 
     public static ChatChunk withFirstMessage(ChatRoom room, long number, ChatMessage message) {
