@@ -84,6 +84,7 @@ public class ChatService {
     public List<ChatRoom> rooms(Jwt jwt) {
         var user = userService.getUser(jwt);
         assert user.getId() != null;
+
         return roomRepository.findByParticipant(user.getId())
                 .stream()
                 .filter(room -> existsChunk(room.getId()))
@@ -208,7 +209,7 @@ public class ChatService {
 
     private static Function<Throwable, Void> logExpecionally(String message) {
         return ex -> {
-            log.error(message, (Throwable) null);
+            log.error(message, ex);
             return null;
         };
     }
