@@ -11,7 +11,7 @@ public final class HttpServletUtils {
     }
 
     public static String extractBearerToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
+        var bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.replace("Bearer ", "");
         }

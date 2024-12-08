@@ -5,7 +5,11 @@ import org.bson.Document;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MongoUtils {
+public final class MongoUtils {
+
+    private MongoUtils() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static List<Document> toDocuments(String... documents) {
         var parsedDocuments = new ArrayList<Document>();

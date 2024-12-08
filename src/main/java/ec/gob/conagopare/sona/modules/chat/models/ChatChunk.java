@@ -21,7 +21,7 @@ import java.util.List;
 @CompoundIndex(name = "unique_number_in_room", def = "{'number': 1, 'room.$id': 1}", unique = true)
 public class ChatChunk {
 
-    public static final long CHUNK_LENGTH_MB = 5;
+    public static final long CHUNK_LENGTH_MB = 3;
     public static final long MAX_CHUNK_SIZE = CHUNK_LENGTH_MB * 1024 * 1024; // 5 MB en bytes
 
     @Id
