@@ -23,6 +23,7 @@ import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -140,6 +141,12 @@ public class ChatService {
                         .and("message.sentBy").ne(user.getId())
                         .and("message.readBy.participantId").ne(user.getId())
                 );
+
+        log.info("QUERY INFO\n query: {}\n update: {}, filter: {}",
+                query.getQueryObject().toJson(),
+                update.getUpdateObject().toJson(),
+                update.getArrayFilters().stream().map(UpdateDefinition.ArrayFilter::asDocument).map(Document::toJson).toList()
+        );
 
         var result = mongoTemplate.updateMulti(query, update, ChatChunk.class);
 
