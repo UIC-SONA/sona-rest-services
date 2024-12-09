@@ -119,6 +119,9 @@ public class ChatService {
     }
 
     public void read(String roomId, List<UUID> messagesIds, Jwt jwt) {
+
+        log.info("Marking messages as read: roomId={}, messagesIds={}", roomId, messagesIds);
+
         var user = userService.getUser(jwt);
         var room = room(roomId);
 
@@ -140,6 +143,7 @@ public class ChatService {
 
         var result = mongoTemplate.updateMulti(query, update, ChatChunk.class);
 
+        log.info("Result of marking messages as read: {}", result);
         if (result.getModifiedCount() == 0) {
             throw ApiError.internalServerError("No se pudo marcar los mensajes como leídos, resultado de la operación: " + result);
         }
@@ -259,7 +263,9 @@ public class ChatService {
                 .with(Sort.by(Sort.Order.desc(CHAT_CHUNK_NUMBER_KEY)));
 
         var projectedQuery = Query.of(query);
-        projectedQuery.fields().include("_id").include(CHAT_CHUNK_NUMBER_KEY);
+        projectedQuery.fields()
+                .include("_id")
+                .include(CHAT_CHUNK_NUMBER_KEY);
 
         var latestChunk = mongoTemplate.findOne(projectedQuery, ChatChunk.class);
 
