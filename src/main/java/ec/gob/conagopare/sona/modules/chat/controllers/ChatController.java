@@ -57,7 +57,7 @@ public class ChatController {
     @PutMapping("/room/{roomId}/read")
     public ResponseEntity<Void> read(
             @PathVariable String roomId,
-            @RequestParam List<UUID> messagesIds,
+            @RequestParam List<String> messagesIds,
             @AuthenticationPrincipal Jwt jwt
     ) {
         service.read(roomId, messagesIds, jwt);

@@ -118,7 +118,7 @@ public class ChatService {
         return chatMessageSent;
     }
 
-    public void read(String roomId, List<UUID> messagesIds, Jwt jwt) {
+    public void read(String roomId, List<String> messagesIds, Jwt jwt) {
 
         log.info("Marking messages as read: roomId={}, messagesIds={}", roomId, messagesIds);
 
@@ -145,7 +145,7 @@ public class ChatService {
 
         log.info("Result of marking messages as read: {}", result);
         if (result.getModifiedCount() == 0) {
-            throw ApiError.internalServerError("No se pudo marcar los mensajes como leídos, resultado de la operación: " + result);
+            log.warn("No se marcaron mensajes como leídos");
         }
 
         var readMessages = ReadMessages.builder()
