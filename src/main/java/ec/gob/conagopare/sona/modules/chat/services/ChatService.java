@@ -1,24 +1,23 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
-import com.mongodb.client.model.UpdateOptions;
-import ec.gob.conagopare.sona.application.common.utils.MongoUtils;
 import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
 import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
+import io.github.luidmidev.jakarta.validations.ContentType;
+import io.github.luidmidev.jakarta.validations.FileSize;
+import io.github.luidmidev.jakarta.validations.Image;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.storage.Storage;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.MongoExpression;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationExpression;
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
-import org.springframework.data.mongodb.core.aggregation.SystemVariable;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -27,14 +26,13 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
-import static org.springframework.data.mongodb.core.aggregation.AggregationExpression.from;
 
 @Slf4j
 @Service
@@ -45,24 +43,59 @@ public class ChatService {
 
     private static final String CHAT_CHUNK_NUMBER_KEY = "number";
     private static final String CHAT_CHUNK_ROOM_KEY = "room.$id";
+    private static final String USERS_CHATS_PATH = "users/%d/chats/%s%s";
 
     private final SimpMessagingTemplate messaging;
     private final UserService userService;
     private final MongoTemplate mongoTemplate;
     private final ChatRoomRepository roomRepository;
+    private final Storage storage;
 
     public ChatMessageSent send(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
         var user = userService.getUser(jwt);
         var room = room(roomId);
+        var chatMessage = ChatMessage.now(message, user.getId(), ChatMessageType.TEXT);
+        return sendMessageToSuscribers(requestId, room, chatMessage);
+    }
 
-        var chatMessage = ChatMessage.builder()
-                .id(UUID.randomUUID())
-                .sentBy(user.getId())
-                .message(message)
-                .createdAt(Instant.now())
-                .type(ChatMessageType.TEXT)
-                .build();
+    public ChatMessageSent sendImage(
+            @Image
+            @FileSize(value = 25, unit = FileSize.Unit.MB)
+            MultipartFile file,
+            String roomId,
+            String requestId,
+            Jwt jwt
+    ) throws IOException {
+        return sendFile(file, roomId, requestId, jwt, ChatMessageType.IMAGE, "/images");
+    }
 
+    public ChatMessageSent sendVoice(
+            @ContentType("audio/*")
+            @FileSize(value = 25, unit = FileSize.Unit.MB)
+            MultipartFile file,
+            String roomId,
+            String requestId,
+            Jwt jwt
+    ) throws IOException {
+        return sendFile(file, roomId, requestId, jwt, ChatMessageType.VOICE, "/voices");
+    }
+
+    private ChatMessageSent sendFile(MultipartFile file, String roomId, String requestId, Jwt jwt, ChatMessageType type, String dir) throws IOException {
+        var user = userService.getUser(jwt);
+        var room = room(roomId);
+
+        var filePath = storage.store(
+                file.getInputStream(),
+                file.getOriginalFilename(),
+                String.format(USERS_CHATS_PATH, user.getId(), room.getId(), dir)
+        );
+
+        var chatMessage = ChatMessage.now(filePath, user.getId(), type);
+        return sendMessageToSuscribers(requestId, room, chatMessage);
+    }
+
+    private ChatMessageSent sendMessageToSuscribers(String requestId, ChatRoom room, ChatMessage chatMessage) {
+        var roomId = room.getId();
         addMessage(room, chatMessage);
 
         var chatMessageSent = ChatMessageSent.builder()
@@ -89,11 +122,7 @@ public class ChatService {
             throw ApiError.forbidden("No tienes permiso para leer mensajes en esta sala de chat");
         }
 
-        var readBy = ChatMessage.ReadBy.builder()
-                .participantId(user.getId())
-                .readAt(Instant.now())
-                .build();
-
+        var readBy = ChatMessage.ReadBy.now(user.getId());
         var query = new Query()
                 .addCriteria(chunksOf(roomId).and("messages.id").in(messages));
 
@@ -107,10 +136,16 @@ public class ChatService {
             throw ApiError.internalServerError("No se pudo marcar los mensajes como leídos, resultado de la operación: " + result);
         }
 
+        var roomDestination = "/topic/chat.room.read." + roomId;
+        runAsync(() -> messaging.convertAndSend(roomDestination, messages)).exceptionally(logExpecionally("Error enviando mensajes leídos a la sala de chat"));
+
+        for (var participant : room.getParticipants()) {
+            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox.read." + participant, messages)).exceptionally(logExpecionally("Error enviando mensajes leídos a la bandeja de entrada"));
+        }
     }
 
     public ChatRoom room(String chatRoomId) {
-        return roomRepository.findById(chatRoomId).orElseThrow(() -> ApiError.notFound("No se encontró la sala de chat con el id"));
+        return roomRepository.findById(chatRoomId).orElseThrow(() -> ApiError.notFound("No se encontró la sala de chat"));
     }
 
     public List<ChatRoom> rooms(Jwt jwt) {
@@ -134,25 +169,14 @@ public class ChatService {
 
     public ChatMessage lastMessage(String roomId) {
         var aggregate = Aggregation.newAggregation(
-                match(chunksOf(roomId)),
-                sort(Sort.Direction.DESC, CHAT_CHUNK_NUMBER_KEY),
-                limit(1),
-                project()
+                Aggregation.match(chunksOf(roomId)),
+                Aggregation.sort(Sort.Direction.DESC, CHAT_CHUNK_NUMBER_KEY),
+                Aggregation.limit(1),
+                Aggregation.project()
                         .and(ArrayOperators.Last.lastOf("messages")).as("lastMessage")
         );
 
         var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class).getUniqueMappedResult();
-
-//        String[] aggregate = {
-//                "{ $match: { \"" + CHAT_CHUNK_ROOM_KEY + "\": { $oid: '" + roomId + "' } } }",
-//                "{ $sort: { " + CHAT_CHUNK_NUMBER_KEY + ": -1 } }",
-//                "{ $limit: 1 }",
-//                "{ $project: { lastMessage: { $last: '$messages' } } }"
-//        };
-//
-//        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
-//                .aggregate(MongoUtils.toDocuments(aggregate))
-//                .first();
 
         if (result == null) return null;
 
@@ -198,26 +222,14 @@ public class ChatService {
 
 
     public long getDocumentSize(String id, Class<?> collectionType) {
-
-        ;
-
         var aggregate = Aggregation.newAggregation(
-                match(Criteria.where("_id").is(new ObjectId(id))),
-                project()
+                Aggregation.match(Criteria.where("_id").is(new ObjectId(id))),
+                Aggregation.project()
                         .andExclude("_id")
                         .and(context -> new Document("$bsonSize", Aggregation.ROOT)).as("size")
         );
 
         var result = mongoTemplate.aggregate(aggregate, collectionType, Document.class).getUniqueMappedResult();
-
-//        String[] aggregate = {
-//                "{ $match: { _id: { $oid: '" + id + "' } } }",
-//                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
-//        };
-//
-//        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
-//                .aggregate(MongoUtils.toDocuments(aggregate))
-//                .first();
 
         if (result == null) return 0;
 
@@ -269,5 +281,7 @@ public class ChatService {
             return null;
         };
     }
+
+
 }
 

@@ -23,7 +23,18 @@ public class ChatMessage {
 
     private ChatMessageType type;
 
+    @Builder.Default
     private List<ReadBy> readBy = new ArrayList<>();
+
+    public static ChatMessage now(String message, Long sentBy, ChatMessageType type) {
+        return ChatMessage.builder()
+                .id(UUID.randomUUID())
+                .message(message)
+                .createdAt(Instant.now())
+                .sentBy(sentBy)
+                .type(type)
+                .build();
+    }
 
     @Data
     @Builder
@@ -32,6 +43,13 @@ public class ChatMessage {
     public static class ReadBy {
         private Long participantId;
         private Instant readAt;
+
+        public static ReadBy now(Long participantId) {
+            return ReadBy.builder()
+                    .participantId(participantId)
+                    .readAt(Instant.now())
+                    .build();
+        }
     }
 
 }
