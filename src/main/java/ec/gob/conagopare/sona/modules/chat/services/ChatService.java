@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
+import com.mongodb.client.model.UpdateOptions;
 import ec.gob.conagopare.sona.application.common.utils.MongoUtils;
 import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
 import ec.gob.conagopare.sona.modules.chat.models.*;
@@ -12,7 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.MongoExpression;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationExpression;
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
+import org.springframework.data.mongodb.core.aggregation.SystemVariable;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -27,6 +33,8 @@ import java.util.*;
 import java.util.function.Function;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
+import static org.springframework.data.mongodb.core.aggregation.AggregationExpression.from;
 
 @Slf4j
 @Service
@@ -45,11 +53,7 @@ public class ChatService {
 
     public ChatMessageSent send(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
         var user = userService.getUser(jwt);
-        var chatRoom = room(roomId);
-
-        if (!chatRoom.getParticipants().contains(user.getId())) {
-            throw ApiError.forbidden("No tienes permiso para enviar mensajes");
-        }
+        var room = room(roomId);
 
         var chatMessage = ChatMessage.builder()
                 .id(UUID.randomUUID())
@@ -59,7 +63,7 @@ public class ChatService {
                 .type(ChatMessageType.TEXT)
                 .build();
 
-        addMessage(chatRoom, chatMessage);
+        addMessage(room, chatMessage);
 
         var chatMessageSent = ChatMessageSent.builder()
                 .requestId(requestId)
@@ -70,11 +74,39 @@ public class ChatService {
         var roomDestination = "/topic/chat.room." + roomId;
         runAsync(() -> messaging.convertAndSend(roomDestination, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
 
-        for (var participant : chatRoom.getParticipants()) {
+        for (var participant : room.getParticipants()) {
             runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
 
         return chatMessageSent;
+    }
+
+    public void read(String roomId, List<UUID> messages, Jwt jwt) {
+        var user = userService.getUser(jwt);
+        var room = room(roomId);
+
+        if (!room.getParticipants().contains(user.getId())) {
+            throw ApiError.forbidden("No tienes permiso para leer mensajes en esta sala de chat");
+        }
+
+        var readBy = ChatMessage.ReadBy.builder()
+                .participantId(user.getId())
+                .readAt(Instant.now())
+                .build();
+
+        var query = new Query()
+                .addCriteria(chunksOf(roomId).and("messages.id").in(messages));
+
+        var update = new Update()
+                .addToSet("messages.$[message].readBy", readBy)
+                .filterArray(Criteria.where("message.id").in(messages));
+
+        var result = mongoTemplate.updateMulti(query, update, ChatChunk.class);
+
+        if (result.getModifiedCount() == 0) {
+            throw ApiError.internalServerError("No se pudo marcar los mensajes como leídos, resultado de la operación: " + result);
+        }
+
     }
 
     public ChatRoom room(String chatRoomId) {
@@ -93,24 +125,34 @@ public class ChatService {
 
 
     public List<ChatMessage> messages(String roomId, long chunk) {
-        var query = new Query();
-        query.addCriteria(roomCriteria(roomId).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
-        var chatChunk = mongoTemplate.findOne(query, ChatChunk.class);
+        var query = new Query()
+                .addCriteria(chunksOf(roomId).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
 
+        var chatChunk = mongoTemplate.findOne(query, ChatChunk.class);
         return chatChunk == null ? List.of() : chatChunk.getMessages();
     }
 
     public ChatMessage lastMessage(String roomId) {
-        String[] pipeline = {
-                "{ $match: { \"" + CHAT_CHUNK_ROOM_KEY + "\": { $oid: '" + roomId + "' } } }",
-                "{ $sort: { " + CHAT_CHUNK_NUMBER_KEY + ": -1 } }",
-                "{ $limit: 1 }",
-                "{ $project: { lastMessage: { $last: '$messages' } } }"
-        };
+        var aggregate = Aggregation.newAggregation(
+                match(chunksOf(roomId)),
+                sort(Sort.Direction.DESC, CHAT_CHUNK_NUMBER_KEY),
+                limit(1),
+                project()
+                        .and(ArrayOperators.Last.lastOf("messages")).as("lastMessage")
+        );
 
-        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
-                .aggregate(MongoUtils.toDocuments(pipeline))
-                .first();
+        var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class).getUniqueMappedResult();
+
+//        String[] aggregate = {
+//                "{ $match: { \"" + CHAT_CHUNK_ROOM_KEY + "\": { $oid: '" + roomId + "' } } }",
+//                "{ $sort: { " + CHAT_CHUNK_NUMBER_KEY + ": -1 } }",
+//                "{ $limit: 1 }",
+//                "{ $project: { lastMessage: { $last: '$messages' } } }"
+//        };
+//
+//        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(ChatChunk.class))
+//                .aggregate(MongoUtils.toDocuments(aggregate))
+//                .first();
 
         if (result == null) return null;
 
@@ -125,8 +167,9 @@ public class ChatService {
     }
 
     public long chunkCount(String roomId) {
-        var query = new Query();
-        query.addCriteria(roomCriteria(roomId));
+        var query = new Query()
+                .addCriteria(chunksOf(roomId));
+
         return mongoTemplate.count(query, ChatChunk.class);
     }
 
@@ -147,21 +190,34 @@ public class ChatService {
     }
 
     private boolean existsChunk(String roomId) {
-        var query = new Query();
-        query.addCriteria(roomCriteria(roomId));
+        var query = new Query()
+                .addCriteria(chunksOf(roomId));
+
         return mongoTemplate.exists(query, ChatChunk.class);
     }
 
 
     public long getDocumentSize(String id, Class<?> collectionType) {
-        String[] pipeline = {
-                "{ $match: { _id: { $oid: '" + id + "' } } }",
-                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
-        };
 
-        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
-                .aggregate(MongoUtils.toDocuments(pipeline))
-                .first();
+        ;
+
+        var aggregate = Aggregation.newAggregation(
+                match(Criteria.where("_id").is(new ObjectId(id))),
+                project()
+                        .andExclude("_id")
+                        .and(context -> new Document("$bsonSize", Aggregation.ROOT)).as("size")
+        );
+
+        var result = mongoTemplate.aggregate(aggregate, collectionType, Document.class).getUniqueMappedResult();
+
+//        String[] aggregate = {
+//                "{ $match: { _id: { $oid: '" + id + "' } } }",
+//                "{ $project: { _id: 0, size: { $bsonSize: '$$ROOT' } } }"
+//        };
+//
+//        var result = mongoTemplate.getCollection(mongoTemplate.getCollectionName(collectionType))
+//                .aggregate(MongoUtils.toDocuments(aggregate))
+//                .first();
 
         if (result == null) return 0;
 
@@ -171,9 +227,9 @@ public class ChatService {
 
     private void addMessage(ChatRoom chatRoom, ChatMessage message) {
 
-        var query = new Query();
-        query.addCriteria(roomCriteria(chatRoom.getId()));
-        query.with(Sort.by(Sort.Order.desc(CHAT_CHUNK_NUMBER_KEY)));
+        var query = new Query()
+                .addCriteria(chunksOf(chatRoom.getId()))
+                .with(Sort.by(Sort.Order.desc(CHAT_CHUNK_NUMBER_KEY)));
 
         var projectedQuery = Query.of(query);
         projectedQuery.fields().include("_id").include(CHAT_CHUNK_NUMBER_KEY);
@@ -203,7 +259,7 @@ public class ChatService {
     }
 
 
-    private static Criteria roomCriteria(String roomId) {
+    private static Criteria chunksOf(String roomId) {
         return Criteria.where(CHAT_CHUNK_ROOM_KEY).is(new ObjectId(roomId));
     }
 
