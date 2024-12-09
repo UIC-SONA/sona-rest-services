@@ -139,14 +139,7 @@ public class ChatService {
                 .filterArray(Criteria
                         .where("message.id").in(messagesIds)
                         .and("message.sentBy").ne(user.getId())
-                        .and("message.readBy.participantId").ne(user.getId())
                 );
-
-        log.info("QUERY INFO\n query: {}\n update: {}, filter: {}",
-                query.getQueryObject().toJson(),
-                update.getUpdateObject().toJson(),
-                update.getArrayFilters().stream().map(UpdateDefinition.ArrayFilter::asDocument).map(Document::toJson).toList()
-        );
 
         var result = mongoTemplate.updateMulti(query, update, ChatChunk.class);
 
