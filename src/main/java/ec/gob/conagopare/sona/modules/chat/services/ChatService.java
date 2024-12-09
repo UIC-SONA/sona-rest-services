@@ -137,7 +137,7 @@ public class ChatService {
         var update = new Update()
                 .addToSet("messages.$[message].readBy", readBy)
                 .filterArray(Criteria
-                        .where("message.id").in(messagesIds)
+                        .where("message._id").in(messagesIds)
                         .and("message.sentBy").ne(user.getId())
                 );
 
