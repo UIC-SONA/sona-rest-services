@@ -1,6 +1,8 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
+import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
+import ec.gob.conagopare.sona.modules.chat.dto.ReadMessages;
 import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
@@ -86,7 +88,7 @@ public class ChatService {
 
         var filePath = storage.store(
                 file.getInputStream(),
-                file.getOriginalFilename(),
+                FileUtils.factoryUUIDFileName(file.getOriginalFilename()),
                 String.format(USERS_CHATS_PATH, user.getId(), room.getId(), dir)
         );
 
@@ -105,16 +107,18 @@ public class ChatService {
                 .build();
 
         var roomDestination = "/topic/chat.room." + roomId;
-        runAsync(() -> messaging.convertAndSend(roomDestination, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
+        runAsync(() -> messaging.convertAndSend(roomDestination, chatMessageSent))
+                .exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
 
         for (var participant : room.getParticipants()) {
-            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
+            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent))
+                    .exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
 
         return chatMessageSent;
     }
 
-    public void read(String roomId, List<UUID> messages, Jwt jwt) {
+    public void read(String roomId, List<UUID> messagesIds, Jwt jwt) {
         var user = userService.getUser(jwt);
         var room = room(roomId);
 
@@ -124,11 +128,15 @@ public class ChatService {
 
         var readBy = ChatMessage.ReadBy.now(user.getId());
         var query = new Query()
-                .addCriteria(chunksOf(roomId).and("messages.id").in(messages));
+                .addCriteria(chunksOf(roomId).and("messages.id").in(messagesIds));
 
         var update = new Update()
                 .addToSet("messages.$[message].readBy", readBy)
-                .filterArray(Criteria.where("message.id").in(messages));
+                .filterArray(Criteria
+                        .where("message.id").in(messagesIds)
+                        .and("message.sentBy").ne(user.getId())
+                        .and("message.readBy.participantId").ne(user.getId())
+                );
 
         var result = mongoTemplate.updateMulti(query, update, ChatChunk.class);
 
@@ -136,11 +144,18 @@ public class ChatService {
             throw ApiError.internalServerError("No se pudo marcar los mensajes como leídos, resultado de la operación: " + result);
         }
 
-        var roomDestination = "/topic/chat.room.read." + roomId;
-        runAsync(() -> messaging.convertAndSend(roomDestination, messages)).exceptionally(logExpecionally("Error enviando mensajes leídos a la sala de chat"));
+        var readMessages = ReadMessages.builder()
+                .roomId(roomId)
+                .readBy(readBy)
+                .build();
+
+        var roomDestination = "/topic/chat.room." + roomId + ".read";
+        runAsync(() -> messaging.convertAndSend(roomDestination, readMessages))
+                .exceptionally(logExpecionally("Error enviando mensajes leídos a la sala de chat"));
 
         for (var participant : room.getParticipants()) {
-            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox.read." + participant, messages)).exceptionally(logExpecionally("Error enviando mensajes leídos a la bandeja de entrada"));
+            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant + ".read", readMessages))
+                    .exceptionally(logExpecionally("Error enviando mensajes leídos a la bandeja de entrada"));
         }
     }
 

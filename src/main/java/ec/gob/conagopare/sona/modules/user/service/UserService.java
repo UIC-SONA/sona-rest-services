@@ -117,7 +117,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         var user = getUser(jwt);
 
         var previousProfilePicturePath = user.getProfilePicturePath();
-        var profilePictureName = UUID.randomUUID() + "." + FileUtils.getExtension(Objects.requireNonNull(photo.getOriginalFilename()));
+        var profilePictureName = FileUtils.factoryUUIDFileName(photo.getOriginalFilename());
         var profilePicturePath = storage.store(photo.getInputStream(), profilePictureName, USERS_PROFILE_PICTURES_PATH.formatted(user.getId()));
         user.setProfilePicturePath(profilePicturePath);
 

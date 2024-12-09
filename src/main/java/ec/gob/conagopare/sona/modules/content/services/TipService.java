@@ -20,9 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -103,7 +101,7 @@ public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository>
 
 
     private void setImage(Tip model, MultipartFile image) throws IOException {
-        var fileName = "tip-img-" + LocalDateTime.now().toString().replace(":", "-") + "." + FileUtils.getExtension(Objects.requireNonNull(image.getOriginalFilename()));
+        var fileName = FileUtils.factoryDateTimeFileName("tip-img-", image.getOriginalFilename());
         var path = storage.store(image.getInputStream(), fileName, TIPS_IMAGES_PATH);
         model.setImage(path);
     }
