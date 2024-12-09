@@ -23,7 +23,6 @@ import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -125,12 +124,13 @@ public class ChatService {
 
         var user = userService.getUser(jwt);
         var room = room(roomId);
+        var userId = user.getId();
 
-        if (!room.getParticipants().contains(user.getId())) {
+        if (!room.getParticipants().contains(userId)) {
             throw ApiError.forbidden("No tienes permiso para leer mensajes en esta sala de chat");
         }
 
-        var readBy = ChatMessage.ReadBy.now(user.getId());
+        var readBy = ChatMessage.ReadBy.now(userId);
         var query = new Query()
                 .addCriteria(chunksOf(roomId).and("messages.id").in(messagesIds));
 
@@ -138,20 +138,21 @@ public class ChatService {
                 .addToSet("messages.$[message].readBy", readBy)
                 .filterArray(Criteria
                         .where("message._id").in(messagesIds)
-                        .and("message.sentBy").ne(user.getId())
-                        .and("message.readBy.participantId").ne(user.getId())
+                        .and("message.sentBy").ne(userId)
+                        .and("message.readBy.participantId").ne(userId)
                 );
 
         var result = mongoTemplate.updateMulti(query, update, ChatChunk.class);
 
-        log.info("Result of marking messages as read: {}", result);
         if (result.getModifiedCount() == 0) {
             log.warn("No se marcaron mensajes como leídos");
+            return;
         }
 
         var readMessages = ReadMessages.builder()
                 .roomId(roomId)
                 .readBy(readBy)
+                .messageIds(messagesIds)
                 .build();
 
         var roomDestination = "/topic/chat.room." + roomId + ".read";

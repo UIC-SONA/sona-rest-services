@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -13,5 +14,6 @@ import java.util.List;
 public class ReadMessages {
     private String roomId;
     private ChatMessage.ReadBy readBy;
-    private List<String> messageIds;
+    @Builder.Default
+    private List<String> messageIds = new ArrayList<>();
 }
