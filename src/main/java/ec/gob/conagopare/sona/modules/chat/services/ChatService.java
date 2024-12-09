@@ -139,6 +139,7 @@ public class ChatService {
                 .filterArray(Criteria
                         .where("message._id").in(messagesIds)
                         .and("message.sentBy").ne(user.getId())
+                        .and("message.readBy.participantId").ne(user.getId())
                 );
 
         var result = mongoTemplate.updateMulti(query, update, ChatChunk.class);
