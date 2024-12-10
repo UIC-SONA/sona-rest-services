@@ -11,6 +11,7 @@ import java.util.Optional;
 public enum Authority implements GrantedAuthority {
     ADMIN("ROLE_admin"),
     ADMINISTRATIVE("ROLE_administrative"),
+    PROFESSIONAL("ROLE_professional"),
     LEGAL_PROFESSIONAL("ROLE_legal_professional"),
     MEDICAL_PROFESSIONAL("ROLE_medical_professional"),
     USER("ROLE_user");

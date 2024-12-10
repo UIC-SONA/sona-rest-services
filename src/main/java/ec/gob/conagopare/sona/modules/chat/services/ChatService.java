@@ -106,13 +106,8 @@ public class ChatService {
                 .message(chatMessage)
                 .build();
 
-        var roomDestination = "/topic/chat.room." + roomId;
-        runAsync(() -> messaging.convertAndSend(roomDestination, chatMessageSent))
-                .exceptionally(logExpecionally("Error enviando mensaje a la sala de chat"));
-
         for (var participant : room.getParticipants()) {
-            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent))
-                    .exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
+            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
 
         return chatMessageSent;
@@ -155,13 +150,8 @@ public class ChatService {
                 .messageIds(messagesIds)
                 .build();
 
-        var roomDestination = "/topic/chat.room." + roomId + ".read";
-        runAsync(() -> messaging.convertAndSend(roomDestination, readMessages))
-                .exceptionally(logExpecionally("Error enviando mensajes leídos a la sala de chat"));
-
         for (var participant : room.getParticipants()) {
-            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant + ".read", readMessages))
-                    .exceptionally(logExpecionally("Error enviando mensajes leídos a la bandeja de entrada"));
+            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant + ".read", readMessages)).exceptionally(logExpecionally("Error enviando mensajes leídos a la bandeja de entrada"));
         }
     }
 
