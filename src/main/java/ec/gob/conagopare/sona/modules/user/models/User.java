@@ -8,6 +8,8 @@ import lombok.*;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Persistable;
 
+import java.util.Collection;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Builder
@@ -30,6 +32,8 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     @Transient
     private UserRepresentation representation;
 
+    @Transient
+    private Collection<Authority> authorities;
 
     @Override
     public String[] filesFullPaths() {
