@@ -57,6 +57,11 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Message> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return ResponseEntity.ok(new Message("Tip eliminado correctamente"));
+    }
 
     @GetMapping("/actives")
     public ResponseEntity<List<Tip>> actives(
