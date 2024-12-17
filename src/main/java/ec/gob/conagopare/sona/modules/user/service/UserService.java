@@ -4,7 +4,6 @@ import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
 import ec.gob.conagopare.sona.application.common.utils.functions.FunctionThrowable;
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
-import ec.gob.conagopare.sona.application.common.utils.functions.NoOpt;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
 import ec.gob.conagopare.sona.modules.user.UserConfig;
 import ec.gob.conagopare.sona.modules.user.dto.BaseUser;
@@ -35,7 +34,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -70,13 +68,19 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
         if (admin != null && !repository.existsById(admin.getId())) {
             var singUpUser = admin.toSingUpUser();
-            create(singUpUser.toRepresentation(), singUpUser.getPassword(), user -> user.setId(admin.getId()), Authority.ADMIN);
+            var user = new User();
+            var keycloackId = createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
+            user.setKeycloakId(keycloackId);
+            repository.save(user);
         }
     }
 
     @PreAuthorize("permitAll()")
     public void signUp(@Valid SingUpUser singUpUser) {
-        create(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
+        var user = new User();
+        var keycloackId = createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
+        user.setKeycloakId(keycloackId);
+        repository.save(user);
     }
 
 
@@ -94,9 +98,10 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
                 throw ApiError.badRequest("No se puede crear un usuario sin contraseña");
             }
 
-            create(dto.toRepresentation(), password, authorityToAdd.toArray(Authority[]::new));
+            var keycloackId = createKeycloakUser(dto.toRepresentation(), password, authorityToAdd.toArray(Authority[]::new));
+            model.setKeycloakId(keycloackId);
         } else {
-            update(model, dto);
+            updateKeycloackUser(model.getKeycloakId(), dto);
         }
 
         dispathUser(model);
@@ -105,11 +110,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     @PreAuthorize("isAuthenticated()")
     public Stored profilePicture(Jwt jwt) {
         var user = getUser(jwt);
-        return Optional.ofNullable(user.getProfilePicturePath())
-                .map(FunctionThrowable.unchecked(storage::download))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
+        return Optional.ofNullable(user.getProfilePicturePath()).map(FunctionThrowable.unchecked(storage::download)).filter(Optional::isPresent).map(Optional::get).orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -165,33 +166,16 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         page.forEach(this::dispathUser);
     }
 
-    private void create(UserRepresentation representation, String password, Authority... authority) {
-        create(representation, password, NoOpt.consumer(), authority);
+    private String createKeycloakUser(UserRepresentation representation, String password, Authority... authority) {
+        return keycloakUserManager.create(representation, password, Authority.getAuthorities(authority));
     }
 
-    private void create(UserRepresentation representation, String password, Consumer<User> beforeSave, Authority... authority) {
-
-        var keycloakId = keycloakUserManager.create(
-                representation,
-                password,
-                Authority.getAuthorities(authority)
-        );
-
-        var user = User.builder()
-                .keycloakId(keycloakId)
-                .build();
-
-        beforeSave.accept(user);
-        repository.save(user);
-    }
-
-    private void update(String keycloakId, BaseUser userDto) {
+    private void updateKeycloackUser(String keycloakId, BaseUser userDto) {
         keycloakUserManager.update(keycloakId, userDto::transferToRepresentation);
     }
 
-    private void update(User user, UserDto userDto) {
-        var keycloakId = user.getKeycloakId();
-        update(keycloakId, userDto);
+    private void updateKeycloackUser(String keycloakId, UserDto userDto) {
+        updateKeycloackUser(keycloakId, (BaseUser) userDto);
 
         var password = userDto.getPassword();
         if (password != null) {
@@ -214,9 +198,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     public List<User> search(String search) {
         var representations = keycloakUserManager.search(search);
 
-        return representations.stream()
-                .map(convertRepresentationToUser(representations))
-                .toList();
+        return representations.stream().map(convertRepresentationToUser(representations)).toList();
     }
 
     @Override
@@ -228,35 +210,26 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     public List<User> listByRole(String search, Authority role) {
         var representations = findRepresentations(search, role);
 
-        return representations.stream()
-                .map(convertRepresentationToUser(representations))
-                .toList();
+        return representations.stream().map(convertRepresentationToUser(representations)).toList();
     }
 
     public Page<User> pageByRole(String search, Authority role, Pageable pageable) {
         var representations = findRepresentations(search, role);
 
-        var result = sortRepresentations(representations.stream(), pageable)
-                .skip(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .map(convertRepresentationToUser(representations))
-                .toList();
+        var result = sortRepresentations(representations.stream(), pageable).skip(pageable.getOffset()).limit(pageable.getPageSize()).map(convertRepresentationToUser(representations)).toList();
 
         return PageableExecutionUtils.getPage(result, pageable, representations::size);
     }
 
     private List<Comparator<UserRepresentation>> getSortComparators(Pageable pageable) {
         var sort = pageable.getSort();
-        return sort.stream()
-                .map(order -> switch (order.getProperty()) {
-                    case "email" -> Comparator.comparing(UserRepresentation::getEmail);
-                    case "username" -> Comparator.comparing(UserRepresentation::getUsername);
-                    case "firstName" -> Comparator.comparing(UserRepresentation::getFirstName);
-                    case "lastName" -> Comparator.comparing(UserRepresentation::getLastName);
-                    default -> null;
-                })
-                .filter(Objects::nonNull)
-                .toList();
+        return sort.stream().map(order -> switch (order.getProperty()) {
+            case "email" -> Comparator.comparing(UserRepresentation::getEmail);
+            case "username" -> Comparator.comparing(UserRepresentation::getUsername);
+            case "firstName" -> Comparator.comparing(UserRepresentation::getFirstName);
+            case "lastName" -> Comparator.comparing(UserRepresentation::getLastName);
+            default -> null;
+        }).filter(Objects::nonNull).toList();
     }
 
 
@@ -283,20 +256,14 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     private Function<UserRepresentation, User> convertRepresentationToUser(List<UserRepresentation> representations) {
         var users = findUsers(representations);
         return representation -> {
-            var user = users.stream()
-                    .filter(u -> u.getKeycloakId().equals(representation.getId()))
-                    .findFirst()
-                    .orElseThrow(() -> ApiError.internalServerError("Inconsistencia de datos, usuario no encontrado. Keycloak id: " + representation.getId()));
+            var user = users.stream().filter(u -> u.getKeycloakId().equals(representation.getId())).findFirst().orElseThrow(() -> ApiError.internalServerError("Inconsistencia de datos, usuario no encontrado. Keycloak id: " + representation.getId()));
             return dispathUser(user, representation);
         };
     }
 
     private List<UserRepresentation> findRepresentations(String search, Authority role) {
         var representations = findRepresentations(role);
-        return search == null ? representations : representations
-                .stream()
-                .filter(filterRepresentations(search))
-                .toList();
+        return search == null ? representations : representations.stream().filter(filterRepresentations(search)).toList();
     }
 
     private List<UserRepresentation> findRepresentations(Authority role) {
@@ -304,9 +271,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     }
 
     private static List<String> extractKeycloakIds(List<UserRepresentation> representations) {
-        return representations.stream()
-                .map(UserRepresentation::getId)
-                .toList();
+        return representations.stream().map(UserRepresentation::getId).toList();
     }
 
     private Stream<UserRepresentation> sortRepresentations(Stream<UserRepresentation> representations, Pageable pageable) {
@@ -333,10 +298,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             var username = representation.getUsername().toLowerCase();
             var firstName = representation.getFirstName().toLowerCase();
             var lastName = representation.getLastName().toLowerCase();
-            return email.contains(searchLowerCase)
-                    || username.contains(searchLowerCase)
-                    || firstName.contains(searchLowerCase)
-                    || lastName.contains(searchLowerCase);
+            return email.contains(searchLowerCase) || username.contains(searchLowerCase) || firstName.contains(searchLowerCase) || lastName.contains(searchLowerCase);
         };
     }
 }
