@@ -83,7 +83,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     @Override
     protected void mapModel(UserDto dto, User model) {
         if (model.isNew()) {
-            var authorityToAdd = dto.getAuthorityToAdd();
+            var authorityToAdd = dto.getAuthoritiesToAdd();
             var password = dto.getPassword();
 
             if (authorityToAdd.isEmpty()) {
@@ -198,8 +198,8 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             keycloakUserManager.resetPassword(keycloakId, password);
         }
 
-        var authoritiesToRemove = userDto.getAuthorityToRemove();
-        var authoritiesToAdd = userDto.getAuthorityToAdd();
+        var authoritiesToRemove = userDto.getAuthoritiesToRemove();
+        var authoritiesToAdd = userDto.getAuthoritiesToAdd();
 
         keycloakUserManager.removeRoles(keycloakId, Authority.getAuthorities(authoritiesToRemove));
         keycloakUserManager.addRoles(keycloakId, Authority.getAuthorities(authoritiesToAdd));

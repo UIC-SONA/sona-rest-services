@@ -14,10 +14,10 @@ import java.util.List;
 public class UserDto extends BaseUser {
 
     @NotNull
-    private List<Authority> authorityToAdd;
+    private List<Authority> authoritiesToAdd;
 
     @NotNull
-    private List<Authority> authorityToRemove;
+    private List<Authority> authoritiesToRemove;
 
     @Password(DefaultPasswordRules.class)
     private String password;
