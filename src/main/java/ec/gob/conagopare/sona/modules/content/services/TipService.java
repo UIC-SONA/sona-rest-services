@@ -30,7 +30,6 @@ public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository>
 
     private static final String TIPS_IMAGES_PATH = "tips";
     private static final AdditionsSearch<Tip> AND_ACTIVE_TRUE = new AdditionsSearch<Tip>().and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("active"), true));
-
     private final Storage storage;
 
 

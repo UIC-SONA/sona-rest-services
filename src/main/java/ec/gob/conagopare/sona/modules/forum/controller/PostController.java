@@ -1,6 +1,7 @@
 package ec.gob.conagopare.sona.modules.forum.controller;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
+import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.service.PostService;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Getter
 @RestController
-@RequestMapping("/post")
+@RequestMapping("/forum/post")
 @RequiredArgsConstructor
 public class PostController implements ReadController<Post, String, PostService> {
 
@@ -26,16 +27,15 @@ public class PostController implements ReadController<Post, String, PostService>
     public ResponseEntity<Post.Comment> createComment(
             Jwt jwt,
             @PathVariable String postId,
-            @RequestParam String content,
-            @RequestParam(required = false) Boolean anonymous
+            @RequestBody NewComment newComment
     ) {
-        var comment = service.commentPost(jwt, postId, content, anonymous);
+        var comment = service.commentPost(jwt, postId, newComment);
         return ResponseEntity.ok(comment);
     }
 
     @DeleteMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<Message> deleteComment(Jwt jwt, @PathVariable String postId, @PathVariable String commentId) {
-        service.uncommentPost(jwt, postId, commentId);
+        service.deleteComment(jwt, postId, commentId);
         return ResponseEntity.ok(new Message("Comentario eliminado correctamente"));
     }
 

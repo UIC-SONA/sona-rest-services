@@ -2,6 +2,7 @@ package ec.gob.conagopare.sona.modules.forum.service;
 
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
+import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.models.ByAuthor;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
@@ -19,7 +20,6 @@ import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.ToStore;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -114,9 +114,10 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
     }
 
     @PreAuthorize("isAuthenticated()")
-    public Comment commentPost(Jwt jwt, String postId, @NotEmpty String content, Boolean isAnonymous) {
+    public Comment commentPost(Jwt jwt, String postId, NewComment newComment) {
         return updatePost(jwt, isId(postId), (update, user) -> {
-            var anonymous = user.isAnonymous() || Boolean.TRUE.equals(isAnonymous);
+            var content = newComment.getContent();
+            var anonymous = user.isAnonymous() || Boolean.TRUE.equals(newComment.getAnonymous());
             var comment = Post.newComment(content, user.getId(), anonymous);
             update.push(Post.COMMENT_FIELD, comment);
             return comment;
@@ -124,7 +125,7 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void uncommentPost(Jwt jwt, String postId, String commentId) {
+    public void deleteComment(Jwt jwt, String postId, String commentId) {
         var user = userService.getUser(jwt);
 
         var criteria = where("id").is(postId);
