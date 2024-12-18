@@ -6,7 +6,7 @@ import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
-import io.github.luidmidev.springframework.data.crud.core.utils.PageableUtils;
+import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -65,9 +65,12 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
 
     @GetMapping("/actives")
     public ResponseEntity<List<Tip>> actives(
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String[] properties,
+            @RequestParam(required = false) Sort.Direction direction
     ) {
-        return ResponseEntity.ok(service.actives(search));
+        var sort = CrudUtils.resolveSort(direction, properties);
+        return ResponseEntity.ok(service.actives(search, sort));
     }
 
     @GetMapping("/actives/page")
@@ -78,8 +81,8 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
             @RequestParam(required = false) String[] properties,
             @RequestParam(required = false) Sort.Direction direction
     ) {
-        var pageable = PageableUtils.resolvePage(size, page, direction, properties);
-        return ResponseEntity.ok(service.actives(pageable, search));
+        var pageable = CrudUtils.resolvePage(size, page, direction, properties);
+        return ResponseEntity.ok(service.actives(search, pageable));
     }
 
     @GetMapping("/{id}/image")

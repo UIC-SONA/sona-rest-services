@@ -1,11 +1,11 @@
-package ec.gob.conagopare.sona.modules.chatbot.service;
+package ec.gob.conagopare.sona.modules.bot.service;
 
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.Credentials;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.cx.v3.*;
-import ec.gob.conagopare.sona.modules.chatbot.ChaBotConfig;
-import ec.gob.conagopare.sona.modules.chatbot.repositories.PromptResponseRepository;
+import ec.gob.conagopare.sona.modules.bot.ChaBotConfig;
+import ec.gob.conagopare.sona.modules.bot.repositories.PromptResponseRepository;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;

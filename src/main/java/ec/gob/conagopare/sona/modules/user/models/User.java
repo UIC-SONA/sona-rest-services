@@ -29,6 +29,10 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     @Column
     private String profilePicturePath;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean anonymous = false;
+
     @Transient
     private UserRepresentation representation;
 

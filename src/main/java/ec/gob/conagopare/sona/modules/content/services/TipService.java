@@ -15,6 +15,7 @@ import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,8 +29,7 @@ import java.util.UUID;
 public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository> {
 
     private static final String TIPS_IMAGES_PATH = "tips";
-    private final AdditionsSearch<Tip> andActiveTrue = new AdditionsSearch<Tip>()
-            .and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("active"), true));
+    private static final AdditionsSearch<Tip> AND_ACTIVE_TRUE = new AdditionsSearch<Tip>().and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("active"), true));
 
     private final Storage storage;
 
@@ -63,24 +63,18 @@ public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository>
         model.setActive(dto.isActive());
     }
 
-    @Override
-    public void onAfterDelete(Tip uuid) {
-        StorageUtils.tryRemoveFileAsync(storage, uuid.getImage());
-    }
-
     @PreAuthorize("isAuthenticated()")
-    public List<Tip> actives(String search) {
-
+    public List<Tip> actives(String search, Sort sort) {
         return search == null
-                ? repository.findAllByActiveTrue()
-                : AdvanceSearch.search(entityManager, search, andActiveTrue, Tip.class);
+                ? repository.findAllByActiveTrue(sort)
+                : AdvanceSearch.search(entityManager, search, sort, AND_ACTIVE_TRUE, Tip.class);
     }
 
     @PreAuthorize("isAuthenticated()")
-    public Page<Tip> actives(Pageable pageable, String search) {
+    public Page<Tip> actives(String search, Pageable pageable) {
         return search == null
                 ? repository.findAllByActiveTrue(pageable)
-                : AdvanceSearch.search(entityManager, search, pageable, andActiveTrue, Tip.class);
+                : AdvanceSearch.search(entityManager, search, pageable, AND_ACTIVE_TRUE, Tip.class);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -100,11 +94,14 @@ public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository>
     }
 
 
+    @Override
+    protected void onAfterDelete(Tip uuid) {
+        StorageUtils.tryRemoveFileAsync(storage, uuid.getImage());
+    }
+
     private void setImage(Tip model, MultipartFile image) throws IOException {
         var fileName = FileUtils.factoryDateTimeFileName("tip-img-", image.getOriginalFilename());
         var path = storage.store(image.getInputStream(), fileName, TIPS_IMAGES_PATH);
         model.setImage(path);
     }
-
-
 }

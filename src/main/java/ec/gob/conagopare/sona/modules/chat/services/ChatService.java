@@ -45,11 +45,11 @@ public class ChatService {
 
     private static final String CHAT_CHUNK_NUMBER_KEY = "number";
     private static final String CHAT_CHUNK_ROOM_KEY = "room.$id";
-    private static final String USERS_CHATS_PATH = "users/%d/chats/%s%s";
+    private static final String USERS_CHATS_PATH = "users/%d/chats/%s/%s";
 
     private final SimpMessagingTemplate messaging;
-    private final UserService userService;
     private final MongoTemplate mongoTemplate;
+    private final UserService userService;
     private final ChatRoomRepository roomRepository;
     private final Storage storage;
 
@@ -68,7 +68,7 @@ public class ChatService {
             String requestId,
             Jwt jwt
     ) throws IOException {
-        return sendFile(file, roomId, requestId, jwt, ChatMessageType.IMAGE, "/images");
+        return sendFile(file, roomId, requestId, jwt, ChatMessageType.IMAGE, "images");
     }
 
     public ChatMessageSent sendVoice(
@@ -79,7 +79,7 @@ public class ChatService {
             String requestId,
             Jwt jwt
     ) throws IOException {
-        return sendFile(file, roomId, requestId, jwt, ChatMessageType.VOICE, "/voices");
+        return sendFile(file, roomId, requestId, jwt, ChatMessageType.VOICE, "voices");
     }
 
     private ChatMessageSent sendFile(MultipartFile file, String roomId, String requestId, Jwt jwt, ChatMessageType type, String dir) throws IOException {

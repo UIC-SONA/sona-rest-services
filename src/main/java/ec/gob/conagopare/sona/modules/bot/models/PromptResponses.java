@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.modules.chatbot.models;
+package ec.gob.conagopare.sona.modules.bot.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;

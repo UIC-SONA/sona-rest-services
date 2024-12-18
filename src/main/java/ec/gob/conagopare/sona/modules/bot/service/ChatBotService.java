@@ -1,7 +1,7 @@
-package ec.gob.conagopare.sona.modules.chatbot.service;
+package ec.gob.conagopare.sona.modules.bot.service;
 
-import ec.gob.conagopare.sona.modules.chatbot.models.PromptResponses;
-import ec.gob.conagopare.sona.modules.chatbot.repositories.PromptResponseRepository;
+import ec.gob.conagopare.sona.modules.bot.models.PromptResponses;
+import ec.gob.conagopare.sona.modules.bot.repositories.PromptResponseRepository;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;

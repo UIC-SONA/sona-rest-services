@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.modules.chatbot;
+package ec.gob.conagopare.sona.modules.bot;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

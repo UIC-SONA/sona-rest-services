@@ -17,12 +17,6 @@ public interface ChatRoomRepository extends MongoRepository<ChatRoom, String> {
     List<ChatRoom> findByParticipant(Long participantId);
 
     /**
-     * Buscar todas las salas que contengan un participante específico y un tipo de sala.
-     */
-    @Query(value = "{ 'participants': ?0, 'type': ?1 }")
-    List<ChatRoom> findByParticipantAndType(Long participantId, ChatRoomType chatRoomType);
-
-    /**
      * Buscar la sala que contenga a los participantes específicos.
      */
     @Query(value = "{ 'participants': { $all: ?0 }, 'type': ?1 }")
