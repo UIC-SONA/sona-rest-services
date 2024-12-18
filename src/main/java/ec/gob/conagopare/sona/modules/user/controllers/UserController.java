@@ -39,7 +39,7 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
             @RequestParam(required = false, defaultValue = "true") boolean anonymize
     ) {
         service.anonymize(jwt, anonymize);
-        return ResponseEntity.ok(new Message("Usuario anonimizado correctamente"));
+        return ResponseEntity.ok(new Message("Estado de anonimato actualizado correctamente a " + anonymize));
     }
 
     @GetMapping("/profile-picture")
