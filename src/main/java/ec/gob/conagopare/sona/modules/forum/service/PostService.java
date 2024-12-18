@@ -80,8 +80,7 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
 
         var images = dto.getImages();
         var content = dto.getContent();
-        var isAnonymous = user.isAnonymous() || Boolean.TRUE.equals(dto.getAnonymous());
-
+        var isAnonymous = solveAnonymous(user, dto.getAnonymous());
         var paths = storePostImages(images, user.getId());
 
         try {
@@ -117,7 +116,7 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
     public Comment commentPost(Jwt jwt, String postId, NewComment newComment) {
         return updatePost(jwt, isId(postId), (update, user) -> {
             var content = newComment.getContent();
-            var anonymous = user.isAnonymous() || Boolean.TRUE.equals(newComment.getAnonymous());
+            var anonymous = solveAnonymous(user, newComment.getAnonymous());
             var comment = Post.newComment(content, user.getId(), anonymous);
             update.push(Post.COMMENT_FIELD, comment);
             return comment;
@@ -246,6 +245,13 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
                 ).toArray(ToStore[]::new);
         storage.store(toStore);
         return Stream.of(toStore).map(ToStore::getCompletePath).toList();
+    }
+
+    private static boolean solveAnonymous(User user, Boolean anonymous) {
+        if (anonymous == null) {
+            return user.isAnonymous();
+        }
+        return anonymous;
     }
 
     private static boolean isPriviliged(User user) {
