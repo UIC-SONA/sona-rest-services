@@ -27,7 +27,7 @@ public class Post extends ByAuthor<Long> implements PurgableStored, Persistable<
     private List<String> images;
 
     private List<Comment> comments = new ArrayList<>();
-    private List<String> likedBy = new ArrayList<>();
+    private List<Long> likedBy = new ArrayList<>();
 
     private Instant createdAt;
 
