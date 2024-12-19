@@ -234,6 +234,9 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
     }
 
     private List<String> storePostImages(List<MultipartFile> images, Long userId) throws IOException {
+        if (images == null || images.isEmpty()) {
+            return List.of();
+        }
         var path = String.format(USERS_POST_PATH, userId);
         var toStore = images.stream()
                 .map(unchecked(
