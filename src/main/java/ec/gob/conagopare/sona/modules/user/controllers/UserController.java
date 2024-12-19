@@ -48,6 +48,12 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
         return ResponseEntityUtils.resource(stored);
     }
 
+    @GetMapping("{id}/profile-picture")
+    public ResponseEntity<ByteArrayResource> profilePicture(@PathVariable Long id) {
+        var stored = service.profilePicture(id);
+        return ResponseEntityUtils.resource(stored);
+    }
+
     @PostMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Message> uploadProfilePicture(
             @RequestPart MultipartFile photo,
@@ -71,4 +77,6 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
     ) {
         return ResponseEntity.ok(service.profile(jwt));
     }
+
+
 }

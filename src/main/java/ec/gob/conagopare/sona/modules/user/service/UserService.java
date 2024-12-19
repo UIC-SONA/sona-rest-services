@@ -119,7 +119,13 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     @PreAuthorize("isAuthenticated()")
     public Stored profilePicture(Jwt jwt) {
         var user = getUser(jwt);
-        return Optional.ofNullable(user.getProfilePicturePath()).map(FunctionThrowable.unchecked(storage::download)).filter(Optional::isPresent).map(Optional::get).orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
+        return profilePicture(user);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    public Stored profilePicture(Long id) {
+        var user = getUser(id);
+        return profilePicture(user);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -201,6 +207,14 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             return searchFilterRole(search, role, pageable);
         }
         return search(search, pageable);
+    }
+
+    private Stored profilePicture(User user) {
+        return Optional.ofNullable(user.getProfilePicturePath())
+                .map(FunctionThrowable.unchecked(storage::download))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
     }
 
     private List<User> searchFilterRole(String search, Sort sort, Authority role) {
@@ -314,4 +328,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     private static List<String> extractKeycloakIds(List<UserRepresentation> representations) {
         return representations.stream().map(UserRepresentation::getId).toList();
     }
+
+
 }
