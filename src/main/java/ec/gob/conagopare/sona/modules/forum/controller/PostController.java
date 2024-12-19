@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +27,7 @@ public class PostController implements ReadController<Post, String, PostService>
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<Post.Comment> createComment(
-            Jwt jwt,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId,
             @RequestBody NewComment newComment
     ) {
@@ -35,19 +36,29 @@ public class PostController implements ReadController<Post, String, PostService>
     }
 
     @DeleteMapping("/{postId}/comments/{commentId}")
-    public ResponseEntity<Message> deleteComment(Jwt jwt, @PathVariable String postId, @PathVariable String commentId) {
+    public ResponseEntity<Message> deleteComment(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String postId,
+            @PathVariable String commentId
+    ) {
         service.deleteComment(jwt, postId, commentId);
         return ResponseEntity.ok(new Message("Comentario eliminado correctamente"));
     }
 
     @PostMapping("/{postId}/like")
-    public ResponseEntity<Message> likePost(Jwt jwt, @PathVariable String postId) {
+    public ResponseEntity<Message> likePost(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String postId
+    ) {
         service.likePost(jwt, postId);
         return ResponseEntity.ok(new Message("Publicación marcada como favorita"));
     }
 
     @PostMapping("/{postId}/unlike")
-    public ResponseEntity<Message> unlikePost(Jwt jwt, @PathVariable String postId) {
+    public ResponseEntity<Message> unlikePost(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String postId
+    ) {
         service.unlikePost(jwt, postId);
         return ResponseEntity.ok(new Message("Publicación desmarcada como favorita"));
     }
