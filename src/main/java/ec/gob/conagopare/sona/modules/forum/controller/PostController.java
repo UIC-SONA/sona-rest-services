@@ -8,6 +8,7 @@ import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +52,7 @@ public class PostController implements ReadController<Post, String, PostService>
         return ResponseEntity.ok(new Message("Publicación desmarcada como favorita"));
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Post> create(
             @RequestParam(required = false) Boolean anonymous,
             @RequestParam String content,
