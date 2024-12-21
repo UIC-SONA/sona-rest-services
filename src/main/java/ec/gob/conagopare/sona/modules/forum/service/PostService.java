@@ -19,6 +19,7 @@ import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
+import io.github.luidmidev.storage.Stored;
 import io.github.luidmidev.storage.ToStore;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -272,5 +273,15 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
 
     private static Query isId(String id) {
         return Query.query(where("id").is(id));
+    }
+
+    public Stored image(String imagePath) throws IOException {
+        var regex = "^users/\\d+/posts/.*$";
+        if (!imagePath.matches(regex)) {
+            throw ApiError.badRequest("No se puede acceder a la imagen");
+        }
+        return storage
+                .download(imagePath)
+                .orElseThrow(() -> ApiError.notFound("No se encontró la imagen"));
     }
 }

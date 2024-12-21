@@ -81,4 +81,9 @@ public class PostController implements ReadController<Post, String, PostService>
         var post = service.create(new PostDto(anonymous, content, images));
         return ResponseEntity.ok(post);
     }
+
+    @GetMapping("/image/{imageId}")
+    public ResponseEntity<byte[]> image(@PathVariable String imagePath) {
+        return ResponseEntity.ok(service.image(imagePath));
+    }
 }
