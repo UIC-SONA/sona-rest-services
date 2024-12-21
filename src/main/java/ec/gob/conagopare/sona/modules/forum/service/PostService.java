@@ -154,6 +154,11 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
         updatePost(jwt, isId(postId), (update, user) -> update.pull(Post.LIKED_BY_FIELD, user.getId()));
     }
 
+    @PreAuthorize("isAuthenticated()")
+    public void reportPost(Jwt jwt, String postId) {
+        updatePost(jwt, isId(postId), (update, user) -> update.addToSet("reportedBy", user.getId()));
+    }
+
     private <T> T updatePost(Jwt jwt, Query query, BiFunction<Update, User, T> updater) {
         var user = userService.getUser(jwt);
         return updatePost(query, update -> updater.apply(update, user));

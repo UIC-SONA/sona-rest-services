@@ -63,6 +63,15 @@ public class PostController implements ReadController<Post, String, PostService>
         return ResponseEntity.ok(new Message("Publicación desmarcada como favorita"));
     }
 
+    @PostMapping("/{postId}/report")
+    public ResponseEntity<Message> reportPost(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String postId
+    ) {
+        service.reportPost(jwt, postId);
+        return ResponseEntity.ok(new Message("Publicación reportada correctamente"));
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Post> create(
             @RequestParam(required = false) Boolean anonymous,
