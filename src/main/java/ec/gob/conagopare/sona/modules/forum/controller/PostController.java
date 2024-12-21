@@ -1,6 +1,7 @@
 package ec.gob.conagopare.sona.modules.forum.controller;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
+import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
@@ -8,6 +9,7 @@ import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +17,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Getter
@@ -82,8 +85,8 @@ public class PostController implements ReadController<Post, String, PostService>
         return ResponseEntity.ok(post);
     }
 
-    @GetMapping("/image/{imageId}")
-    public ResponseEntity<byte[]> image(@PathVariable String imagePath) {
-        return ResponseEntity.ok(service.image(imagePath));
+    @GetMapping("/image")
+    public ResponseEntity<ByteArrayResource> image(@RequestParam String imagePath) throws IOException {
+        return ResponseEntityUtils.resource(service.image(imagePath));
     }
 }
