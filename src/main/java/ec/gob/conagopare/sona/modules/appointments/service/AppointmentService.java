@@ -1,6 +1,5 @@
 package ec.gob.conagopare.sona.modules.appointments.service;
 
-import ec.gob.conagopare.sona.application.common.utils.PostgresUtils;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.repository.AppointmentRepository;
 import ec.gob.conagopare.sona.modules.user.models.User;
@@ -13,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class AppointmentService extends JpaReadService<Appointment, UUID, AppointmentRepository> {
