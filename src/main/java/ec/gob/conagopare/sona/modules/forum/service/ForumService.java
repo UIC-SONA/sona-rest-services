@@ -1,13 +1,11 @@
 package ec.gob.conagopare.sona.modules.forum.service;
 
-import ec.gob.conagopare.sona.application.common.utils.FileUtils;
-import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
-import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
+import ec.gob.conagopare.sona.modules.forum.dto.ForumPostDto;
 import ec.gob.conagopare.sona.modules.forum.models.ByAuthor;
-import ec.gob.conagopare.sona.modules.forum.models.Post;
-import ec.gob.conagopare.sona.modules.forum.models.Post.Comment;
-import ec.gob.conagopare.sona.modules.forum.repository.PostRepository;
+import ec.gob.conagopare.sona.modules.forum.models.Forum;
+import ec.gob.conagopare.sona.modules.forum.models.Forum.Comment;
+import ec.gob.conagopare.sona.modules.forum.repository.ForumRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
@@ -18,9 +16,6 @@ import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcesso
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
-import io.github.luidmidev.storage.Storage;
-import io.github.luidmidev.storage.Stored;
-import io.github.luidmidev.storage.ToStore;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,42 +31,34 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
-import static ec.gob.conagopare.sona.application.common.utils.functions.FunctionThrowable.unchecked;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Slf4j
 @Service
 @Transactional
-public class PostService extends CrudService<Post, PostDto, String, PostRepository> {
+public class ForumService extends CrudService<Forum, ForumPostDto, String, ForumRepository> {
 
     private static final Set<Authority> PRIVILEGED_AUTHORITIES = Set.of(Authority.ADMIN, Authority.ADMINISTRATIVE);
-    private static final String USERS_POST_PATH = "users/%d/posts";
 
     private final MongoTemplate mongo;
     private final UserService userService;
-    private final Storage storage;
 
-    public PostService(MongoTemplate mongo, UserService userService, Storage storage, PostRepository repository) {
-        super(repository, Post.class);
+    public ForumService(MongoTemplate mongo, UserService userService, ForumRepository repository) {
+        super(repository, Forum.class);
         this.mongo = mongo;
         this.userService = userService;
-        this.storage = storage;
     }
 
 
     @Override
     @SneakyThrows
-    protected void mapModel(PostDto dto, Post model) {
+    protected void mapModel(ForumPostDto dto, Forum model) {
         var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         var user = userService.getUser(jwt);
 
@@ -79,29 +66,19 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
             throw ApiError.badRequest("Las publicaciones no pueden ser modificadas");
         }
 
-        var images = dto.getImages();
         var content = dto.getContent();
         var isAnonymous = solveAnonymous(user, dto.getAnonymous());
-        var paths = storePostImages(images, user.getId());
 
-        try {
-
-            model.setContent(content);
-            model.setImages(paths);
-            model.setCreatedAt(Instant.now());
-            model.setAuthor(user.getId());
-            model.setAnonymous(isAnonymous);
-
-        } catch (Exception e) {
-            StorageUtils.tryRemoveFileAsync(storage, paths);
-            throw e;
-        }
+        model.setContent(content);
+        model.setCreatedAt(Instant.now());
+        model.setAuthor(user.getId());
+        model.setAnonymous(isAnonymous);
     }
 
     @PreAuthorize("isAuthenticated()")
-    public Page<Post> myLikedPosts(Jwt jwt, Pageable pageable) {
+    public Page<Forum> myLikedPosts(Jwt jwt, Pageable pageable) {
         var user = userService.getUser(jwt);
-        var query = Query.query(where(Post.LIKED_BY_FIELD).is(user.getId()));
+        var query = Query.query(where(Forum.LIKED_BY_FIELD).is(user.getId()));
         return paginatePost(pageable, query);
     }
 
@@ -118,8 +95,8 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
         return updatePost(jwt, isId(postId), (update, user) -> {
             var content = newComment.getContent();
             var anonymous = solveAnonymous(user, newComment.getAnonymous());
-            var comment = Post.newComment(content, user.getId(), anonymous);
-            update.push(Post.COMMENT_FIELD, comment);
+            var comment = Forum.newComment(content, user.getId(), anonymous);
+            update.push(Forum.COMMENT_FIELD, comment);
             return comment;
         });
     }
@@ -131,28 +108,28 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
         var criteria = where("id").is(postId);
 
         if (isPriviliged(user)) {
-            criteria.and(Post.COMMENT_FIELD).elemMatch(where("id").is(commentId));
+            criteria.and(Forum.COMMENT_FIELD).elemMatch(where("id").is(commentId));
         } else {
             criteria.andOperator(
                     new Criteria().orOperator(
-                            where(Post.COMMENT_FIELD).elemMatch(where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
+                            where(Forum.COMMENT_FIELD).elemMatch(where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
                             where(ByAuthor.AUTHOR_FIELD).is(user.getId())
                     )
             );
         }
 
         var query = Query.query(criteria);
-        updatePost(query, update -> update.pull(Post.COMMENT_FIELD, Query.query(where("id").is(commentId))));
+        updatePost(query, update -> update.pull(Forum.COMMENT_FIELD, Query.query(where("id").is(commentId))));
     }
 
     @PreAuthorize("isAuthenticated()")
     public void likePost(Jwt jwt, String postId) {
-        updatePost(jwt, isId(postId), (update, user) -> update.addToSet(Post.LIKED_BY_FIELD, user.getId()));
+        updatePost(jwt, isId(postId), (update, user) -> update.addToSet(Forum.LIKED_BY_FIELD, user.getId()));
     }
 
     @PreAuthorize("isAuthenticated()")
     public void unlikePost(Jwt jwt, String postId) {
-        updatePost(jwt, isId(postId), (update, user) -> update.pull(Post.LIKED_BY_FIELD, user.getId()));
+        updatePost(jwt, isId(postId), (update, user) -> update.pull(Forum.LIKED_BY_FIELD, user.getId()));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -168,7 +145,7 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
     private <T> T updatePost(Query query, Function<Update, T> updater) {
         var update = new Update();
         var returned = updater.apply(update);
-        var result = mongo.updateFirst(query, update, Post.class);
+        var result = mongo.updateFirst(query, update, Forum.class);
         if (result.getModifiedCount() == 0) {
             log.warn("No se encontró la publicación para actualizar");
         }
@@ -177,48 +154,52 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
 
 
     private void deletePost(Query query) {
-        query.fields().include("images");
-        var findPost = getPost(query);
-        mongo.remove(findPost);
-        StorageUtils.purgeAsync(storage, findPost);
+        var result = mongo.remove(query, Forum.class);
+        if (result.getDeletedCount() == 0) {
+            log.warn("No se encontró la publicación para eliminar");
+        }
     }
 
-    public Post getPost(Query query) {
-        var post = mongo.findOne(query, Post.class);
+    public Forum getPost(Query query) {
+        var post = mongo.findOne(query, Forum.class);
         if (post == null) throw ApiError.notFound("No se encontró la publicación");
         return post;
     }
 
     @Override
-    protected Iterable<Post> search(String search, Sort sort) {
+    protected Iterable<Forum> search(String search, Sort sort) {
         return repository.findAllByContentContainingIgnoreCase(search, sort);
     }
 
     @Override
-    protected Page<Post> search(String search, Pageable pageable) {
+    protected Page<Forum> search(String search, Pageable pageable) {
         return repository.findAllByContentContainingIgnoreCase(search, pageable);
     }
 
     @Override
-    protected Iterable<Post> search(String search, Sort sort, Filter filter) {
-        return FilterProcessor.process(filter,
+    protected Iterable<Forum> search(String search, Sort sort, Filter filter) {
+        return FilterProcessor.process(
+                filter,
                 () -> search(search, sort),
-                FilterProcessor.of(new FilterMatcher("author", FilterOperator.EQ))
+                FilterProcessor
+                        .of(new FilterMatcher("author", FilterOperator.EQ))
                         .resolve(values -> {
                             var author = (Long) values[0];
-                            if (StringUtils.isNullOrEmpty(search)) {
-                                return repository.findAllByAuthor(author, sort);
+                            if (!StringUtils.isNullOrEmpty(search)) {
+                                return repository.findAllByAuthorAndContentContainingIgnoreCase(author, search, sort);
                             }
-                            return repository.findAllByAuthorAndContentContainingIgnoreCase(author, search, sort);
+                            return repository.findAllByAuthor(author, sort);
                         })
         );
     }
 
     @Override
-    protected Page<Post> search(String search, Pageable pageable, Filter filter) {
-        return FilterProcessor.process(filter,
+    protected Page<Forum> search(String search, Pageable pageable, Filter filter) {
+        return FilterProcessor.process(
+                filter,
                 () -> search(search, pageable),
-                FilterProcessor.of(new FilterMatcher("author", FilterOperator.EQ))
+                FilterProcessor
+                        .of(new FilterMatcher("author", FilterOperator.EQ))
                         .resolve(values -> {
                             var author = (Long) values[0];
                             if (!StringUtils.isNullOrEmpty(search)) {
@@ -229,31 +210,14 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
         );
     }
 
-    private Page<Post> paginatePost(Pageable pageable, Query query) {
+    private Page<Forum> paginatePost(Pageable pageable, Query query) {
         var pagedQuery = Query.of(query).with(pageable);
 
         return PageableExecutionUtils.getPage(
-                mongo.find(pagedQuery, Post.class),
+                mongo.find(pagedQuery, Forum.class),
                 pageable,
-                () -> mongo.count(query, Post.class)
+                () -> mongo.count(query, Forum.class)
         );
-    }
-
-    private List<String> storePostImages(List<MultipartFile> images, Long userId) throws IOException {
-        if (images == null || images.isEmpty()) {
-            return List.of();
-        }
-        var path = String.format(USERS_POST_PATH, userId);
-        var toStore = images.stream()
-                .map(unchecked(
-                        image -> new ToStore(
-                                path,
-                                FileUtils.factoryDateTimeFileName(image.getOriginalFilename()),
-                                image.getBytes()
-                        ))
-                ).toArray(ToStore[]::new);
-        storage.store(toStore);
-        return Stream.of(toStore).map(ToStore::getCompletePath).toList();
     }
 
     private static boolean solveAnonymous(User user, Boolean anonymous) {
@@ -275,13 +239,24 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
         return Query.query(where("id").is(id));
     }
 
-    public Stored image(String imagePath) throws IOException {
-        var regex = "^users/\\d+/posts/.*$";
-        if (!imagePath.matches(regex)) {
-            throw ApiError.badRequest("No se puede acceder a la imagen");
-        }
-        return storage
-                .download(imagePath)
-                .orElseThrow(() -> ApiError.notFound("No se encontró la imagen"));
+    public void likeComment(Jwt jwt, String forumId, String commentId) {
+        updatePost(jwt, isId(forumId), (update, user) -> update
+                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
+                .filterArray(where("comment._id").is(commentId))
+        );
+    }
+
+    public void unlikeComment(Jwt jwt, String forumId, String commentId) {
+        updatePost(jwt, isId(forumId), (update, user) -> update
+                .pull(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
+                .filterArray(where("comment._id").is(commentId))
+        );
+    }
+
+    public void reportComment(Jwt jwt, String forumId, String commentId) {
+        updatePost(jwt, isId(forumId), (update, user) -> update
+                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.REPORTED_BY_FIELD, user.getId())
+                .filterArray(where("comment._id").is(commentId))
+        );
     }
 }

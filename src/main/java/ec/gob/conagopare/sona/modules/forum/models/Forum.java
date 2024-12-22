@@ -1,6 +1,5 @@
 package ec.gob.conagopare.sona.modules.forum.models;
 
-import io.github.luidmidev.storage.PurgableStored;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Persistable;
@@ -16,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "posts")
-public class Post extends ByAuthor<Long> implements PurgableStored, Persistable<String> {
+public class Forum extends ByAuthor<Long> implements Persistable<String> {
 
     public static final String COMMENT_FIELD = "comments";
     public static final String LIKED_BY_FIELD = "likedBy";
@@ -24,17 +23,11 @@ public class Post extends ByAuthor<Long> implements PurgableStored, Persistable<
     @Id
     private String id;
     private String content;
-    private List<String> images = new ArrayList<>();
     private List<Comment> comments = new ArrayList<>();
     private List<Long> likedBy = new ArrayList<>();
     private List<Long> reportedBy = new ArrayList<>();
 
     private Instant createdAt;
-
-    @Override
-    public String[] filesFullPaths() {
-        return images.toArray(String[]::new);
-    }
 
     public static Comment newComment(String content, Long author, boolean isAnonymous) {
         var comment = new Comment();
@@ -56,8 +49,13 @@ public class Post extends ByAuthor<Long> implements PurgableStored, Persistable<
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Comment extends ByAuthor<Long> {
+        public static final String LIKED_BY_FIELD = "likedBy";
+        public static final String REPORTED_BY_FIELD = "reportedBy";
+
         private String id;
         private String content;
         private Instant createdAt;
+        private List<Long> likedBy = new ArrayList<>();
+        private List<Long> reportedBy = new ArrayList<>();
     }
 }
