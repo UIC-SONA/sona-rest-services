@@ -89,4 +89,5 @@ public class PostController implements ReadController<Post, String, PostService>
     public ResponseEntity<ByteArrayResource> image(@RequestParam String imagePath) throws IOException {
         return ResponseEntityUtils.resource(service.image(imagePath));
     }
+
 }
