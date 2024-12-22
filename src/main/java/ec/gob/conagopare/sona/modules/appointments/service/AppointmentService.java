@@ -26,9 +26,9 @@ public class AppointmentService extends JpaReadService<Appointment, UUID, Appoin
         throw ApiError.badRequest("Filtro no soportado");
     }
 
-    public boolean hasAppointments(Long profesionalId, User.ProfessionalSchedule schedule) {
-        return false;
-    }
+//    public boolean hasAppointments(Long profesionalId, User.ProfessionalSchedule schedule) {
+//        return false;
+//    }
 
 
 }
