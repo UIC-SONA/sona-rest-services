@@ -35,7 +35,7 @@ public class DidacticContentController implements ReadController<DidacticContent
             @PathVariable UUID id,
             @RequestParam String title,
             @RequestParam String content,
-            @RequestParam MultipartFile image
+            @RequestParam(required = false) MultipartFile image
     ) {
         var dto = new DidacticContentDto(title, content, image);
         return ResponseEntity.ok(service.update(id, dto));
