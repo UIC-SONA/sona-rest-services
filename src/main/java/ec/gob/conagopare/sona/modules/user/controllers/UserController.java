@@ -2,6 +2,7 @@ package ec.gob.conagopare.sona.modules.user.controllers;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
+import ec.gob.conagopare.sona.modules.user.dto.ProfessionalScheduleDto;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import ec.gob.conagopare.sona.modules.user.models.User;
@@ -42,6 +43,15 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
         return ResponseEntity.ok(new Message("Estado de anonimato actualizado correctamente a " + anonymize));
     }
 
+    @PutMapping("/password")
+    public ResponseEntity<Message> changePassword(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam String newPassword
+    ) {
+        service.changePassword(jwt, newPassword);
+        return ResponseEntity.ok(new Message("Contraseña actualizada correctamente"));
+    }
+
     @GetMapping("/profile-picture")
     public ResponseEntity<ByteArrayResource> profilePicture(@AuthenticationPrincipal Jwt jwt) {
         var stored = service.profilePicture(jwt);
@@ -76,6 +86,25 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
             @AuthenticationPrincipal Jwt jwt
     ) {
         return ResponseEntity.ok(service.profile(jwt));
+    }
+
+    @PostMapping("/professionals-schedule")
+    public ResponseEntity<Message> schedule(@RequestBody ProfessionalScheduleDto dto) {
+        service.professionalSchedule(dto);
+        return ResponseEntity.ok(new Message("Horario establecido correctamente"));
+    }
+
+    @PostMapping("/professionals-schedule-status")
+    public ResponseEntity<Message> disableSchedule(
+            @RequestParam Long professionalId,
+            @RequestParam(required = false, defaultValue = "false") boolean enabled
+    ) {
+        service.changeProfessionalScheduleStatus(professionalId, enabled);
+        return ResponseEntity.ok(new Message(
+                enabled
+                        ? "El horario de atención del profesional ha sido habilitado, a partir de ahora se le podrá asignar citas"
+                        : "El horario de atención del profesional ha sido deshabilitado, a partir de ahora ya no se le podrá asignar citas"
+        ));
     }
 
 

@@ -20,7 +20,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -160,49 +159,23 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
         }
     }
 
-    public Forum getPost(Query query) {
-        var post = mongo.findOne(query, Forum.class);
-        if (post == null) throw ApiError.notFound("No se encontró la publicación");
-        return post;
-    }
-
-    @Override
-    protected Iterable<Forum> search(String search, Sort sort) {
-        return repository.findAllByContentContainingIgnoreCase(search, sort);
-    }
-
     @Override
     protected Page<Forum> search(String search, Pageable pageable) {
         return repository.findAllByContentContainingIgnoreCase(search, pageable);
     }
 
     @Override
-    protected Iterable<Forum> search(String search, Sort sort, Filter filter) {
-        return FilterProcessor.process(
-                filter,
-                () -> search(search, sort),
-                FilterProcessor
-                        .of(new FilterMatcher("author", FilterOperator.EQ))
-                        .resolve(values -> {
-                            var author = (Long) values[0];
-                            if (!StringUtils.isNullOrEmpty(search)) {
-                                return repository.findAllByAuthorAndContentContainingIgnoreCase(author, search, sort);
-                            }
-                            return repository.findAllByAuthor(author, sort);
-                        })
-        );
-    }
-
-    @Override
     protected Page<Forum> search(String search, Pageable pageable, Filter filter) {
         return FilterProcessor.process(
                 filter,
-                () -> search(search, pageable),
+                () -> {
+                    throw ApiError.badRequest("Filtro no soportado");
+                },
                 FilterProcessor
                         .of(new FilterMatcher("author", FilterOperator.EQ))
                         .resolve(values -> {
                             var author = (Long) values[0];
-                            if (!StringUtils.isNullOrEmpty(search)) {
+                            if (!StringUtils.isBlank(search)) {
                                 return repository.findAllByAuthorAndContentContainingIgnoreCase(author, search, pageable);
                             }
                             return repository.findAllByAuthor(author, pageable);
@@ -217,6 +190,28 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
                 mongo.find(pagedQuery, Forum.class),
                 pageable,
                 () -> mongo.count(query, Forum.class)
+        );
+    }
+
+
+    public void likeComment(Jwt jwt, String forumId, String commentId) {
+        updatePost(jwt, isId(forumId), (update, user) -> update
+                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
+                .filterArray(where("comment._id").is(commentId))
+        );
+    }
+
+    public void unlikeComment(Jwt jwt, String forumId, String commentId) {
+        updatePost(jwt, isId(forumId), (update, user) -> update
+                .pull(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
+                .filterArray(where("comment._id").is(commentId))
+        );
+    }
+
+    public void reportComment(Jwt jwt, String forumId, String commentId) {
+        updatePost(jwt, isId(forumId), (update, user) -> update
+                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.REPORTED_BY_FIELD, user.getId())
+                .filterArray(where("comment._id").is(commentId))
         );
     }
 
@@ -239,24 +234,4 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
         return Query.query(where("id").is(id));
     }
 
-    public void likeComment(Jwt jwt, String forumId, String commentId) {
-        updatePost(jwt, isId(forumId), (update, user) -> update
-                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(where("comment._id").is(commentId))
-        );
-    }
-
-    public void unlikeComment(Jwt jwt, String forumId, String commentId) {
-        updatePost(jwt, isId(forumId), (update, user) -> update
-                .pull(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(where("comment._id").is(commentId))
-        );
-    }
-
-    public void reportComment(Jwt jwt, String forumId, String commentId) {
-        updatePost(jwt, isId(forumId), (update, user) -> update
-                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.REPORTED_BY_FIELD, user.getId())
-                .filterArray(where("comment._id").is(commentId))
-        );
-    }
 }

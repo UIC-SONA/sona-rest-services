@@ -8,7 +8,10 @@ import lombok.*;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Persistable;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -49,4 +52,20 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
         return id == null;
     }
 
+    @Embedded
+    private ProfessionalSchedule professionalSchedule;
+
+    @Data
+    public static class ProfessionalSchedule {
+        private LocalDate scheduleUpTo;
+        private boolean scheduleEnabled;
+        private List<ProfessionalScheduleDay> scheduleDays = List.of();
+    }
+
+    @Data
+    public static class ProfessionalScheduleDay {
+        private DayOfWeek day;
+        private Integer startHour;
+        private Integer endHour;
+    }
 }

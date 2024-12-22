@@ -42,7 +42,7 @@ public class ForumController implements CrudController<Forum, ForumPostDto, Stri
     }
 
     @PostMapping("/{forumId}/like")
-    public ResponseEntity<Message> likePost(
+    public ResponseEntity<Message> likeForum(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String forumId
     ) {
@@ -51,7 +51,7 @@ public class ForumController implements CrudController<Forum, ForumPostDto, Stri
     }
 
     @PostMapping("/{forumId}/unlike")
-    public ResponseEntity<Message> unlikePost(
+    public ResponseEntity<Message> unlikeForum(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String forumId
     ) {
@@ -60,7 +60,7 @@ public class ForumController implements CrudController<Forum, ForumPostDto, Stri
     }
 
     @PostMapping("/{forumId}/report")
-    public ResponseEntity<Message> reportPost(
+    public ResponseEntity<Message> reportForum(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String forumId
     ) {

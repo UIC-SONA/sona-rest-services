@@ -6,8 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Persistable;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -16,14 +17,17 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "appointment")
-public class Appointment {
+public class Appointment implements Persistable<UUID> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
-    private LocalDateTime date;
+    private LocalDate date;
+
+    @Column(nullable = false)
+    private Integer hour;
 
     @Column(nullable = false)
     private boolean canceled;
@@ -44,7 +48,12 @@ public class Appointment {
     @JoinColumn(name = "professional_id", nullable = false)
     private User professional;
 
-    enum Type {
+    @Override
+    public boolean isNew() {
+        return id == null;
+    }
+
+    public enum Type {
         VIRTUAL,
         PRESENTIAL
     }
