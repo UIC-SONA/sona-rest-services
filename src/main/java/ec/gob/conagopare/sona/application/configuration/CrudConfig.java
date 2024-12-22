@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.application.configuration;
 
+import ec.gob.conagopare.sona.modules.content.services.DidacticContentService;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
 import ec.gob.conagopare.sona.modules.forum.service.ForumService;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
@@ -20,10 +21,12 @@ public class CrudConfig {
                 registry
                         .crudsReadOnly(UserService.class).authenticated()
                         .crudsReadOnly(TipService.class).authenticated()
+                        .crudsReadOnly(DidacticContentService.class).authenticated()
                         .cruds(ForumService.class).authenticated()
                         .cruds(
                                 UserService.class,
-                                TipService.class
+                                TipService.class,
+                                DidacticContentService.class
                         ).hasAuthority(Authority.ADMIN)
                         .anyOperation().permitAll();
     }
