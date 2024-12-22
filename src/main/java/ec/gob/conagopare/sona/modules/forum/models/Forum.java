@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "posts")
+@Document(collection = "forum")
 public class Forum extends ByAuthor<Long> implements Persistable<String> {
 
     public static final String COMMENT_FIELD = "comments";
