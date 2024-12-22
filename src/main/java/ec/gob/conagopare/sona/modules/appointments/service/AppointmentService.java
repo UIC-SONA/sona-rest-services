@@ -16,9 +16,8 @@ import java.util.UUID;
 @Service
 public class AppointmentService extends JpaReadService<Appointment, UUID, AppointmentRepository> {
 
-
-    protected AppointmentService(AppointmentRepository repository, Class<Appointment> domainClass, EntityManager entityManager) {
-        super(repository, domainClass, entityManager);
+    protected AppointmentService(AppointmentRepository repository, EntityManager entityManager) {
+        super(repository, Appointment.class, entityManager);
     }
 
     @Override
