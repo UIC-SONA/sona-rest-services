@@ -9,12 +9,15 @@ import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
+import io.github.luidmidev.storage.Stored;
 import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @Service
@@ -62,5 +65,13 @@ public class DidacticContentService extends JpaCrudService<DidacticContent, Dida
     @Override
     protected Page<DidacticContent> search(String search, Pageable pageable, Filter filter) {
         throw ApiError.badRequest("Filtro no soportado");
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    public Stored image(UUID id) throws IOException {
+        var model = find(id);
+        return storage
+                .download(model.getImage())
+                .orElseThrow(() -> ApiError.notFound("Imagen no encontrada"));
     }
 }
