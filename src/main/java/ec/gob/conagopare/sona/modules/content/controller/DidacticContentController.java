@@ -44,8 +44,8 @@ public class DidacticContentController implements ReadController<DidacticContent
         return ResponseEntity.ok(service.update(id, dto));
     }
 
-    @GetMapping("/image")
-    public ResponseEntity<ByteArrayResource> image(@RequestParam UUID id) throws IOException {
+    @GetMapping("/{id}/image")
+    public ResponseEntity<ByteArrayResource> image(@PathVariable UUID id) throws IOException {
         return ResponseEntityUtils.resource(service.image(id));
     }
 
