@@ -62,7 +62,7 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
 
     public static class ListLocalDateConverter extends JsonConverter<List<LocalDate>> {
         public ListLocalDateConverter() {
-            super(new TypeReference<List<LocalDate>>() {
+            super(new TypeReference<>() {
             });
         }
     }
