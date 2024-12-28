@@ -7,10 +7,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Converter
 public abstract class JsonConverter<T> implements AttributeConverter<T, String> {
 
@@ -33,14 +35,23 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
     @Override
     public String convertToDatabaseColumn(T attribute) {
         if (attribute == null) return null;
-        return OBJECT_MAPPER.writeValueAsString(attribute);
+        var value = OBJECT_MAPPER.writeValueAsString(attribute);
+        log.info("Converted value: {}", value);
+        return value;
     }
 
     @SneakyThrows
     @Override
     public T convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.isEmpty()) return null;
-        return OBJECT_MAPPER.readValue(dbData, typeReference);
+        var value = OBJECT_MAPPER.readValue(dbData, typeReference);
+        log.info("Converted value: {}, instance {}", value, value.getClass());
+        if (value instanceof List<?> list) {
+            for (var item : list) {
+                log.info("Item: {}, instance {}", item, item.getClass());
+            }
+        }
+        return value;
     }
 
     public static class ListStringConverter extends JsonConverter<List<String>> {
