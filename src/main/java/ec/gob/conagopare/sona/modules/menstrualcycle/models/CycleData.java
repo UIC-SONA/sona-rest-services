@@ -1,6 +1,7 @@
-package ec.gob.conagopare.sona.modules.menstrualcalendar.models;
+package ec.gob.conagopare.sona.modules.menstrualcycle.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import ec.gob.conagopare.sona.application.common.converters.JsonConverter;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -16,8 +19,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "menstrual_cycles")
-public class MenstrualCycle {
+@Table(name = "cycle_data")
+public class CycleData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -27,10 +30,11 @@ public class MenstrualCycle {
     private int periodDuration;
 
     @Column(nullable = false)
-    private int cycleDuration;
+    private int cycleLength;
 
+    @Convert(converter = JsonConverter.ListLocalDateConverter.class)
     @Column(nullable = false)
-    private LocalDate lastPeriodDate;
+    private List<LocalDate> periodDates = new ArrayList<>();
 
     @JsonIgnore
     @JoinColumn(name = "user_id", nullable = false)

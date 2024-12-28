@@ -25,7 +25,7 @@ public class DidacticContent extends Auditable implements Persistable<UUID>, Pur
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(nullable = false)

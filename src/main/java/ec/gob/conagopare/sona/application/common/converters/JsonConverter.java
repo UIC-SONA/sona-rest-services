@@ -6,6 +6,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.SneakyThrows;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Converter
@@ -37,4 +38,6 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
     public static class ListStringConverter extends JsonConverter<List<String>> {
     }
 
+    public static class ListLocalDateConverter extends JsonConverter<List<LocalDate>> {
+    }
 }

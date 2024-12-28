@@ -1,12 +1,11 @@
-package ec.gob.conagopare.sona.modules.menstrualcalendar.dto;
+package ec.gob.conagopare.sona.modules.menstrualcycle.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import java.time.LocalDate;
 
 @Data
-public class MenstrualCycleDto {
+public class CycleDetails {
 
     /**
      * The duration of the period in days average is (4-7) days
@@ -22,10 +21,6 @@ public class MenstrualCycleDto {
     @Min(16)
     @Max(99)
     @NotNull
-    private int cycleDuration;
-
-    @NotNull
-    @PastOrPresent
-    private LocalDate lastPeriodDate;
+    private int cycleLength;
 
 }
