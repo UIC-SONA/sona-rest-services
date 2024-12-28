@@ -3,13 +3,11 @@ package ec.gob.conagopare.sona.application.configuration;
 import ec.gob.conagopare.sona.application.common.converters.http.ArrayHttpMessageConverterDelegate;
 import ec.gob.conagopare.sona.application.common.converters.http.CollectionHttpMessageConverter;
 import ec.gob.conagopare.sona.application.common.converters.http.FromStringMessageConverter;
-import ec.gob.conagopare.sona.application.interceptors.TimeZoneInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -25,10 +23,5 @@ public class WebConfig implements WebMvcConfigurer {
         converters.add(new CollectionHttpMessageConverter());
         converters.add(new ArrayHttpMessageConverterDelegate());
         converters.add(new FromStringMessageConverter());
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new TimeZoneInterceptor());
     }
 }
