@@ -13,6 +13,11 @@ import java.util.List;
 public abstract class JsonConverter<T> implements AttributeConverter<T, String> {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    static {
+        OBJECT_MAPPER.findAndRegisterModules();
+    }
+
     private final TypeReference<T> typeReference;
 
     protected JsonConverter() {
