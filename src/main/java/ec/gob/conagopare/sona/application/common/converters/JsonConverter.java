@@ -2,6 +2,7 @@ package ec.gob.conagopare.sona.application.common.converters;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.SneakyThrows;
@@ -16,6 +17,7 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
 
     static {
         OBJECT_MAPPER.findAndRegisterModules();
+        OBJECT_MAPPER.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     private final TypeReference<T> typeReference;
