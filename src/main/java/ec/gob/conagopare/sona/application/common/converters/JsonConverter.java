@@ -34,28 +34,19 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
     @Override
     public String convertToDatabaseColumn(T attribute) {
         if (attribute == null) return null;
-        var value = OBJECT_MAPPER.writeValueAsString(attribute);
-        log.info("Converted value: {}", value);
-        return value;
+        return OBJECT_MAPPER.writeValueAsString(attribute);
     }
 
     @SneakyThrows
     @Override
     public T convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.isEmpty()) return null;
-        var value = OBJECT_MAPPER.readValue(dbData, typeReference);
-        log.info("Converted value: {}, instance {}", value, value.getClass());
-        if (value instanceof List<?> list) {
-            for (var item : list) {
-                log.info("Item: {}, instance {}", item, item.getClass());
-            }
-        }
-        return value;
+        return OBJECT_MAPPER.readValue(dbData, typeReference);
     }
 
     public static class ListStringConverter extends JsonConverter<List<String>> {
         public ListStringConverter() {
-            super(new TypeReference<List<String>>() {
+            super(new TypeReference<>() {
             });
         }
     }
