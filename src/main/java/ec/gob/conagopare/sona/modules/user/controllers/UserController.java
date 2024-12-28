@@ -87,25 +87,4 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
     ) {
         return ResponseEntity.ok(service.profile(jwt));
     }
-
-    @PostMapping("/professionals-schedule")
-    public ResponseEntity<Message> schedule(@RequestBody ProfessionalScheduleDto dto) {
-        service.professionalSchedule(dto);
-        return ResponseEntity.ok(new Message("Horario establecido correctamente"));
-    }
-
-    @PostMapping("/professionals-schedule-status")
-    public ResponseEntity<Message> disableSchedule(
-            @RequestParam Long professionalId,
-            @RequestParam(required = false, defaultValue = "false") boolean enabled
-    ) {
-        service.changeProfessionalScheduleStatus(professionalId, enabled);
-        return ResponseEntity.ok(new Message(
-                enabled
-                        ? "El horario de atención del profesional ha sido habilitado, a partir de ahora se le podrá asignar citas"
-                        : "El horario de atención del profesional ha sido deshabilitado, a partir de ahora ya no se le podrá asignar citas"
-        ));
-    }
-
-
 }
