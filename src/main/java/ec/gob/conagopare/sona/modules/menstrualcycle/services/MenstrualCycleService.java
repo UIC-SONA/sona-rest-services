@@ -29,9 +29,18 @@ public class MenstrualCycleService {
         return menstrualCycleRepository.findByUser(user).orElseThrow(() -> ApiError.notFound("Menstrual cycle not found"));
     }
 
+    private CycleData getCycleOrNew(Jwt jwt) {
+        var user = userService.getUser(jwt);
+        return menstrualCycleRepository.findByUser(user).orElseGet(() -> {
+            var cycle = new CycleData();
+            cycle.setUser(user);
+            return cycle;
+        });
+    }
+
     @PreAuthorize("isAuthenticated()")
     public void saveCycleDetails(@Valid CycleDetails cycleDetails, Jwt jwt) {
-        var cycle = getCycle(jwt);
+        var cycle = getCycleOrNew(jwt);
 
         cycle.setCycleLength(cycleDetails.getCycleLength());
         cycle.setPeriodDuration(cycleDetails.getPeriodDuration());
@@ -41,7 +50,7 @@ public class MenstrualCycleService {
 
     @PreAuthorize("isAuthenticated()")
     public void savePeriodDates(@Valid List<LocalDate> periodDates, Jwt jwt) {
-        var cycle = getCycle(jwt);
+        var cycle = getCycleOrNew(jwt);
 
         cycle.setPeriodDates(periodDates);
 
