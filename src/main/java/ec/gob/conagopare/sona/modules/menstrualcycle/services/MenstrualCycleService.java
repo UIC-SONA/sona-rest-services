@@ -31,11 +31,13 @@ public class MenstrualCycleService {
 
     private CycleData getCycleOrNew(Jwt jwt) {
         var user = userService.getUser(jwt);
-        return menstrualCycleRepository.findByUser(user).orElseGet(() -> {
-            var cycle = new CycleData();
-            cycle.setUser(user);
-            return cycle;
-        });
+        return menstrualCycleRepository.findByUser(user).orElseGet(() -> CycleData
+                .builder()
+                .user(user)
+                .cycleLength(28)
+                .periodDuration(5)
+                .build()
+        );
     }
 
     @PreAuthorize("isAuthenticated()")
