@@ -35,7 +35,7 @@ public class MenstrualCycleController {
     }
 
 
-    @GetMapping("/period-logs")
+    @PostMapping("/period-logs")
     public ResponseEntity<Message> savePeriodDates(
             @RequestBody List<LocalDate> periodDates,
             @AuthenticationPrincipal Jwt jwt
