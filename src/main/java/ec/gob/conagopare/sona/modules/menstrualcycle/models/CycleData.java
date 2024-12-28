@@ -33,7 +33,7 @@ public class CycleData {
     private int cycleLength;
 
     @Convert(converter = JsonConverter.ListLocalDateConverter.class)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private List<LocalDate> periodDates = new ArrayList<>();
 
     @JsonIgnore
