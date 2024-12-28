@@ -31,10 +31,6 @@ public class Appointment implements Persistable<Long> {
     @Column(nullable = false)
     private boolean canceled;
 
-    @Builder.Default
-    @Column(nullable = false)
-    private boolean attended = false;
-
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = false)
     private Type type;

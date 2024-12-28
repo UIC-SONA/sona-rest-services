@@ -13,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleRepository> {
 
@@ -30,10 +32,6 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
         var fromHour = dto.getFromHour();
         var toHour = dto.getToHour();
         var professionalId = dto.getProfessionalId();
-
-        if (fromHour > toHour) {
-            throw ApiError.badRequest("La hora de inicio debe ser menor a la hora de fin");
-        }
 
         var isOverlapping = model.isNew()
                 ? repository.existsOverlappingSchedule(professionalId, date, fromHour, toHour)
@@ -53,6 +51,24 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
         model.setDate(date);
         model.setFromHour(fromHour);
         model.setToHour(toHour);
+    }
+
+    @Override
+    protected void onBeforeDelete(ProfessionalSchedule model) {
+        if (model.getDate().isBefore(LocalDate.now())) {
+            return;
+        }
+
+        boolean hasActiveAppointments = repository.existsActiveAppointmentsInSchedule(
+                model.getProfessional().getId(),
+                model.getDate(),
+                model.getFromHour(),
+                model.getToHour()
+        );
+
+        if (hasActiveAppointments) {
+            throw ApiError.badRequest("No se puede eliminar un horario que tiene citas activas");
+        }
     }
 
     @Override

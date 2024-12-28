@@ -1,8 +1,6 @@
 package ec.gob.conagopare.sona.modules.appointments.models;
 
-import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
-import io.github.luidmidev.springframework.web.problemdetails.schemas.ValidationErrors;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

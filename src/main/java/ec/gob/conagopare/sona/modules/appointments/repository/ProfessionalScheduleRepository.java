@@ -44,4 +44,20 @@ public interface ProfessionalScheduleRepository extends JpaRepository<Profession
             @Param("toHour") Integer toHour,
             @Param("scheduleId") Long scheduleId
     );
+
+    @Query("""
+            SELECT COUNT(a) > 0 FROM Appointment a
+            WHERE a.professional.id = :professionalId
+            AND a.date = :date
+            AND a.hour >= :fromHour
+            AND a.hour < :toHour
+            AND a.canceled = false
+            """)
+    boolean existsActiveAppointmentsInSchedule(
+            @Param("professionalId") Long professionalId,
+            @Param("date") LocalDate date,
+            @Param("fromHour") Integer fromHour,
+            @Param("toHour") Integer toHour
+    );
+
 }

@@ -48,20 +48,4 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     public boolean isNew() {
         return id == null;
     }
-
-//    private ProfessionalSchedule professionalSchedule;
-//
-//    @Data
-//    public static class ProfessionalSchedule {
-//        private LocalDate scheduleUpTo;
-//        private boolean scheduleEnabled;
-//        private List<ProfessionalScheduleDay> scheduleDays = List.of();
-//    }
-//
-//    @Data
-//    public static class ProfessionalScheduleDay {
-//        private DayOfWeek day;
-//        private Integer startHour;
-//        private Integer endHour;
-//    }
 }
