@@ -25,9 +25,8 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
 
     private final TypeReference<T> typeReference;
 
-    protected JsonConverter() {
-        this.typeReference = new TypeReference<>() {
-        };
+    protected JsonConverter(TypeReference<T> typeReference) {
+        this.typeReference = typeReference;
     }
 
 
@@ -55,8 +54,16 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
     }
 
     public static class ListStringConverter extends JsonConverter<List<String>> {
+        public ListStringConverter() {
+            super(new TypeReference<List<String>>() {
+            });
+        }
     }
 
     public static class ListLocalDateConverter extends JsonConverter<List<LocalDate>> {
+        public ListLocalDateConverter() {
+            super(new TypeReference<List<LocalDate>>() {
+            });
+        }
     }
 }
