@@ -9,13 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 @Getter
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/appointments")
-public class AppoinmentController implements ReadController<Appointment, UUID, AppointmentService> {
+public class AppoinmentController implements ReadController<Appointment, Long, AppointmentService> {
 
     private final AppointmentService service;
 
@@ -26,7 +24,7 @@ public class AppoinmentController implements ReadController<Appointment, UUID, A
     }
 
     @PostMapping("/cancel")
-    public ResponseEntity<Appointment> cancel(@RequestParam UUID appointmentId) {
+    public ResponseEntity<Appointment> cancel(@RequestParam Long appointmentId) {
         return null;
     }
 

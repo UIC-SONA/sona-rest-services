@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Slf4j
 @Converter
+@RequiredArgsConstructor
 public abstract class JsonConverter<T> implements AttributeConverter<T, String> {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -24,11 +26,6 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
     }
 
     private final TypeReference<T> typeReference;
-
-    protected JsonConverter(TypeReference<T> typeReference) {
-        this.typeReference = typeReference;
-    }
-
 
     @SneakyThrows
     @Override

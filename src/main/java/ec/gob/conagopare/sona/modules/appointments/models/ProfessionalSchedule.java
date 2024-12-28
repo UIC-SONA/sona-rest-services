@@ -1,6 +1,8 @@
 package ec.gob.conagopare.sona.modules.appointments.models;
 
+import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
+import io.github.luidmidev.springframework.web.problemdetails.schemas.ValidationErrors;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,8 +17,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "appointment")
-public class Appointment implements Persistable<Long> {
+@Table(name = "professional_schedule")
+public class ProfessionalSchedule implements Persistable<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,22 +28,10 @@ public class Appointment implements Persistable<Long> {
     private LocalDate date;
 
     @Column(nullable = false)
-    private Integer hour;
+    private Integer fromHour;
 
     @Column(nullable = false)
-    private boolean canceled;
-
-    @Builder.Default
-    @Column(nullable = false)
-    private boolean attended = false;
-
-    @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = false)
-    private Type type;
-
-    @ManyToOne
-    @JoinColumn(name = "attendant_id", nullable = false)
-    private User attendant;
+    private Integer toHour;
 
     @ManyToOne
     @JoinColumn(name = "professional_id", nullable = false)
@@ -51,10 +41,4 @@ public class Appointment implements Persistable<Long> {
     public boolean isNew() {
         return id == null;
     }
-
-    public enum Type {
-        VIRTUAL,
-        PRESENTIAL
-    }
-
 }
