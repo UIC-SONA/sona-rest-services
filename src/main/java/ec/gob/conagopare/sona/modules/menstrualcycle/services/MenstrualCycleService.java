@@ -55,7 +55,6 @@ public class MenstrualCycleService {
         var cycle = getCycleOrNew(jwt);
 
         cycle.setPeriodDates(periodDates);
-
         menstrualCycleRepository.save(cycle);
     }
 }

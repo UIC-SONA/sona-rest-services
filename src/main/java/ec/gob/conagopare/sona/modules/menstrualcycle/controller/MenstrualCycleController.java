@@ -5,6 +5,7 @@ import ec.gob.conagopare.sona.modules.menstrualcycle.dto.CycleDetails;
 import ec.gob.conagopare.sona.modules.menstrualcycle.models.CycleData;
 import ec.gob.conagopare.sona.modules.menstrualcycle.services.MenstrualCycleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
+@Slf4j
 @RequestMapping("/menstrual-cycle")
 @RequiredArgsConstructor
 public class MenstrualCycleController {
@@ -22,7 +24,9 @@ public class MenstrualCycleController {
 
     @GetMapping
     public ResponseEntity<CycleData> getCycleData(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(service.getCycle(jwt));
+        var cycle = service.getCycle(jwt);
+        log.info("Cycle data: {}", cycle);
+        return ResponseEntity.ok(cycle);
     }
 
     @PostMapping("/details")
