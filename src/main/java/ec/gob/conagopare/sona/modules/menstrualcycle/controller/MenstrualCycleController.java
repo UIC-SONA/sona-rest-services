@@ -26,6 +26,10 @@ public class MenstrualCycleController {
     public ResponseEntity<CycleData> getCycleData(@AuthenticationPrincipal Jwt jwt) {
         var cycle = service.getCycle(jwt);
         log.info("Cycle data: {}", cycle);
+        for (var date : cycle.getPeriodDates()) {
+            log.info("Period date: {}, instance {}", date, date.getClass());
+        }
+        log.info("Cycle length: {}", cycle.getCycleLength());
         return ResponseEntity.ok(cycle);
     }
 
