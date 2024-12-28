@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
+
 
 @RequiredArgsConstructor
 public enum Authority implements GrantedAuthority {
@@ -28,11 +30,11 @@ public enum Authority implements GrantedAuthority {
         return Arrays.stream(Authority.values()).filter(authority -> authority.getAuthority().equals(name)).findFirst();
     }
 
-    public static String[] getAuthorities(List<Authority> authorities) {
+    public static String[] getAuthorities(Collection<Authority> authorities) {
         return authorities.stream().map(Authority::getAuthority).toArray(String[]::new);
     }
 
     public static String[] getAuthorities(Authority... authorities) {
-        return getAuthorities(List.of(authorities));
+        return getAuthorities(Set.of(authorities));
     }
 }

@@ -7,17 +7,17 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class UserDto extends BaseUser {
 
     @NotNull
-    private List<Authority> authoritiesToAdd;
+    private Set<Authority> authoritiesToAdd;
 
     @NotNull
-    private List<Authority> authoritiesToRemove;
+    private Set<Authority> authoritiesToRemove;
 
     @Password(DefaultPasswordRules.class)
     private String password;

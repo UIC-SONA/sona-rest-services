@@ -29,10 +29,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -77,7 +74,6 @@ public class WebSecurityConfig {
     }
 
 
-    @SuppressWarnings("unchecked")
     public static Converter<Jwt, Collection<GrantedAuthority>> authorityConverter(String clientId) {
         return jwt -> {
             Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
@@ -97,7 +93,7 @@ public class WebSecurityConfig {
 
             var clientsRoles = keycloakUserManager.userRoles(representation.getId());
 
-            var authorities = new ArrayList<Authority>();
+            var authorities = new HashSet<Authority>();
             for (var role : clientsRoles) {
                 Authority.from(role.getName()).ifPresent(authorities::add);
             }

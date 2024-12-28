@@ -6,10 +6,8 @@ import ec.gob.conagopare.sona.application.common.utils.functions.FunctionThrowab
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
-import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
 import ec.gob.conagopare.sona.modules.user.UserConfig;
 import ec.gob.conagopare.sona.modules.user.dto.BaseUser;
-import ec.gob.conagopare.sona.modules.user.dto.ProfessionalScheduleDto;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
@@ -53,15 +51,13 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     private final UserConfig config;
     private final KeycloakUserManager keycloakUserManager;
     private final Storage storage;
-    private final AppointmentService appointmentService;
     private final Extractor<UserRepresentation, Collection<Authority>> authorityExtractor;
 
-    public UserService(UserConfig config, UserRepository repository, EntityManager entityManager, KeycloakUserManager keycloakUserManager, Storage storage, AppointmentService appointmentService, Extractor<UserRepresentation, Collection<Authority>> authorityExtractor) {
+    public UserService(UserConfig config, UserRepository repository, EntityManager entityManager, KeycloakUserManager keycloakUserManager, Storage storage, Extractor<UserRepresentation, Collection<Authority>> authorityExtractor) {
         super(repository, User.class, entityManager);
         this.config = config;
         this.keycloakUserManager = keycloakUserManager;
         this.storage = storage;
-        this.appointmentService = appointmentService;
         this.authorityExtractor = authorityExtractor;
     }
 
@@ -309,7 +305,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         return keycloakUserManager.searchByRole(role.getAuthority());
     }
 
-    private static void validateAuthorities(List<Authority> authorities) {
+    private static void validateAuthorities(Set<Authority> authorities) {
         boolean hasLegalProfessional = authorities.contains(Authority.LEGAL_PROFESSIONAL);
         boolean hasMedicalProfessional = authorities.contains(Authority.MEDICAL_PROFESSIONAL);
 
@@ -317,61 +313,13 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             throw ApiError.badRequest("No se puede asignar roles de profesional legal y profesional médico al mismo usuario");
         }
 
-        if ((hasLegalProfessional || hasMedicalProfessional) && (!authorities.contains(Authority.PROFESSIONAL))) {
+        if (hasLegalProfessional || hasMedicalProfessional) {
             authorities.add(Authority.PROFESSIONAL);
         }
     }
 
     private static List<String> extractKeycloakIds(List<UserRepresentation> representations) {
         return representations.stream().map(UserRepresentation::getId).toList();
-    }
-
-
-    @PreAuthorize("hasAnyRole('admin', 'administrative')")
-    public void professionalSchedule(@Valid ProfessionalScheduleDto dto) {
-
-//        var professional = getUser(dto.getProfessionalId());
-//
-//        if (!professional.getAuthorities().contains(Authority.PROFESSIONAL)) {
-//            throw ApiError.badRequest("El usuario no es un profesional");
-//        }
-//
-//        if (professional.getProfessionalSchedule() == null) {
-//            professional.setProfessionalSchedule(new User.ProfessionalSchedule());
-//        } else {
-//            if (appointmentService.hasAppointments(professional.getId(), professional.getProfessionalSchedule())) {
-//                throw ApiError.badRequest("El profesional tiene citas programadas, no se puede modificar el horario");
-//            }
-//        }
-//
-//        if (dto.getScheduleStartHour() > dto.getScheduleEndHour()) {
-//            throw ApiError.badRequest("La hora de inicio no puede ser mayor a la hora de fin");
-//        }
-//
-//
-//        var schedule = professional.getProfessionalSchedule();
-//        schedule.setScheduleStartHour(dto.getScheduleStartHour());
-//        schedule.setScheduleEndHour(dto.getScheduleEndHour());
-//        schedule.setScheduleDays(dto.getScheduleDays());
-//        schedule.setScheduleUpTo(dto.getScheduleUpTo());
-//
-//        repository.save(professional);
-    }
-
-    @PreAuthorize("hasAnyRole('admin', 'administrative')")
-    public void changeProfessionalScheduleStatus(Long professionalId, boolean enabled) {
-//        var professional = getUser(professionalId);
-//
-//        if (!professional.getAuthorities().contains(Authority.PROFESSIONAL)) {
-//            throw ApiError.badRequest("El usuario no es un profesional");
-//        }
-//
-//        if (professional.getProfessionalSchedule() == null) {
-//            throw ApiError.badRequest("El profesional no tiene un horario establecido");
-//        }
-//
-//        professional.getProfessionalSchedule().setScheduleEnabled(enabled);
-//        repository.save(professional);
     }
 
     @PreAuthorize("isAuthenticated()")
