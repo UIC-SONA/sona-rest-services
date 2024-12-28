@@ -17,7 +17,7 @@ public abstract class JsonConverter<T> implements AttributeConverter<T, String> 
 
     static {
         OBJECT_MAPPER.findAndRegisterModules();
-        OBJECT_MAPPER.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     private final TypeReference<T> typeReference;
