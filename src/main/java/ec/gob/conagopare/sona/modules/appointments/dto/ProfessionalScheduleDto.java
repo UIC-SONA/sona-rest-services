@@ -27,6 +27,7 @@ public class ProfessionalScheduleDto {
     @NotNull
     private Long professionalId;
 
+    @SuppressWarnings("unused")
     @AssertTrue(message = "La hora de inicio debe ser menor que la hora de fin, o cruzar la medianoche")
     public boolean isValidHours() {
         if (fromHour == null || toHour == null) {

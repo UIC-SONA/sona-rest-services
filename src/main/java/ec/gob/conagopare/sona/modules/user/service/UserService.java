@@ -18,6 +18,7 @@ import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.filters.FilterOperator;
 import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor;
 import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor.FilterMatcher;
+import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
@@ -206,6 +207,14 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     private Page<User> searchFilterRole(String search, Authority role, Pageable pageable) {
         var representations = findUserRepresentations(search, role);
+        if (pageable.isUnpaged()) {
+            return PageableExecutionUtils.getPage(
+                    representations.stream().map(mapToUser(representations)).toList(),
+                    pageable,
+                    representations::size
+            );
+        }
+
         var result = UserRepresentationUtils
                 .sort(representations, pageable.getSort())
                 .stream()

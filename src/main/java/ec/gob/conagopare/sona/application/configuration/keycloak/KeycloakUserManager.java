@@ -64,6 +64,15 @@ public class KeycloakUserManager {
      * @return a page with the users found
      */
     public Page<UserRepresentation> search(String search, Pageable pageable) {
+
+        if (pageable.isUnpaged()) {
+            return PageableExecutionUtils.getPage(
+                    search == null ? cli.users().list() : cli.users().search(search),
+                    pageable,
+                    () -> cli.users().count(search)
+            );
+        }
+
         var first = pageable.getPageNumber() * pageable.getPageSize();
         var max = pageable.getPageSize();
         var result = search == null ? cli.users().list(first, max) : cli.users().search(search, first, max);
