@@ -2,7 +2,6 @@ package ec.gob.conagopare.sona.modules.user.controllers;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
-import ec.gob.conagopare.sona.modules.user.dto.ProfessionalScheduleDto;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import ec.gob.conagopare.sona.modules.user.dto.UserSync;
@@ -92,7 +91,7 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
     @PostMapping("/keycloak-sync")
     public ResponseEntity<Message> syncKeycloak(
             @RequestBody UserSync userSync,
-            @RequestHeader("Authorization") String apiKey
+            @RequestHeader("X-Api-Key") String apiKey
     ) {
         service.syncKeycloak(userSync, apiKey);
         return ResponseEntity.ok(new Message("Sincronización con Keycloak realizada correctamente"));

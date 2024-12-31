@@ -355,7 +355,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     public void syncKeycloak(UserSync userSync, String apiKey) {
         var key = config.getSyncApiKey();
-        if (apiKey == null || !key.equals(apiKey.replace("Bearer ", ""))) {
+        if (!key.equals(apiKey)) {
             throw ApiError.forbidden("API Key inválida");
         }
         log.info("Sincronizando usuarios con Keycloak: {}", userSync);
