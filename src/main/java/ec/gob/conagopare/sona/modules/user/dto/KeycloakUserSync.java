@@ -3,7 +3,7 @@ package ec.gob.conagopare.sona.modules.user.dto;
 import java.util.List;
 import java.util.Map;
 
-public record UserSync(
+public record KeycloakUserSync(
         String userId,
         String username,
         String email,

@@ -10,7 +10,7 @@ import ec.gob.conagopare.sona.modules.user.UserConfig;
 import ec.gob.conagopare.sona.modules.user.dto.BaseUser;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
-import ec.gob.conagopare.sona.modules.user.dto.UserSync;
+import ec.gob.conagopare.sona.modules.user.dto.KeycloakUserSync;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
@@ -353,11 +353,14 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
     }
 
-    public void syncKeycloak(UserSync userSync, String apiKey) {
+    public void syncKeycloak(KeycloakUserSync userSync, String apiKey) {
+
         var key = config.getSyncApiKey();
+
         if (!key.equals(apiKey)) {
             throw ApiError.forbidden("API Key inválida");
         }
+
         log.info("Sincronizando usuarios con Keycloak: {}", userSync);
     }
 }

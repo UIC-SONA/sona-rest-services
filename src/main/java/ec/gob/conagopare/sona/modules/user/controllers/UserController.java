@@ -4,7 +4,7 @@ import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
-import ec.gob.conagopare.sona.modules.user.dto.UserSync;
+import ec.gob.conagopare.sona.modules.user.dto.KeycloakUserSync;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
@@ -90,7 +90,7 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
 
     @PostMapping("/keycloak-sync")
     public ResponseEntity<Message> syncKeycloak(
-            @RequestBody UserSync userSync,
+            @RequestBody KeycloakUserSync userSync,
             @RequestHeader("X-Api-Key") String apiKey
     ) {
         service.syncKeycloak(userSync, apiKey);
