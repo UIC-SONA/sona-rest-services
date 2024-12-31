@@ -14,9 +14,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleRepository> {
+
+    private static final int MAX_DAYS_RANGE = 365;
 
     private final UserService userService;
 
@@ -74,5 +77,20 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
     @Override
     protected Page<ProfessionalSchedule> search(String search, Pageable pageable, Filter filter) {
         throw ApiError.badRequest("Filtro no soportado");
+    }
+
+    public List<ProfessionalSchedule> getSchedulesByProfessional(Long professionalId, LocalDate from, LocalDate to) {
+
+        if (from.isAfter(to)) {
+            throw ApiError.badRequest("La fecha de inicio no puede ser mayor que la fecha de fin");
+        }
+
+        var diff = to.toEpochDay() - from.toEpochDay();
+
+        if (diff > MAX_DAYS_RANGE) {
+            throw ApiError.badRequest("El rango de fechas no puede ser mayor a " + MAX_DAYS_RANGE + " años");
+        }
+
+        return repository.getSchedulesByProfessional(professionalId, from, to);
     }
 }

@@ -18,7 +18,6 @@ import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.filters.FilterOperator;
 import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor;
 import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor.FilterMatcher;
-import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;

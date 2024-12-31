@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface ProfessionalScheduleRepository extends JpaRepository<ProfessionalSchedule, Long> {
 
@@ -60,4 +61,15 @@ public interface ProfessionalScheduleRepository extends JpaRepository<Profession
             @Param("toHour") Integer toHour
     );
 
+
+    @Query("""
+            SELECT ps FROM ProfessionalSchedule ps
+            WHERE ps.professional.id = :professionalId
+            AND ps.date >= :from
+            AND ps.date <= :to
+            """)
+    List<ProfessionalSchedule> getSchedulesByProfessional(
+            @Param("professionalId") Long professionalId,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to);
 }
