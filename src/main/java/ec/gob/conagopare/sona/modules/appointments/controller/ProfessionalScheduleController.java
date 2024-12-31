@@ -6,6 +6,7 @@ import ec.gob.conagopare.sona.modules.appointments.service.ProfessionalScheduleS
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +23,10 @@ public class ProfessionalScheduleController implements CrudController<Profession
     @GetMapping("/professional/{professionalId}")
     public ResponseEntity<List<ProfessionalSchedule>> getSchedulesByProfessional(
             @PathVariable Long professionalId,
-            @RequestParam(required = false) LocalDate from,
-            @RequestParam LocalDate to
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
         return ResponseEntity.ok(service.getSchedulesByProfessional(professionalId, from, to));
     }
