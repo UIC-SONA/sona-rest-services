@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 @Service
 public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleRepository> {
@@ -92,5 +93,23 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
         }
 
         return repository.getSchedulesByProfessional(professionalId, from, to);
+    }
+
+    @Override
+    protected void onPage(Page<ProfessionalSchedule> page) {
+        onList(page);
+    }
+
+    @Override
+    protected void onList(Iterable<ProfessionalSchedule> models) {
+        StreamSupport
+                .stream(models.spliterator(), false)
+                .map(ProfessionalSchedule::getProfessional)
+                .forEach(userService.setRepresentations());
+    }
+
+    @Override
+    protected void onFind(ProfessionalSchedule model) {
+        userService.dispatchUser(model.getProfessional());
     }
 }

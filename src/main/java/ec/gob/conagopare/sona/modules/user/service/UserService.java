@@ -33,12 +33,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Service
@@ -108,7 +108,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             updateKeycloackUser(model.getKeycloakId(), dto);
         }
 
-        dispathUser(model);
+        dispatchUser(model);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -162,12 +162,12 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     @PreAuthorize("isAuthenticated()")
     public User getUser(Jwt jwt) {
-        return dispathUser(repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
+        return dispatchUser(repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
     }
 
     @PreAuthorize("isAuthenticated()")
     public User getUser(Long userId) {
-        return dispathUser(repository.findById(userId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
+        return dispatchUser(repository.findById(userId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -231,32 +231,47 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     @Override
     protected void onFind(User model) {
-        dispathUser(model);
+        dispatchUser(model);
     }
 
     @Override
     protected void onList(Iterable<User> models) {
-        models.forEach(this::dispathUser);
+        models.forEach(this::dispatchUser);
     }
 
     @Override
     protected void onPage(Page<User> page) {
-        page.forEach(this::dispathUser);
+        page.forEach(this::dispatchUser);
     }
 
-    private User dispathUser(User user) {
+    public User dispatchUser(User user) {
         var representation = keycloakUserManager.get(user.getKeycloakId());
-        return dispathUser(user, representation);
+        return dispatchUser(user, representation);
     }
 
-    private User dispathUser(User user, UserRepresentation representation) {
-        Assert.isTrue(user.getKeycloakId().equals(representation.getId()), "User keycloak id does not match with representation id");
-
+    private User dispatchUser(User user, UserRepresentation representation) {
         var authorities = authorityExtractor.extract(representation);
 
         user.setRepresentation(representation);
         user.setAuthorities(authorities);
         return user;
+    }
+
+    public Consumer<User> setRepresentations() {
+        var representations = new ArrayList<UserRepresentation>();
+        return u -> {
+            var keycloakId = u.getKeycloakId();
+            var representation = representations.stream()
+                    .filter(r -> r.getId().equals(keycloakId))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        var r = keycloakUserManager.get(keycloakId);
+                        representations.add(r);
+                        return r;
+                    });
+
+            dispatchUser(u, representation);
+        };
     }
 
     private String createKeycloakUser(UserRepresentation representation, String password, Authority... authority) {
@@ -297,7 +312,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
                     .findFirst()
                     .orElseThrow(() -> ApiError.internalServerError("Inconsistencia de datos, usuario no encontrado. Keycloak id: " + representation.getId()));
 
-            return dispathUser(user, representation);
+            return dispatchUser(user, representation);
         };
     }
 
