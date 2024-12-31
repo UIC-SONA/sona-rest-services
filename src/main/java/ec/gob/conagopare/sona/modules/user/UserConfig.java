@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 public class UserConfig {
 
     private final Bootstrap bootstrap = new Bootstrap();
+    private String syncApiKey;
 
     @Data
     public static class Bootstrap {

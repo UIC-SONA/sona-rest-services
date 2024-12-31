@@ -5,6 +5,7 @@ import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.user.dto.ProfessionalScheduleDto;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
+import ec.gob.conagopare.sona.modules.user.dto.UserSync;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
@@ -86,5 +87,14 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
             @AuthenticationPrincipal Jwt jwt
     ) {
         return ResponseEntity.ok(service.profile(jwt));
+    }
+
+    @PostMapping("/keycloak-sync")
+    public ResponseEntity<Message> syncKeycloak(
+            @RequestBody UserSync userSync,
+            @RequestHeader("Authorization") String apiKey
+    ) {
+        service.syncKeycloak(userSync, apiKey);
+        return ResponseEntity.ok(new Message("Sincronización con Keycloak realizada correctamente"));
     }
 }

@@ -10,6 +10,7 @@ import ec.gob.conagopare.sona.modules.user.UserConfig;
 import ec.gob.conagopare.sona.modules.user.dto.BaseUser;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
+import ec.gob.conagopare.sona.modules.user.dto.UserSync;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
@@ -25,6 +26,7 @@ import io.github.luidmidev.storage.Stored;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +43,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 @Validated
 @Transactional
@@ -348,5 +351,13 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     @PreAuthorize("isAuthenticated()")
     public void changePassword(Jwt jwt, String newPassword) {
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
+    }
+
+    public void syncKeycloak(UserSync userSync, String apiKey) {
+        var key = config.getSyncApiKey();
+        if (apiKey == null || !key.equals(apiKey.replace("Bearer ", ""))) {
+            throw ApiError.forbidden("API Key inválida");
+        }
+        log.info("Sincronizando usuarios con Keycloak: {}", userSync);
     }
 }
