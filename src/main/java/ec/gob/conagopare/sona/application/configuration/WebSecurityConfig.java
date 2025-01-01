@@ -1,7 +1,6 @@
 package ec.gob.conagopare.sona.application.configuration;
 
 
-import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
 import ec.gob.conagopare.sona.application.filters.AuthenticationMDCFilter;
@@ -78,7 +77,7 @@ public class WebSecurityConfig {
         return jwt -> {
             Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
 
-            var clientRoleMap = (LinkedTreeMap<String, List<String>>) resourceAccess.get(clientId);
+            var clientRoleMap = (Map<String, List<String>>) resourceAccess.get(clientId);
             var clientRoles = new ArrayList<>(clientRoleMap.get("roles"));
 
             return clientRoles.stream()

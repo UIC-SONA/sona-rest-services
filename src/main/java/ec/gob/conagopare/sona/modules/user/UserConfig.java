@@ -16,11 +16,11 @@ public class UserConfig {
     @Data
     public static class Bootstrap {
         private boolean enabled = false;
-        private User admin;
+        private BootstrapUser admin;
     }
 
     @Data
-    public static class User {
+    public static class BootstrapUser {
 
         private Long id;
         private String firstname;

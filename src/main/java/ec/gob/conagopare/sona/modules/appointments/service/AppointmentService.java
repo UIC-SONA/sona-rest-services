@@ -46,13 +46,13 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
 
         var user = userService.getUser(jwt);
 
-        if (!user.getAuthorities().contains(Authority.USER)) {
+        if (!user.is(Authority.USER)) {
             throw ApiError.badRequest("El usuario, no puede tener citas programadas");
         }
 
         var profesional = userService.find(profesionalId);
 
-        if (!profesional.getAuthorities().contains(Authority.PROFESSIONAL)) {
+        if (!profesional.is(Authority.PROFESSIONAL)) {
             throw ApiError.badRequest("El usuario no es un profesional, no puede tener citas programadas");
         }
 

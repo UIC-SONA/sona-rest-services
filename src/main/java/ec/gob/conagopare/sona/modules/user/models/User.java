@@ -5,10 +5,10 @@ import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
 import io.github.luidmidev.storage.PurgableStored;
 import jakarta.persistence.*;
 import lombok.*;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Persistable;
 
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -33,11 +33,30 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean anonymous = false;
 
-    @Transient
-    private UserRepresentation representation;
+    // USER INFORMATION SYNCED FROM KEYCLOAK
 
-    @Transient
-    private Collection<Authority> authorities;
+    @Column
+    protected String username;
+
+    @Column
+    protected String firstName;
+
+    @Column
+    protected String lastName;
+
+    @Column
+    protected String email;
+
+    @Builder.Default
+    @ElementCollection(fetch = FetchType.EAGER, targetClass = Authority.class)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "authority")
+    private Set<Authority> authorities = new HashSet<>();
+
+    public boolean is(Authority... authorities) {
+        return this.authorities.containsAll(Set.of(authorities));
+    }
 
     @Override
     public String[] filesFullPaths() {

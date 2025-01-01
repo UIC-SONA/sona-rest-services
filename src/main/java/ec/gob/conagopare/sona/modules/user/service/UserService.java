@@ -1,13 +1,11 @@
 package ec.gob.conagopare.sona.modules.user.service;
 
-import ec.gob.conagopare.sona.application.common.utils.UserRepresentationUtils;
-import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
+import ec.gob.conagopare.sona.application.common.utils.CollectionsUtils;
 import ec.gob.conagopare.sona.application.common.utils.functions.FunctionThrowable;
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
 import ec.gob.conagopare.sona.modules.user.UserConfig;
-import ec.gob.conagopare.sona.modules.user.dto.BaseUser;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import ec.gob.conagopare.sona.modules.user.dto.KeycloakUserSync;
@@ -17,36 +15,35 @@ import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
 import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.core.filters.FilterOperator;
-import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor;
-import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor.FilterMatcher;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @Validated
-@Transactional
 public class UserService extends JpaCrudService<User, UserDto, Long, UserRepository> {
 
     private static final String USERS_PROFILE_PICTURES_PATH = "users/%d/profile-pictures";
@@ -54,14 +51,14 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     private final UserConfig config;
     private final KeycloakUserManager keycloakUserManager;
     private final Storage storage;
-    private final Extractor<UserRepresentation, Collection<Authority>> authorityExtractor;
+    private final String clientId;
 
-    public UserService(UserConfig config, UserRepository repository, EntityManager entityManager, KeycloakUserManager keycloakUserManager, Storage storage, Extractor<UserRepresentation, Collection<Authority>> authorityExtractor) {
+    public UserService(UserConfig config, UserRepository repository, EntityManager entityManager, KeycloakUserManager keycloakUserManager, Storage storage, @Value("${keycloak.client-id}") String clientId) {
         super(repository, User.class, entityManager);
         this.config = config;
         this.keycloakUserManager = keycloakUserManager;
         this.storage = storage;
-        this.authorityExtractor = authorityExtractor;
+        this.clientId = clientId;
     }
 
     @PostConstruct
@@ -74,21 +71,14 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
         if (admin != null && !repository.existsById(admin.getId())) {
             var singUpUser = admin.toSingUpUser();
-            var user = new User();
-            var keycloackId = createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
-            user.setKeycloakId(keycloackId);
-            repository.save(user);
+            createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
         }
     }
 
     @PreAuthorize("permitAll()")
     public void signUp(@Valid SingUpUser singUpUser) {
-        var user = new User();
-        var keycloackId = createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
-        user.setKeycloakId(keycloackId);
-        repository.save(user);
+        createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
     }
-
 
     @Override
     protected void mapModel(UserDto dto, User model) {
@@ -105,13 +95,58 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             }
 
             validateAuthorities(authorityToAdd);
-            var keycloackId = createKeycloakUser(dto.toRepresentation(), password, authorityToAdd.toArray(Authority[]::new));
-            model.setKeycloakId(keycloackId);
-        } else {
-            updateKeycloackUser(model.getKeycloakId(), dto);
+
+            var keycloakId = keycloakUserManager.create(dto.toRepresentation());
+            model.setKeycloakId(keycloakId);
+        }
+    }
+
+    @Override
+    protected void onAfterCreate(UserDto dto, User model) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                var keycloakId = model.getKeycloakId();
+                keycloakUserManager.addRoles(keycloakId, Authority.asString(dto.getAuthoritiesToAdd()));
+                keycloakUserManager.resetPassword(keycloakId, dto.getPassword());
+            }
+        });
+    }
+
+    @Override
+    protected void onAfterUpdate(UserDto dto, User model) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                updateKeycloackUser(model.getKeycloakId(), dto);
+            }
+        });
+    }
+
+    private void updateKeycloackUser(String keycloakId, UserDto userDto) {
+
+        var authoritiesToRemove = userDto.getAuthoritiesToRemove();
+        var authoritiesToAdd = userDto.getAuthoritiesToAdd();
+
+        validateAuthorities(authoritiesToAdd);
+
+        keycloakUserManager.update(keycloakId, userDto::transferToRepresentation);
+
+        var password = userDto.getPassword();
+        if (password != null) {
+            keycloakUserManager.resetPassword(keycloakId, password);
         }
 
-        dispatchUser(model);
+        keycloakUserManager.removeRoles(keycloakId, Authority.asString(authoritiesToRemove));
+        keycloakUserManager.addRoles(keycloakId, Authority.asString(authoritiesToAdd));
+    }
+
+    private static void validateAuthorities(Set<Authority> authorities) {
+        if (authorities.isEmpty()) return;
+
+        if (authorities.contains(Authority.LEGAL_PROFESSIONAL) && authorities.contains(Authority.MEDICAL_PROFESSIONAL)) {
+            throw ApiError.badRequest("No se puede asignar roles de profesional legal y profesional médico al mismo usuario");
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -165,12 +200,16 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     @PreAuthorize("isAuthenticated()")
     public User getUser(Jwt jwt) {
-        return dispatchUser(repository.findByKeycloakId(jwt.getSubject()).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
+        return getUser(jwt.getSubject());
     }
 
     @PreAuthorize("isAuthenticated()")
     public User getUser(Long userId) {
-        return dispatchUser(repository.findById(userId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado")));
+        return repository.findById(userId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado"));
+    }
+
+    private User getUser(String keycloakId) {
+        return repository.findByKeycloakId(keycloakId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado"));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -179,24 +218,31 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     }
 
     @Override
-    public Page<User> search(String search, Pageable pageable) {
-        var representations = keycloakUserManager.search(search, pageable);
-        return representations.map(mapToUser(representations.toList()));
-    }
-
-    @Override
     protected Page<User> search(String search, Pageable pageable, Filter filter) {
-        return FilterProcessor.process(filter,
-                () -> {
-                    throw ApiError.badRequest("Filtro no soportado");
-                },
-                FilterProcessor
-                        .of(new FilterMatcher("role", FilterOperator.EQ))
-                        .resolve(values -> {
-                            var role = Authority.valueOf(values[0].toString());
-                            return searchFilterRole(search, role, pageable);
-                        })
-        );
+
+        var roleCriteria = filter.get("role");
+
+        if (roleCriteria != null) {
+            var roleOperator = roleCriteria.operator();
+            var roleValue = (String) roleCriteria.value();
+
+            if (roleOperator != FilterOperator.EQ) {
+                throw ApiError.badRequest("Operador no soportado para el filtro de rol");
+            }
+
+            var authority = Authority.from(roleValue).orElseThrow(() -> ApiError.badRequest("Rol no soportado"));
+
+            return AdvanceSearch.search(
+                    entityManager,
+                    search,
+                    pageable,
+                    new AdditionsSearch<User>().and((root, query, cb) -> cb.equal(root.join("authorities").get("authority"), authority)),
+                    User.class
+            );
+
+        }
+
+        throw ApiError.badRequest("Filtro no soportado");
     }
 
     private Stored profilePicture(User user) {
@@ -207,146 +253,17 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
                 .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
     }
 
-    private Page<User> searchFilterRole(String search, Authority role, Pageable pageable) {
-        var representations = findUserRepresentations(search, role);
-        if (pageable.isUnpaged()) {
-            return PageableExecutionUtils.getPage(
-                    representations.stream().map(mapToUser(representations)).toList(),
-                    pageable,
-                    representations::size
-            );
-        }
+    private void createKeycloakUser(UserRepresentation representation, String password, Authority... authority) {
+        var keycloakId = keycloakUserManager.create(representation);
 
-        var result = UserRepresentationUtils
-                .sort(representations, pageable.getSort())
-                .stream()
-                .skip(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .map(mapToUser(representations))
-                .toList();
+        repository.save(User.builder()
+                .keycloakId(keycloakId)
+                .build());
 
-        return PageableExecutionUtils.getPage(
-                result,
-                pageable,
-                representations::size
-        );
+        keycloakUserManager.resetPassword(keycloakId, password);
+        keycloakUserManager.addRoles(keycloakId, Authority.asString(authority));
     }
 
-    @Override
-    protected void onFind(User model) {
-        dispatchUser(model);
-    }
-
-    @Override
-    protected void onList(Iterable<User> models) {
-        models.forEach(this::dispatchUser);
-    }
-
-    @Override
-    protected void onPage(Page<User> page) {
-        page.forEach(this::dispatchUser);
-    }
-
-    public User dispatchUser(User user) {
-        var representation = keycloakUserManager.get(user.getKeycloakId());
-        return dispatchUser(user, representation);
-    }
-
-    private User dispatchUser(User user, UserRepresentation representation) {
-        var authorities = authorityExtractor.extract(representation);
-
-        user.setRepresentation(representation);
-        user.setAuthorities(authorities);
-        return user;
-    }
-
-    public Consumer<User> setRepresentations() {
-        var representations = new ArrayList<UserRepresentation>();
-        return u -> {
-            var keycloakId = u.getKeycloakId();
-            var representation = representations.stream()
-                    .filter(r -> r.getId().equals(keycloakId))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        var r = keycloakUserManager.get(keycloakId);
-                        representations.add(r);
-                        return r;
-                    });
-
-            dispatchUser(u, representation);
-        };
-    }
-
-    private String createKeycloakUser(UserRepresentation representation, String password, Authority... authority) {
-        return keycloakUserManager.create(representation, password, Authority.getAuthorities(authority));
-    }
-
-    private void updateKeycloackUser(String keycloakId, BaseUser userDto) {
-        keycloakUserManager.update(keycloakId, userDto::transferToRepresentation);
-    }
-
-    private void updateKeycloackUser(String keycloakId, UserDto userDto) {
-        updateKeycloackUser(keycloakId, (BaseUser) userDto);
-
-        var password = userDto.getPassword();
-        if (password != null) {
-            keycloakUserManager.resetPassword(keycloakId, password);
-        }
-
-        var authoritiesToRemove = userDto.getAuthoritiesToRemove();
-        var authoritiesToAdd = userDto.getAuthoritiesToAdd();
-
-        validateAuthorities(authoritiesToAdd);
-
-        keycloakUserManager.removeRoles(keycloakId, Authority.getAuthorities(authoritiesToRemove));
-        keycloakUserManager.addRoles(keycloakId, Authority.getAuthorities(authoritiesToAdd));
-    }
-
-    private List<User> findUsers(List<UserRepresentation> representations) {
-        var keycloakIds = extractKeycloakIds(representations);
-        return repository.findAllByKeycloakIdIn(keycloakIds);
-    }
-
-    private Function<UserRepresentation, User> mapToUser(List<UserRepresentation> representations) {
-        var users = findUsers(representations);
-        return representation -> {
-            var user = users.stream()
-                    .filter(u -> u.getKeycloakId().equals(representation.getId()))
-                    .findFirst()
-                    .orElseThrow(() -> ApiError.internalServerError("Inconsistencia de datos, usuario no encontrado. Keycloak id: " + representation.getId()));
-
-            return dispatchUser(user, representation);
-        };
-    }
-
-    private List<UserRepresentation> findUserRepresentations(String search, Authority role) {
-        var representations = findUserRepresentations(role);
-        return search == null ? representations : representations
-                .stream()
-                .filter(UserRepresentationUtils.filterPredicate(search))
-                .toList();
-    }
-
-    private List<UserRepresentation> findUserRepresentations(Authority role) {
-        return keycloakUserManager.searchByRole(role.getAuthority());
-    }
-
-    private static void validateAuthorities(Set<Authority> authorities) {
-        boolean hasLegalProfessional = authorities.contains(Authority.LEGAL_PROFESSIONAL);
-        boolean hasMedicalProfessional = authorities.contains(Authority.MEDICAL_PROFESSIONAL);
-
-        if (hasLegalProfessional && hasMedicalProfessional) {
-            throw ApiError.badRequest("No se puede asignar roles de profesional legal y profesional médico al mismo usuario");
-        }
-
-        if (hasLegalProfessional || hasMedicalProfessional) {
-            authorities.add(Authority.PROFESSIONAL);
-        }
-    }
-
-    private static List<String> extractKeycloakIds(List<UserRepresentation> representations) {
-        return representations.stream().map(UserRepresentation::getId).toList();
-    }
 
     @PreAuthorize("isAuthenticated()")
     public void changePassword(Jwt jwt, String newPassword) {
@@ -361,6 +278,32 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             throw ApiError.forbidden("API Key inválida");
         }
 
+        var user = getUser(userSync.userId());
+
+        user.setUsername(userSync.username());
+        user.setFirstName(userSync.firstName());
+        user.setLastName(userSync.lastName());
+        user.setEmail(userSync.email());
+
+        var clientRoles = userSync.clientRoles().get(clientId);
+        if (clientRoles != null) {
+            syncAuthorities(user, clientRoles);
+        }
+
+        repository.save(user);
         log.info("Sincronizando usuarios con Keycloak: {}", userSync);
     }
+
+    private void syncAuthorities(User user, List<String> clientRoles) {
+        var currentAuthorities = user.getAuthorities();
+
+        var newAuthorities = clientRoles.stream()
+                .map(Authority::from)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+
+        CollectionsUtils.merge(currentAuthorities, newAuthorities);
+    }
+
 }

@@ -18,7 +18,6 @@ public enum Authority implements GrantedAuthority {
     MEDICAL_PROFESSIONAL("ROLE_medical_professional"),
     USER("ROLE_user");
 
-
     private final String value;
 
     @Override
@@ -27,14 +26,15 @@ public enum Authority implements GrantedAuthority {
     }
 
     public static Optional<Authority> from(String name) {
-        return Arrays.stream(Authority.values()).filter(authority -> authority.getAuthority().equals(name)).findFirst();
+        return Arrays.stream(values()).filter(authority -> authority.getAuthority().equals(name)).findFirst();
     }
 
-    public static String[] getAuthorities(Collection<Authority> authorities) {
+    public static String[] asString(Collection<Authority> authorities) {
         return authorities.stream().map(Authority::getAuthority).toArray(String[]::new);
     }
 
-    public static String[] getAuthorities(Authority... authorities) {
-        return getAuthorities(Set.of(authorities));
+    public static String[] asString(Authority... records) {
+        return asString(Set.of(records));
     }
 }
+

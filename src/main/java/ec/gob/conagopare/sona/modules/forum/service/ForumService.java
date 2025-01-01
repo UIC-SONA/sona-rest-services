@@ -223,7 +223,10 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
     }
 
     private static boolean isPriviliged(User user) {
-        return user.getAuthorities().stream().anyMatch(PRIVILEGED_AUTHORITIES::contains);
+        return user
+                .getAuthorities()
+                .stream()
+                .anyMatch(PRIVILEGED_AUTHORITIES::contains);
     }
 
     private static Query isAuthor(String id, Long author) {

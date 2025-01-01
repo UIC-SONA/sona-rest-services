@@ -134,20 +134,8 @@ public class KeycloakUserManager {
         return cli.users().searchByAttributes(query);
     }
 
-    /**
-     * Create a user
-     *
-     * @param newUser  the user representation
-     * @param password the password
-     * @param roles    the roles to assign
-     * @return the user id
-     */
-    public String create(UserRepresentation newUser, String password, String... roles) {
-        var roleRepresentations = getRoles(roles);
-        return create(newUser, password, roleRepresentations);
-    }
 
-    private String create(UserRepresentation newUser, String password, RoleRepresentation... roles) {
+    public String create(UserRepresentation newUser) {
 
         newUser.setEnabled(true);
         newUser.setEmailVerified(true);
@@ -164,13 +152,8 @@ public class KeycloakUserManager {
                 throw new ResponseStatusException(HttpStatusCode.valueOf(status), "Error creating user " + newUser.getUsername() + " " + error);
             }
 
-            var id = extractUserId(response);
-            var user = cli.users().get(id);
+            return extractUserId(response);
 
-            user.resetPassword(getPasswordCredentials(password));
-            actionRoles(user, RoleScopeResource::add, roles);
-
-            return id;
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
