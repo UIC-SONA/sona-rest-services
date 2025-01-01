@@ -224,15 +224,16 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         var additions = new AdditionsSearch<User>();
 
         if (roles != null && !roles.isEmpty()) {
-
-            var authorities = roles.stream().map(Authority::from).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet());
+            var authorities = roles.stream()
+                    .map(Authority::from)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
 
             additions.and((root, query, cb) -> {
                 var authoritiesPath = root.join("authorities");
                 return cb.isTrue(authoritiesPath.in(authorities));
             });
-
-
         }
 
         return AdvanceSearch.search(
