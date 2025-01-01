@@ -58,6 +58,10 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
         return this.authorities.containsAll(Set.of(authorities));
     }
 
+    public boolean isAny(Authority... authorities) {
+        return Set.of(authorities).stream().anyMatch(this.authorities::contains);
+    }
+
     @Override
     public String[] filesFullPaths() {
         return new String[]{profilePicturePath};
