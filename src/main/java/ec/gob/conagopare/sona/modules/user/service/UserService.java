@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Validated
+@Transactional
 public class UserService extends JpaCrudService<User, UserDto, Long, UserRepository> {
 
     private static final String USERS_PROFILE_PICTURES_PATH = "users/%d/profile-pictures";
