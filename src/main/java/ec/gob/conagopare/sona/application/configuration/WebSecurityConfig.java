@@ -94,7 +94,7 @@ public class WebSecurityConfig {
 
             var authorities = new HashSet<Authority>();
             for (var role : clientsRoles) {
-                Authority.from(role.getName()).ifPresent(authorities::add);
+                Authority.findByRole(role.getName()).ifPresent(authorities::add);
             }
 
             return authorities;

@@ -17,40 +17,58 @@ public enum Authority implements GrantedAuthority {
     MEDICAL_PROFESSIONAL("ROLE_medical_professional"),
     USER("ROLE_user");
 
-    private final String value;
+    private final String roleName;
 
     @Override
     public String getAuthority() {
-        return value;
+        return roleName;
     }
 
-    public static Optional<Authority> from(String name) {
-        return Arrays.stream(values()).filter(authority -> authority.getAuthority().equals(name)).findFirst();
+    public static Optional<Authority> findByRole(String roleName) {
+        return Arrays.stream(values())
+                .filter(authority -> authority.getAuthority().equals(roleName))
+                .findFirst();
     }
 
-    public static Collection<Authority> from(String... names) {
-        return map(Arrays.stream(names));
+    public static Collection<Authority> parseAuthorities(String... roleNames) {
+        return convertToAuthorities(Arrays.stream(roleNames));
     }
 
 
-    public static Collection<Authority> from(Collection<String> names) {
-        return map(names.stream());
+    public static Collection<Authority> parseAuthorities(Collection<String> roleNames) {
+        return convertToAuthorities(roleNames.stream());
     }
 
-    private static Collection<Authority> map(Stream<String> stream) {
-        return stream
-                .map(Authority::from)
+    private static Collection<Authority> convertToAuthorities(Stream<String> roleStream) {
+        return roleStream
+                .map(Authority::findByRole)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toSet());
     }
 
-    public static String[] asString(Collection<Authority> authorities) {
-        return authorities.stream().map(Authority::getAuthority).toArray(String[]::new);
+    public static Collection<Authority> valuesOf(String... roleNames) {
+        return valuesOf(Arrays.asList(roleNames));
     }
 
-    public static String[] asString(Authority... records) {
-        return asString(Set.of(records));
+    public static Collection<Authority> valuesOf(Collection<String> roleNames) {
+        return valuesOf(roleNames.stream());
+    }
+
+    public static Collection<Authority> valuesOf(Stream<String> roleStream) {
+        return roleStream
+                .map(Authority::valueOf)
+                .collect(Collectors.toSet());
+    }
+
+    public static String[] convertToRoleNames(Collection<Authority> authorities) {
+        return authorities.stream()
+                .map(Authority::getAuthority
+                ).toArray(String[]::new);
+    }
+
+    public static String[] convertToRoleNames(Authority... authorities) {
+        return convertToRoleNames(Set.of(authorities));
     }
 }
 

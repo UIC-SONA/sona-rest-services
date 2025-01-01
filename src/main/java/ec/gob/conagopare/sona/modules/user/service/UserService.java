@@ -104,7 +104,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             @Override
             public void afterCommit() {
                 var keycloakId = model.getKeycloakId();
-                keycloakUserManager.addRoles(keycloakId, Authority.asString(dto.getAuthoritiesToAdd()));
+                keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(dto.getAuthoritiesToAdd()));
                 keycloakUserManager.resetPassword(keycloakId, dto.getPassword());
             }
         });
@@ -134,8 +134,8 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             keycloakUserManager.resetPassword(keycloakId, password);
         }
 
-        keycloakUserManager.removeRoles(keycloakId, Authority.asString(authoritiesToRemove));
-        keycloakUserManager.addRoles(keycloakId, Authority.asString(authoritiesToAdd));
+        keycloakUserManager.removeRoles(keycloakId, Authority.convertToRoleNames(authoritiesToRemove));
+        keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(authoritiesToAdd));
     }
 
     private static void validateAuthorities(Set<Authority> authorities) {
@@ -225,10 +225,12 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
             var authorities = filter.get("authorities");
             if (authorities != null && !authorities.isEmpty()) {
-                predicates.add(root.join("authorities").in(Authority.from(authorities)));
+                predicates.add(root.join("authorities").in(Authority.valuesOf(authorities)));
             }
 
-            return cb.and(predicates.toArray(Predicate[]::new));
+            return predicates.isEmpty()
+                    ? cb.conjunction()
+                    : cb.and(predicates.toArray(Predicate[]::new));
         });
 
 
@@ -251,7 +253,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
                 .build());
 
         keycloakUserManager.resetPassword(keycloakId, password);
-        keycloakUserManager.addRoles(keycloakId, Authority.asString(authority));
+        keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(authority));
     }
 
 
@@ -286,7 +288,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     private void syncAuthorities(User user, List<String> clientRoles) {
         var currentAuthorities = user.getAuthorities();
-        var newAuthorities = Authority.from(clientRoles);
+        var newAuthorities = Authority.parseAuthorities(clientRoles);
         CollectionsUtils.merge(currentAuthorities, newAuthorities);
     }
 
