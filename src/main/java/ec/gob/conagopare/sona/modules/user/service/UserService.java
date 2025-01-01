@@ -23,6 +23,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -100,6 +101,17 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             var keycloakId = keycloakUserManager.create(dto.toRepresentation());
             model.setKeycloakId(keycloakId);
         }
+    }
+
+    @Transactional
+    @Override
+    public User update(@NotNull Long id, @Valid @NotNull UserDto dto) {
+        var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
+        mapModel(dto, model);
+        onBeforeUpdate(dto, model);
+        var updated = repository.save(model);
+        onAfterUpdate(dto, updated);
+        return updated;
     }
 
     @Override
