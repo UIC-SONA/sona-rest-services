@@ -5,13 +5,13 @@ import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
 import ec.gob.conagopare.sona.modules.appointments.repository.ProfessionalScheduleRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -75,7 +75,7 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
     }
 
     @Override
-    protected Page<ProfessionalSchedule> search(String search, Pageable pageable, Filter filter) {
+    protected Page<ProfessionalSchedule> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
         throw ApiError.badRequest("Filtro no soportado");
     }
 

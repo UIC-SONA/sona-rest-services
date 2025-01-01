@@ -9,10 +9,6 @@ import ec.gob.conagopare.sona.modules.forum.repository.ForumRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
-import io.github.luidmidev.springframework.data.crud.core.filters.FilterOperator;
-import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor;
-import io.github.luidmidev.springframework.data.crud.core.filters.FilterProcessor.FilterMatcher;
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
@@ -30,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 
 import java.time.Instant;
 import java.util.Set;
@@ -165,22 +162,17 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
     }
 
     @Override
-    protected Page<Forum> search(String search, Pageable pageable, Filter filter) {
-        return FilterProcessor.process(
-                filter,
-                () -> {
-                    throw ApiError.badRequest("Filtro no soportado");
-                },
-                FilterProcessor
-                        .of(new FilterMatcher("author", FilterOperator.EQ))
-                        .resolve(values -> {
-                            var author = (Long) values[0];
-                            if (!StringUtils.isBlank(search)) {
-                                return repository.findAllByAuthorAndContentContainingIgnoreCase(author, search, pageable);
-                            }
-                            return repository.findAllByAuthor(author, pageable);
-                        })
-        );
+    protected Page<Forum> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
+
+        var author = params.getFirst("author");
+        if (author != null) {
+            var authorId = Long.parseLong(author);
+            return StringUtils.isBlank(search)
+                    ? repository.findAllByAuthor(authorId, pageable)
+                    : repository.findAllByAuthorAndContentContainingIgnoreCase(authorId, search, pageable);
+        }
+
+        throw ApiError.badRequest("Filtro no soportado");
     }
 
     private Page<Forum> paginatePost(Pageable pageable, Query query) {

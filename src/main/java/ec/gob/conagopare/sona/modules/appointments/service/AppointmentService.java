@@ -5,7 +5,6 @@ import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.repository.AppointmentRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaReadService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
@@ -15,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 @Service
 public class AppointmentService extends JpaReadService<Appointment, Long, AppointmentRepository> {
@@ -67,7 +67,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
     }
 
     @Override
-    protected Page<Appointment> search(String search, Pageable pageable, Filter filter) {
+    protected Page<Appointment> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
         throw ApiError.badRequest("Filtro no soportado");
     }
 

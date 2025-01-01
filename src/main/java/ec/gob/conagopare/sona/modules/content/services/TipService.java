@@ -5,7 +5,6 @@ import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.repositories.TipRepository;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -106,7 +106,7 @@ public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository>
     }
 
     @Override
-    protected Page<Tip> search(String search, Pageable pageable, Filter filter) {
+    protected Page<Tip> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
         throw ApiError.badRequest("Filtro no soportado");
     }
 }

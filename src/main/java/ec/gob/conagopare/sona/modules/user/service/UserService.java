@@ -13,8 +13,6 @@ import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
-import io.github.luidmidev.springframework.data.crud.core.filters.FilterOperator;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
@@ -34,6 +32,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -218,31 +217,31 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     }
 
     @Override
-    protected Page<User> search(String search, Pageable pageable, Filter filter) {
+    protected Page<User> search(String search, Pageable pageable, MultiValueMap<String, String> filter) {
 
-        var roleCriteria = filter.get("role");
+        var roles = filter.get("role");
 
-        if (roleCriteria != null) {
-            var roleOperator = roleCriteria.operator();
-            var roleValue = (String) roleCriteria.value();
+        var additions = new AdditionsSearch<User>();
 
-            if (roleOperator != FilterOperator.EQ) {
-                throw ApiError.badRequest("Operador no soportado para el filtro de rol");
-            }
+        if (roles != null && !roles.isEmpty()) {
 
-            var authority = Authority.from(roleValue).orElseThrow(() -> ApiError.badRequest("Rol no soportado"));
+            var authorities = roles.stream().map(Authority::from).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet());
 
-            return AdvanceSearch.search(
-                    entityManager,
-                    search,
-                    pageable,
-                    new AdditionsSearch<User>().and((root, query, cb) -> cb.equal(root.join("authorities").get("authority"), authority)),
-                    User.class
-            );
+            additions.and((root, query, cb) -> {
+                var authoritiesPath = root.join("authorities");
+                return cb.isTrue(authoritiesPath.in(authorities));
+            });
+
 
         }
 
-        throw ApiError.badRequest("Filtro no soportado");
+        return AdvanceSearch.search(
+                entityManager,
+                search,
+                pageable,
+                additions,
+                User.class
+        );
     }
 
     private Stored profilePicture(User user) {

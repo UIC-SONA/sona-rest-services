@@ -3,10 +3,7 @@ package ec.gob.conagopare.sona.modules.user.models;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @RequiredArgsConstructor
@@ -27,6 +24,10 @@ public enum Authority implements GrantedAuthority {
 
     public static Optional<Authority> from(String name) {
         return Arrays.stream(values()).filter(authority -> authority.getAuthority().equals(name)).findFirst();
+    }
+
+    public static List<Authority> from(String... names) {
+        return Arrays.stream(names).map(Authority::from).filter(Optional::isPresent).map(Optional::get).toList();
     }
 
     public static String[] asString(Collection<Authority> authorities) {

@@ -5,7 +5,6 @@ import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.modules.content.dto.DidacticContentDto;
 import ec.gob.conagopare.sona.modules.content.models.DidacticContent;
 import ec.gob.conagopare.sona.modules.content.repositories.DidacticContentRepository;
-import io.github.luidmidev.springframework.data.crud.core.filters.Filter;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
@@ -16,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -63,7 +63,7 @@ public class DidacticContentService extends JpaCrudService<DidacticContent, Dida
     }
 
     @Override
-    protected Page<DidacticContent> search(String search, Pageable pageable, Filter filter) {
+    protected Page<DidacticContent> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
         throw ApiError.badRequest("Filtro no soportado");
     }
 
