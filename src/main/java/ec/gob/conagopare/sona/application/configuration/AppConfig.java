@@ -21,6 +21,7 @@ import org.springframework.format.number.NumberFormatAnnotationFormatterFactory;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,6 +32,7 @@ import java.io.IOException;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
+@EnableTransactionManagement
 public class AppConfig {
 
     @EventListener(ApplicationStartedEvent.class)
@@ -64,7 +66,7 @@ public class AppConfig {
             return new GoogleCloudStorage(bucket);
         }
     }
-    
+
     /**
      * Crear un bean para manejar las peticiones http mediante el cliente RestTemplate
      *
