@@ -21,6 +21,7 @@ import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -37,7 +38,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -216,31 +216,23 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     @Override
     protected Page<User> search(String search, Pageable pageable, MultiValueMap<String, String> filter) {
-
-        var roles = filter.get("role");
+        log.info("Buscando usuarios con filtro: {}", filter);
 
         var additions = new AdditionsSearch<User>();
 
-        if (roles != null && !roles.isEmpty()) {
-            var authorities = roles.stream()
-                    .map(Authority::from)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .collect(Collectors.toSet());
+        additions.and((root, query, cb) -> {
+            var predicates = new ArrayList<Predicate>();
 
-            additions.and((root, query, cb) -> {
-                var authoritiesPath = root.join("authorities");
-                return cb.isTrue(authoritiesPath.in(authorities));
-            });
-        }
+            var authorities = filter.get("authorities");
+            if (authorities != null && !authorities.isEmpty()) {
+                predicates.add(root.join("authorities").in(Authority.from(authorities)));
+            }
 
-        return AdvanceSearch.search(
-                entityManager,
-                search,
-                pageable,
-                additions,
-                User.class
-        );
+            return cb.and(predicates.toArray(Predicate[]::new));
+        });
+
+
+        return AdvanceSearch.search(entityManager, search, pageable, additions, User.class);
     }
 
     private Stored profilePicture(User user) {
@@ -294,14 +286,9 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     private void syncAuthorities(User user, List<String> clientRoles) {
         var currentAuthorities = user.getAuthorities();
-
-        var newAuthorities = clientRoles.stream()
-                .map(Authority::from)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
-
+        var newAuthorities = Authority.from(clientRoles);
         CollectionsUtils.merge(currentAuthorities, newAuthorities);
     }
+
 
 }
