@@ -32,7 +32,7 @@ import java.io.IOException;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@EnableTransactionManagement
+@EnableTransactionManagement(proxyTargetClass = true)
 public class AppConfig {
 
     @EventListener(ApplicationStartedEvent.class)

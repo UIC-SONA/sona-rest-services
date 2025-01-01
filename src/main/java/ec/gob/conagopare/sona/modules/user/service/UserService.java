@@ -32,6 +32,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.MultiValueMap;
@@ -45,7 +47,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @Validated
-@Transactional
 public class UserService extends JpaCrudService<User, UserDto, Long, UserRepository> {
 
     private static final String USERS_PROFILE_PICTURES_PATH = "users/%d/profile-pictures";
@@ -84,6 +85,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     @Override
     protected void mapModel(UserDto dto, User model) {
+        log.info(" in create bank account, current trans status:{}", TransactionAspectSupport.currentTransactionStatus());
         if (model.isNew()) {
             var authorityToAdd = dto.getAuthoritiesToAdd();
             var password = dto.getPassword();
@@ -103,16 +105,16 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         }
     }
 
-    @Transactional
-    @Override
-    public User update(@NotNull Long id, @Valid @NotNull UserDto dto) {
-        var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
-        mapModel(dto, model);
-        onBeforeUpdate(dto, model);
-        var updated = repository.save(model);
-        onAfterUpdate(dto, updated);
-        return updated;
-    }
+//    @Transactional
+//    @Override
+//    public User update(@NotNull Long id, @Valid @NotNull UserDto dto) {
+//        var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
+//        mapModel(dto, model);
+//        onBeforeUpdate(dto, model);
+//        var updated = repository.save(model);
+//        onAfterUpdate(dto, updated);
+//        return updated;
+//    }
 
     @Override
     protected void onAfterCreate(UserDto dto, User model) {
