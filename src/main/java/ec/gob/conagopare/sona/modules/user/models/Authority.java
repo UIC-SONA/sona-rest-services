@@ -5,6 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @RequiredArgsConstructor
@@ -28,12 +29,20 @@ public enum Authority implements GrantedAuthority {
     }
 
     public static Collection<Authority> from(String... names) {
-        return Arrays.stream(names).map(Authority::from).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet());
+        return map(Arrays.stream(names));
     }
 
 
     public static Collection<Authority> from(Collection<String> names) {
-        return names.stream().map(Authority::from).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet());
+        return map(names.stream());
+    }
+
+    private static Collection<Authority> map(Stream<String> stream) {
+        return stream
+                .map(Authority::from)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
     }
 
     public static String[] asString(Collection<Authority> authorities) {
