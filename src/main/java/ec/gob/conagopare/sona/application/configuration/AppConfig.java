@@ -16,10 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
-import org.springframework.format.number.NumberFormatAnnotationFormatterFactory;
-import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -32,7 +28,7 @@ import java.io.IOException;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@EnableTransactionManagement(proxyTargetClass = true)
+@EnableTransactionManagement
 public class AppConfig {
 
     @EventListener(ApplicationStartedEvent.class)
