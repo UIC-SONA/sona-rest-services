@@ -98,17 +98,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         }
     }
 
-//    @Transactional
-//    @Override
-//    public User update(@NotNull Long id, @Valid @NotNull UserDto dto) {
-//        var model = repository.findById(id).orElseThrow(() -> notFoundModel(domainClass.getSimpleName(), id));
-//        mapModel(dto, model);
-//        onBeforeUpdate(dto, model);
-//        var updated = repository.save(model);
-//        onAfterUpdate(dto, updated);
-//        return updated;
-//    }
-
     @Override
     protected void onAfterCreate(UserDto dto, User model) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
