@@ -39,6 +39,8 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
         var startDate = ZonedDateTime.of(dto.getDate(), LocalTime.of(dto.getFromHour(), 0), ECUADOR_ZONE);
         var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
 
+        log.info("Start date: {}, now: {}", startDate, nowInEcuador);
+
         if (startDate.isBefore(nowInEcuador)) {
             throw ApiError.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
         }
