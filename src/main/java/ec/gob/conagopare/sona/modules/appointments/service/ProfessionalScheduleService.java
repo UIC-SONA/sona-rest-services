@@ -8,18 +8,21 @@ import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 
+@Slf4j
 @Service
 public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleRepository> {
+
+    private static final ZoneId ECUADOR_ZONE = ZoneId.of("America/Guayaquil");
+
 
     private static final int MAX_DAYS_RANGE = 365;
 
@@ -33,9 +36,10 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
     @Override
     protected void mapModel(ProfessionalScheduleDto dto, ProfessionalSchedule model) {
 
-        var startDate = LocalDateTime.of(dto.getDate(), LocalTime.of(dto.getFromHour(), 0));
+        var startDate = ZonedDateTime.of(dto.getDate(), LocalTime.of(dto.getFromHour(), 0), ECUADOR_ZONE);
+        var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
 
-        if (startDate.isBefore(LocalDateTime.now())) {
+        if (startDate.isBefore(nowInEcuador)) {
             throw ApiError.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
         }
 
@@ -67,8 +71,11 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
     @Override
     protected void onBeforeDelete(ProfessionalSchedule model) {
-        var endDate = LocalDateTime.of(model.getDate(), LocalTime.of(model.getToHour(), 0));
-        if (endDate.isBefore(LocalDateTime.now())) {
+        var endDate = ZonedDateTime.of(model.getDate(), LocalTime.of(model.getToHour(), 0), ECUADOR_ZONE);
+        var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
+        log.info("End date: {}, now: {}", endDate, nowInEcuador);
+
+        if (endDate.isBefore(nowInEcuador)) {
             return;
         }
 
