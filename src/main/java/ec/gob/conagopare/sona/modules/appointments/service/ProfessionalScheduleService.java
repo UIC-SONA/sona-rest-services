@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -30,6 +32,12 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
     @Override
     protected void mapModel(ProfessionalScheduleDto dto, ProfessionalSchedule model) {
+
+        var startDate = LocalDateTime.of(dto.getDate(), LocalTime.of(dto.getFromHour(), 0));
+
+        if (startDate.isBefore(LocalDateTime.now())) {
+            throw ApiError.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
+        }
 
         var isNew = model.isNew();
         var date = dto.getDate();
@@ -59,7 +67,8 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
     @Override
     protected void onBeforeDelete(ProfessionalSchedule model) {
-        if (model.getDate().isBefore(LocalDate.now())) {
+        var endDate = LocalDateTime.of(model.getDate(), LocalTime.of(model.getToHour(), 0));
+        if (endDate.isBefore(LocalDateTime.now())) {
             return;
         }
 
