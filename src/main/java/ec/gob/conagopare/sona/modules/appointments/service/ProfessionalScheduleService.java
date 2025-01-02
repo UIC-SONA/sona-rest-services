@@ -31,12 +31,13 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
     @Override
     protected void mapModel(ProfessionalScheduleDto dto, ProfessionalSchedule model) {
 
+        var isNew = model.isNew();
         var date = dto.getDate();
         var fromHour = dto.getFromHour();
         var toHour = dto.getToHour();
         var professionalId = dto.getProfessionalId();
 
-        var isOverlapping = model.isNew()
+        var isOverlapping = isNew
                 ? repository.existsOverlappingSchedule(professionalId, date, fromHour, toHour)
                 : repository.existsOverlappingScheduleExcludingId(professionalId, date, fromHour, toHour, model.getId());
 
@@ -46,7 +47,7 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
         var user = userService.find(dto.getProfessionalId());
 
-        if (!user.is(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
+        if (!user.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
             throw ApiError.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
         }
 
