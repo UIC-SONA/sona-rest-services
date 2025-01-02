@@ -46,7 +46,7 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
         var user = userService.find(dto.getProfessionalId());
 
-        if (!user.is(Authority.PROFESSIONAL)) {
+        if (!user.is(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
             throw ApiError.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
         }
 

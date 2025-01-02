@@ -71,5 +71,6 @@ public interface ProfessionalScheduleRepository extends JpaRepository<Profession
     List<ProfessionalSchedule> getSchedulesByProfessional(
             @Param("professionalId") Long professionalId,
             @Param("from") LocalDate from,
-            @Param("to") LocalDate to);
+            @Param("to") LocalDate to
+    );
 }
