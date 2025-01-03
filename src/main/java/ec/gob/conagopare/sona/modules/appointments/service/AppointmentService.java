@@ -97,7 +97,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
         repository.save(appointment);
     }
 
-    public Page<Appointment> programed(String search, Pageable pageable, MultiValueMap<String, String> params, Jwt jwt) {
+    public Page<Appointment> appoiments(String search, Pageable pageable, MultiValueMap<String, String> params, Jwt jwt) {
         params.add(KEYCLOAK_ID_ATTRIBUTE, jwt.getSubject());
         return doPage(search, pageable, params);
     }
@@ -117,6 +117,11 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
             var professionalId = params.getFirst("professionalId");
             if (professionalId != null) {
                 predicates.add(cb.equal(root.join("professional").get("id"), Long.parseLong(professionalId)));
+            }
+
+            var canceled = params.getFirst("canceled");
+            if (canceled != null) {
+                predicates.add(cb.equal(root.get("canceled"), Boolean.parseBoolean(canceled)));
             }
 
             return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
