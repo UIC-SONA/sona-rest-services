@@ -47,8 +47,8 @@ public class AppoinmentController implements ReadController<Appointment, Long, A
         return ResponseEntity.ok(new Message("Cita cancelada correctamente"));
     }
 
-    @GetMapping("/programed")
-    public ResponseEntity<Page<Appointment>> appoiments(
+    @GetMapping("/self")
+    public ResponseEntity<Page<Appointment>> selfAppointments(
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "20") int size,
             @RequestParam(required = false, defaultValue = "0") int page,
@@ -58,7 +58,7 @@ public class AppoinmentController implements ReadController<Appointment, Long, A
             @AuthenticationPrincipal Jwt jwt
     ) {
         var pageable = CrudUtils.resolvePage(size, page, direction, properties);
-        return ResponseEntity.ok(service.appoiments(search, pageable, params, jwt));
+        return ResponseEntity.ok(service.selfAppointments(search, pageable, params, jwt));
     }
 
     @GetMapping("/professional/{professionalId}")

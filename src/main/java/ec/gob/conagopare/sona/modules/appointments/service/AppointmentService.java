@@ -97,7 +97,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
         repository.save(appointment);
     }
 
-    public Page<Appointment> appoiments(String search, Pageable pageable, MultiValueMap<String, String> params, Jwt jwt) {
+    public Page<Appointment> selfAppointments(String search, Pageable pageable, MultiValueMap<String, String> params, Jwt jwt) {
         params.add(KEYCLOAK_ID_ATTRIBUTE, jwt.getSubject());
         return doPage(search, pageable, params);
     }
