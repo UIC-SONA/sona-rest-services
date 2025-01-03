@@ -15,7 +15,7 @@ import java.util.List;
 
 @Getter
 @RestController
-@RequestMapping("/professional-schedules")
+@RequestMapping("/professional-schedule")
 @RequiredArgsConstructor
 public class ProfessionalScheduleController implements CrudController<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleService> {
     private final ProfessionalScheduleService service;
