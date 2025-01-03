@@ -2,9 +2,9 @@ package ec.gob.conagopare.sona.modules.forum.controller;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
-import ec.gob.conagopare.sona.modules.forum.dto.ForumPostDto;
-import ec.gob.conagopare.sona.modules.forum.models.Forum;
-import ec.gob.conagopare.sona.modules.forum.service.ForumService;
+import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
+import ec.gob.conagopare.sona.modules.forum.models.Post;
+import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.*;
 
 @Getter
 @RestController
-@RequestMapping("/forum")
+@RequestMapping("/forum/post")
 @RequiredArgsConstructor
-public class ForumController implements CrudController<Forum, ForumPostDto, String, ForumService> {
+public class PostController implements CrudController<Post, PostDto, String, PostService> {
 
-    private final ForumService service;
+    private final PostService service;
 
     @PostMapping("/{forumId}/comments")
-    public ResponseEntity<Forum.Comment> createComment(
+    public ResponseEntity<Post.Comment> createComment(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable String forumId,
             @RequestBody NewComment newComment
@@ -41,60 +41,60 @@ public class ForumController implements CrudController<Forum, ForumPostDto, Stri
         return ResponseEntity.ok(new Message("Comentario eliminado correctamente"));
     }
 
-    @PostMapping("/{forumId}/like")
-    public ResponseEntity<Message> likeForum(
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Message> likePost(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId
+            @PathVariable String postId
     ) {
-        service.likePost(jwt, forumId);
+        service.likePost(jwt, postId);
         return ResponseEntity.ok(new Message("Publicación marcada como favorita"));
     }
 
-    @PostMapping("/{forumId}/unlike")
-    public ResponseEntity<Message> unlikeForum(
+    @PostMapping("/{postId}/unlike")
+    public ResponseEntity<Message> unlikePost(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId
+            @PathVariable String postId
     ) {
-        service.unlikePost(jwt, forumId);
+        service.unlikePost(jwt, postId);
         return ResponseEntity.ok(new Message("Publicación desmarcada como favorita"));
     }
 
-    @PostMapping("/{forumId}/report")
-    public ResponseEntity<Message> reportForum(
+    @PostMapping("/{postId}/report")
+    public ResponseEntity<Message> reportPost(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId
+            @PathVariable String postId
     ) {
-        service.reportPost(jwt, forumId);
+        service.reportPost(jwt, postId);
         return ResponseEntity.ok(new Message("Publicación reportada correctamente"));
     }
 
-    @PostMapping("/{forumId}/comments/{commentId}/like")
+    @PostMapping("/{postId}/comments/{commentId}/like")
     public ResponseEntity<Message> likeComment(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId,
+            @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        service.likeComment(jwt, forumId, commentId);
+        service.likeComment(jwt, postId, commentId);
         return ResponseEntity.ok(new Message("Comentario marcado como favorito"));
     }
 
-    @PostMapping("/{forumId}/comments/{commentId}/unlike")
+    @PostMapping("/{postId}/comments/{commentId}/unlike")
     public ResponseEntity<Message> unlikeComment(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId,
+            @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        service.unlikeComment(jwt, forumId, commentId);
+        service.unlikeComment(jwt, postId, commentId);
         return ResponseEntity.ok(new Message("Comentario desmarcado como favorito"));
     }
 
-    @PostMapping("/{forumId}/comments/{commentId}/report")
+    @PostMapping("/{postId}/comments/{commentId}/report")
     public ResponseEntity<Message> reportComment(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId,
+            @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        service.reportComment(jwt, forumId, commentId);
+        service.reportComment(jwt, postId, commentId);
         return ResponseEntity.ok(new Message("Comentario reportado correctamente"));
     }
 }

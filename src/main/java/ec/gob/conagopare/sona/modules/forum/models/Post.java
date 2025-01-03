@@ -14,10 +14,10 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "forum")
-public class Forum extends ByAuthor<Long> implements Persistable<String> {
+@Document(collection = "post")
+public class Post extends ByAuthor<Long> implements Persistable<String> {
 
-    public static final String COMMENT_FIELD = "comments";
+    public static final String COMMENTS_FIELD = "comments";
     public static final String LIKED_BY_FIELD = "likedBy";
 
     @Id

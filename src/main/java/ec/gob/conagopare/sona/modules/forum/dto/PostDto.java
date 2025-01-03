@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ForumPostDto {
+public class PostDto {
 
     private Boolean anonymous;
 

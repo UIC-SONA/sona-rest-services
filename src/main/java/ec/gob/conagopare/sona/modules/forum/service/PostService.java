@@ -1,11 +1,11 @@
 package ec.gob.conagopare.sona.modules.forum.service;
 
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
-import ec.gob.conagopare.sona.modules.forum.dto.ForumPostDto;
+import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.models.ByAuthor;
-import ec.gob.conagopare.sona.modules.forum.models.Forum;
-import ec.gob.conagopare.sona.modules.forum.models.Forum.Comment;
-import ec.gob.conagopare.sona.modules.forum.repository.ForumRepository;
+import ec.gob.conagopare.sona.modules.forum.models.Post;
+import ec.gob.conagopare.sona.modules.forum.models.Post.Comment;
+import ec.gob.conagopare.sona.modules.forum.repository.PostRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
@@ -38,15 +38,17 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @Slf4j
 @Service
 @Transactional
-public class ForumService extends CrudService<Forum, ForumPostDto, String, ForumRepository> {
+public class PostService extends CrudService<Post, PostDto, String, PostRepository> {
 
     private static final Set<Authority> PRIVILEGED_AUTHORITIES = Set.of(Authority.ADMIN, Authority.ADMINISTRATIVE);
+    public static final String COMMENT_ARRAY_FILTER = "comment";
+    public static final String COMMENT_ID_FILTER = "comment._id";
 
     private final MongoTemplate mongo;
     private final UserService userService;
 
-    public ForumService(MongoTemplate mongo, UserService userService, ForumRepository repository) {
-        super(repository, Forum.class);
+    public PostService(MongoTemplate mongo, UserService userService, PostRepository repository) {
+        super(repository, Post.class);
         this.mongo = mongo;
         this.userService = userService;
     }
@@ -54,7 +56,7 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
 
     @Override
     @SneakyThrows
-    protected void mapModel(ForumPostDto dto, Forum model) {
+    protected void mapModel(PostDto dto, Post model) {
         var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         var user = userService.getUser(jwt);
 
@@ -72,9 +74,9 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
     }
 
     @PreAuthorize("isAuthenticated()")
-    public Page<Forum> myLikedPosts(Jwt jwt, Pageable pageable) {
+    public Page<Post> myLikedPosts(Jwt jwt, Pageable pageable) {
         var user = userService.getUser(jwt);
-        var query = Query.query(where(Forum.LIKED_BY_FIELD).is(user.getId()));
+        var query = Query.query(where(Post.LIKED_BY_FIELD).is(user.getId()));
         return paginatePost(pageable, query);
     }
 
@@ -91,8 +93,8 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
         return updatePost(jwt, isId(postId), (update, user) -> {
             var content = newComment.getContent();
             var anonymous = solveAnonymous(user, newComment.getAnonymous());
-            var comment = Forum.newComment(content, user.getId(), anonymous);
-            update.push(Forum.COMMENT_FIELD, comment);
+            var comment = Post.newComment(content, user.getId(), anonymous);
+            update.push(Post.COMMENTS_FIELD, comment);
             return comment;
         });
     }
@@ -104,28 +106,28 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
         var criteria = where("id").is(postId);
 
         if (isPriviliged(user)) {
-            criteria.and(Forum.COMMENT_FIELD).elemMatch(where("id").is(commentId));
+            criteria.and(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId));
         } else {
             criteria.andOperator(
                     new Criteria().orOperator(
-                            where(Forum.COMMENT_FIELD).elemMatch(where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
+                            where(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
                             where(ByAuthor.AUTHOR_FIELD).is(user.getId())
                     )
             );
         }
 
         var query = Query.query(criteria);
-        updatePost(query, update -> update.pull(Forum.COMMENT_FIELD, Query.query(where("id").is(commentId))));
+        updatePost(query, update -> update.pull(Post.COMMENTS_FIELD, Query.query(where("id").is(commentId))));
     }
 
     @PreAuthorize("isAuthenticated()")
     public void likePost(Jwt jwt, String postId) {
-        updatePost(jwt, isId(postId), (update, user) -> update.addToSet(Forum.LIKED_BY_FIELD, user.getId()));
+        updatePost(jwt, isId(postId), (update, user) -> update.addToSet(Post.LIKED_BY_FIELD, user.getId()));
     }
 
     @PreAuthorize("isAuthenticated()")
     public void unlikePost(Jwt jwt, String postId) {
-        updatePost(jwt, isId(postId), (update, user) -> update.pull(Forum.LIKED_BY_FIELD, user.getId()));
+        updatePost(jwt, isId(postId), (update, user) -> update.pull(Post.LIKED_BY_FIELD, user.getId()));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -141,7 +143,7 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
     private <T> T updatePost(Query query, Function<Update, T> updater) {
         var update = new Update();
         var returned = updater.apply(update);
-        var result = mongo.updateFirst(query, update, Forum.class);
+        var result = mongo.updateFirst(query, update, Post.class);
         if (result.getModifiedCount() == 0) {
             log.warn("No se encontró la publicación para actualizar");
         }
@@ -150,19 +152,19 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
 
 
     private void deletePost(Query query) {
-        var result = mongo.remove(query, Forum.class);
+        var result = mongo.remove(query, Post.class);
         if (result.getDeletedCount() == 0) {
             log.warn("No se encontró la publicación para eliminar");
         }
     }
 
     @Override
-    protected Page<Forum> search(String search, Pageable pageable) {
+    protected Page<Post> search(String search, Pageable pageable) {
         return repository.findAllByContentContainingIgnoreCase(search, pageable);
     }
 
     @Override
-    protected Page<Forum> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
+    protected Page<Post> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
 
         var author = params.getFirst("author");
         if (author != null) {
@@ -175,35 +177,36 @@ public class ForumService extends CrudService<Forum, ForumPostDto, String, Forum
         throw ApiError.badRequest("Filtro no soportado");
     }
 
-    private Page<Forum> paginatePost(Pageable pageable, Query query) {
+    private Page<Post> paginatePost(Pageable pageable, Query query) {
         var pagedQuery = Query.of(query).with(pageable);
 
         return PageableExecutionUtils.getPage(
-                mongo.find(pagedQuery, Forum.class),
+                mongo.find(pagedQuery, Post.class),
                 pageable,
-                () -> mongo.count(query, Forum.class)
+                () -> mongo.count(query, Post.class)
         );
     }
 
 
     public void likeComment(Jwt jwt, String forumId, String commentId) {
+
         updatePost(jwt, isId(forumId), (update, user) -> update
-                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(where("comment._id").is(commentId))
+                .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
+                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
     public void unlikeComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
-                .pull(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(where("comment._id").is(commentId))
+                .pull(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
+                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
     public void reportComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
-                .addToSet(Forum.COMMENT_FIELD + ".$[comment]." + Forum.Comment.REPORTED_BY_FIELD, user.getId())
-                .filterArray(where("comment._id").is(commentId))
+                .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.REPORTED_BY_FIELD, user.getId())
+                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
