@@ -1,13 +1,17 @@
 package ec.gob.conagopare.sona.modules.appointments.service;
 
+import ec.gob.conagopare.sona.modules.appointments.dto.AppoimentRange;
+import ec.gob.conagopare.sona.modules.appointments.dto.CancelAppointment;
 import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.repository.AppointmentRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaReadService;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +19,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import static ec.gob.conagopare.sona.modules.user.models.User.KEYCLOAK_ID_ATTRIBUTE;
 
 @Service
 public class AppointmentService extends JpaReadService<Appointment, Long, AppointmentRepository> {
@@ -66,23 +76,56 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
         return repository.save(appointment);
     }
 
-    @Override
-    protected Page<Appointment> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
-        throw ApiError.badRequest("Filtro no soportado");
-    }
-
-
     @PreAuthorize("isAuthenticated()")
-    public void cancel(Long appointmentId, Jwt jwt) {
+    public void cancel(CancelAppointment cancelAppointment, Jwt jwt) {
         var user = userService.getUser(jwt);
         var userId = user.getId();
-        var appointment = find(appointmentId);
+        var appointment = find(cancelAppointment.getAppointmentId());
 
         assert userId != null;
         if (!userId.equals(appointment.getAttendant().getId())) {
             throw ApiError.forbidden("No tiene permisos para cancelar esta cita");
         }
 
-        repository.delete(appointment);
+        if (appointment.isCanceled()) {
+            throw ApiError.badRequest("La cita ya ha sido cancelada");
+        }
+
+        appointment.setCanceled(true);
+        appointment.setCancelationReason(cancelAppointment.getReason());
+
+        repository.save(appointment);
+    }
+
+    public Page<Appointment> programed(String search, Pageable pageable, MultiValueMap<String, String> params, Jwt jwt) {
+        params.add(KEYCLOAK_ID_ATTRIBUTE, jwt.getSubject());
+        return doPage(search, pageable, params);
+    }
+
+    @Override
+    protected Page<Appointment> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
+        var additions = new AdditionsSearch<Appointment>();
+
+        additions.and((root, query, cb) -> {
+            var predicates = new ArrayList<Predicate>();
+
+            var keycloakId = params.getFirst(KEYCLOAK_ID_ATTRIBUTE);
+            if (keycloakId != null) {
+                predicates.add(cb.equal(root.get("attendant").get(KEYCLOAK_ID_ATTRIBUTE), keycloakId));
+            }
+
+            var professionalId = params.getFirst("professionalId");
+            if (professionalId != null) {
+                predicates.add(cb.equal(root.get("professional").get("id"), Long.parseLong(professionalId)));
+            }
+
+            return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
+        });
+        return search(search, pageable, additions);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    public List<AppoimentRange> professionalAppointmentRanges(long professionalId, LocalDate from, LocalDate to) {
+        return repository.getProfessionalAppointments(professionalId, from, to);
     }
 }

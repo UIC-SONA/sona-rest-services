@@ -7,7 +7,6 @@ import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.repositories.TipRepository;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
-import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
@@ -15,14 +14,12 @@ import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -64,17 +61,8 @@ public class TipService extends JpaCrudService<Tip, TipDto, UUID, TipRepository>
     }
 
     @PreAuthorize("isAuthenticated()")
-    public List<Tip> actives(String search, Sort sort) {
-        return search == null
-                ? repository.findAllByActiveTrue(sort)
-                : AdvanceSearch.search(entityManager, search, sort, AND_ACTIVE_TRUE, Tip.class);
-    }
-
-    @PreAuthorize("isAuthenticated()")
     public Page<Tip> actives(String search, Pageable pageable) {
-        return search == null
-                ? repository.findAllByActiveTrue(pageable)
-                : AdvanceSearch.search(entityManager, search, pageable, AND_ACTIVE_TRUE, Tip.class);
+        return search == null ? repository.findAllByActiveTrue(pageable) : search(search, pageable, AND_ACTIVE_TRUE);
     }
 
     @PreAuthorize("isAuthenticated()")

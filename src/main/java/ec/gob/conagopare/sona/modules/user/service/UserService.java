@@ -15,7 +15,6 @@ import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
-import io.github.luidmidev.springframework.data.crud.jpa.utils.AdvanceSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
@@ -216,7 +215,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
     @Override
     protected Page<User> search(String search, Pageable pageable, MultiValueMap<String, String> filter) {
-        log.info("Buscando usuarios con filtro: {}", filter);
 
         var additions = new AdditionsSearch<User>();
 
@@ -228,13 +226,10 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
                 predicates.add(root.join("authorities").in(Authority.valuesOf(authorities)));
             }
 
-            return predicates.isEmpty()
-                    ? cb.conjunction()
-                    : cb.and(predicates.toArray(Predicate[]::new));
+            return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         });
 
-
-        return AdvanceSearch.search(entityManager, search, pageable, additions, User.class);
+        return search(search, pageable, additions);
     }
 
     private Stored profilePicture(User user) {

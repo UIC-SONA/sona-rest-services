@@ -19,6 +19,8 @@ import java.util.Set;
 @Table(name = "sona_user")
 public class User extends Auditable implements Persistable<Long>, PurgableStored {
 
+    public static final String KEYCLOAK_ID_ATTRIBUTE = "keycloakId";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

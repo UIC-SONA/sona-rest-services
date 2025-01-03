@@ -65,8 +65,7 @@ public interface ProfessionalScheduleRepository extends JpaRepository<Profession
     @Query("""
             SELECT ps FROM ProfessionalSchedule ps
             WHERE ps.professional.id = :professionalId
-            AND ps.date >= :from
-            AND ps.date <= :to
+            AND ps.date BETWEEN :from AND :to
             """)
     List<ProfessionalSchedule> getSchedulesByProfessional(
             @Param("professionalId") Long professionalId,

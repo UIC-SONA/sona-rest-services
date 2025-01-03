@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.application.configuration;
 
+import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
 import ec.gob.conagopare.sona.modules.appointments.service.ProfessionalScheduleService;
 import ec.gob.conagopare.sona.modules.content.services.DidacticContentService;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
@@ -29,7 +30,8 @@ public class CrudConfig {
                                 UserService.class,
                                 TipService.class,
                                 DidacticContentService.class,
-                                ProfessionalScheduleService.class
+                                ProfessionalScheduleService.class,
+                                AppointmentService.class
                         ).hasAuthority(Authority.ADMIN)
                         .anyOperation().permitAll();
     }

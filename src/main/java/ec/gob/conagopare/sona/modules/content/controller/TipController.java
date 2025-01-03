@@ -64,16 +64,6 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
     }
 
     @GetMapping("/actives")
-    public ResponseEntity<List<Tip>> actives(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction
-    ) {
-        var sort = CrudUtils.resolveSort(direction, properties);
-        return ResponseEntity.ok(service.actives(search, sort));
-    }
-
-    @GetMapping("/actives/page")
     public ResponseEntity<Page<Tip>> activesPage(
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "20") int size,
