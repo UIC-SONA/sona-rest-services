@@ -25,7 +25,7 @@ import java.util.List;
 @Getter
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/appointments")
+@RequestMapping("/appointment")
 public class AppoinmentController implements ReadController<Appointment, Long, AppointmentService> {
 
     private final AppointmentService service;
@@ -59,20 +59,6 @@ public class AppoinmentController implements ReadController<Appointment, Long, A
     ) {
         var pageable = CrudUtils.resolvePage(size, page, direction, properties);
         return ResponseEntity.ok(service.appoiments(search, pageable, params, jwt));
-    }
-
-    @GetMapping("/canceled")
-    public ResponseEntity<Page<Appointment>> canceled(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "20") int size,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction,
-            @RequestParam(required = false) MultiValueMap<String, String> params,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        var pageable = CrudUtils.resolvePage(size, page, direction, properties);
-        return ResponseEntity.ok(service.canceled(search, pageable, params, jwt));
     }
 
     @GetMapping("/professional/{professionalId}")
