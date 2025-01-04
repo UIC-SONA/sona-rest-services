@@ -43,6 +43,12 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
             throw ApiError.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
         }
 
+        var user = userService.find(dto.getProfessionalId());
+
+        if (!user.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
+            throw ApiError.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
+        }
+
         var isNew = model.isNew();
         var date = dto.getDate();
         var fromHour = dto.getFromHour();
@@ -57,11 +63,10 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
             throw ApiError.badRequest("El horario que intenta registrar se superpone con otro horario del profesional");
         }
 
-        var user = userService.find(dto.getProfessionalId());
-
-        if (!user.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
-            throw ApiError.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
+        if (!isNew && repository.existsActiveAppointmentsInSchedule(professionalId, date, fromHour, toHour)) {
+            throw ApiError.badRequest("No se puede modificar un horario que tiene citas activas");
         }
+
 
         model.setProfessional(user);
         model.setDate(date);
