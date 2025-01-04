@@ -12,9 +12,9 @@ public class AppoimentDetails {
     private final LocalDateTime to;
     private final Appointment.Type type;
 
-    public AppoimentDetails(LocalDate day, Integer fromHour, Integer toHour, Appointment.Type type) {
-        this.from = day.atTime(fromHour, 0);
-        this.to = day.atTime(toHour, 0);
+    public AppoimentDetails(LocalDate date, Integer fromHour, Integer toHour, Appointment.Type type) {
+        this.from = date.atTime(fromHour, 0);
+        this.to = toHour == 24 ? date.plusDays(1).atStartOfDay() : date.atTime(toHour, 0);
         this.type = type;
     }
 
