@@ -63,7 +63,7 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
             throw ApiError.badRequest("El horario que intenta registrar se superpone con otro horario del profesional");
         }
 
-        if (!isNew && repository.existsActiveAppointmentsInSchedule(professionalId, date, fromHour, toHour)) {
+        if (!isNew && repository.existsActiveAppointmentsInSchedule(professionalId, model.getDate(), model.getFromHour(), model.getToHour())) {
             throw ApiError.badRequest("No se puede modificar un horario que tiene citas activas");
         }
 
