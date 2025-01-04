@@ -1,7 +1,7 @@
 package ec.gob.conagopare.sona.modules.appointments.controller;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
-import ec.gob.conagopare.sona.modules.appointments.dto.AppoimentRange;
+import ec.gob.conagopare.sona.modules.appointments.dto.AppoimentDetails;
 import ec.gob.conagopare.sona.modules.appointments.dto.CancelAppointment;
 import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
@@ -62,7 +62,7 @@ public class AppointmentController implements ReadController<Appointment, Long, 
     }
 
     @GetMapping("/professional/{professionalId}")
-    public ResponseEntity<List<AppoimentRange>> professionalAppointmentsDates(
+    public ResponseEntity<List<AppoimentDetails>> professionalAppointments(
             @PathVariable long professionalId,
             @RequestParam
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,

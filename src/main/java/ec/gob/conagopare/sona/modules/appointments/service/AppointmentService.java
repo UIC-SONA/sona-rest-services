@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.appointments.service;
 
-import ec.gob.conagopare.sona.modules.appointments.dto.AppoimentRange;
+import ec.gob.conagopare.sona.modules.appointments.dto.AppoimentDetails;
 import ec.gob.conagopare.sona.modules.appointments.dto.CancelAppointment;
 import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
@@ -134,7 +134,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
     }
 
     @PreAuthorize("isAuthenticated()")
-    public List<AppoimentRange> professionalAppointmentRanges(long professionalId, LocalDate from, LocalDate to) {
+    public List<AppoimentDetails> professionalAppointmentRanges(long professionalId, LocalDate from, LocalDate to) {
         return repository.getProfessionalAppointments(professionalId, from, to);
     }
 }
