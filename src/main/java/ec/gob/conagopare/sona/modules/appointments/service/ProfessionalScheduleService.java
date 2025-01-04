@@ -67,7 +67,6 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
             throw ApiError.badRequest("No se puede modificar un horario que tiene citas activas");
         }
 
-
         model.setProfessional(user);
         model.setDate(date);
         model.setFromHour(fromHour);
@@ -76,7 +75,14 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
     @Override
     protected void onBeforeDelete(ProfessionalSchedule model) {
-        var endDate = ZonedDateTime.of(model.getDate(), LocalTime.of(model.getToHour(), 0), ECUADOR_ZONE);
+
+        var toHour = model.getToHour();
+        var fromHour = model.getFromHour();
+
+        var date = toHour == 24 ? model.getDate().plusDays(1) : model.getDate();
+        var time = toHour == 24 ? LocalTime.of(0, 0) : LocalTime.of(toHour, 0);
+
+        var endDate = ZonedDateTime.of(date, time, ECUADOR_ZONE);
         var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
 
         if (endDate.isBefore(nowInEcuador)) {
@@ -86,8 +92,8 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
         boolean hasActiveAppointments = repository.existsActiveAppointmentsInSchedule(
                 model.getProfessional().getId(),
                 model.getDate(),
-                model.getFromHour(),
-                model.getToHour()
+                fromHour,
+                toHour
         );
 
         if (hasActiveAppointments) {
