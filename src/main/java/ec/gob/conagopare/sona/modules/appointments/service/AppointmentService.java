@@ -74,6 +74,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
                 .professional(profesional)
                 .date(date)
                 .hour(hour)
+                .type(newAppointment.getType())
                 .build();
 
         return repository.save(appointment);
