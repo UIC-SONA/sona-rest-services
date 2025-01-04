@@ -53,7 +53,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
         }
 
         log.info("Reservando cita para el profesional {} en la fecha {} y hora {} por el usuario {}", profesionalId, date, hour, jwt.getSubject());
-        if (repository.isWithinProfessionalSchedule(profesionalId, date, hour)) {
+        if (!repository.isWithinProfessionalSchedule(profesionalId, date, hour)) {
             throw ApiError.badRequest("La hora de la cita que intenta programar no está dentro del horario de atención del profesional");
         }
 
