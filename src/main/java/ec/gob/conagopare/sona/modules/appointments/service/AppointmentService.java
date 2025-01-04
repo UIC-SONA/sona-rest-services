@@ -13,6 +13,7 @@ import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import static ec.gob.conagopare.sona.modules.user.models.User.KEYCLOAK_ID_ATTRIBUTE;
 
+@Slf4j
 @Service
 public class AppointmentService extends JpaReadService<Appointment, Long, AppointmentRepository> {
 
@@ -50,6 +52,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
             throw ApiError.badRequest("Ya existe una cita programada a esa hora");
         }
 
+        log.info("Reservando cita para el profesional {} en la fecha {} y hora {} por el usuario {}", profesionalId, date, hour, jwt.getSubject());
         if (repository.isWithinProfessionalSchedule(profesionalId, date, hour)) {
             throw ApiError.badRequest("La hora de la cita que intenta programar no está dentro del horario de atención del profesional");
         }

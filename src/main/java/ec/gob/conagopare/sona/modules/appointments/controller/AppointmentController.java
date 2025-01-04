@@ -26,7 +26,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/appointment")
-public class AppoinmentController implements ReadController<Appointment, Long, AppointmentService> {
+public class AppointmentController implements ReadController<Appointment, Long, AppointmentService> {
 
     private final AppointmentService service;
 
