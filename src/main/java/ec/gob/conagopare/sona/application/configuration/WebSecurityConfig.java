@@ -74,22 +74,15 @@ public class WebSecurityConfig {
         return jwtAuthenticationConverter;
     }
 
-
     @Bean
-    public Converter<Jwt, Collection<GrantedAuthority>> authorityConverter(Extractor<Jwt, Collection<Authority>> authorityExtractor) {
-        return jwt -> {
-            var authorities = authorityExtractor.extract(jwt);
-            return new HashSet<>(authorities);
-        };
-    }
-
-    @Bean
-    public Extractor<Jwt, Collection<Authority>> authorityExtractorJwt(@Value("${keycloak.client-id}") String clientId) {
+    public Converter<Jwt, Collection<GrantedAuthority>> authorityExtractorJwt(@Value("${keycloak.client-id}") String clientId) {
         return jwt -> {
             Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
             var clientRoleMap = (Map<String, List<String>>) resourceAccess.get(clientId);
             var clientRoles = new ArrayList<>(clientRoleMap.get("roles"));
-            return Authority.parseAuthorities(clientRoles);
+            return Authority.parseAuthorities(clientRoles).stream()
+                    .map(GrantedAuthority.class::cast)
+                    .toList();
         };
     }
 }
