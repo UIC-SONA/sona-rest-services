@@ -7,7 +7,6 @@ import ec.gob.conagopare.sona.application.filters.AuthenticationMDCFilter;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +29,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -68,21 +66,38 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverterForKeycloak(Converter<Jwt, Collection<GrantedAuthority>> authorityConverter) {
+    public JwtAuthenticationConverter jwtAuthenticationConverterForKeycloak(@Value("${keycloak.client-id}") String clientId) {
         var jwtAuthenticationConverter = new JwtAuthenticationConverter();
-        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(authorityConverter);
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(authorityConverter(clientId));
         return jwtAuthenticationConverter;
     }
 
-    @Bean
-    public Converter<Jwt, Collection<GrantedAuthority>> authorityExtractorJwt(@Value("${keycloak.client-id}") String clientId) {
+
+    public static Converter<Jwt, Collection<GrantedAuthority>> authorityConverter(String clientId) {
         return jwt -> {
             Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+
             var clientRoleMap = (Map<String, List<String>>) resourceAccess.get(clientId);
             var clientRoles = new ArrayList<>(clientRoleMap.get("roles"));
-            return Authority.parseAuthorities(clientRoles).stream()
-                    .map(GrantedAuthority.class::cast)
-                    .toList();
+
+            return clientRoles.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toUnmodifiableList());
+        };
+    }
+
+    @Bean
+    public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(KeycloakUserManager keycloakUserManager) {
+        return representation -> {
+
+            var clientsRoles = keycloakUserManager.userRoles(representation.getId());
+
+            var authorities = new HashSet<Authority>();
+            for (var role : clientsRoles) {
+                Authority.findByRole(role.getName()).ifPresent(authorities::add);
+            }
+
+            return authorities;
         };
     }
 }
