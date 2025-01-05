@@ -96,7 +96,7 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
         }
 
         appointment.setCanceled(true);
-        appointment.setCancelationReason(cancelAppointment.getReason());
+        appointment.setCancellationReason(cancelAppointment.getReason());
 
         repository.save(appointment);
     }

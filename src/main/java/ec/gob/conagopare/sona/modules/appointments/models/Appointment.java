@@ -34,7 +34,7 @@ public class Appointment implements Persistable<Long> {
     private boolean canceled;
 
     @Column(length = 1000)
-    private String cancelationReason;
+    private String cancellationReason;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = false)
