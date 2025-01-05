@@ -118,6 +118,11 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
                 predicates.add(cb.equal(root.join("attendant").get(KEYCLOAK_ID_ATTRIBUTE), keycloakId));
             }
 
+            var userId = params.getFirst("userId");
+            if (userId != null) {
+                predicates.add(cb.equal(root.join("attendant").get("id"), Long.parseLong(userId)));
+            }
+
             var professionalId = params.getFirst("professionalId");
             if (professionalId != null) {
                 predicates.add(cb.equal(root.join("professional").get("id"), Long.parseLong(professionalId)));
