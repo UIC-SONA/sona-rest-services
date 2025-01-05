@@ -1,5 +1,7 @@
 package ec.gob.conagopare.sona.modules.appointments.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -45,6 +47,11 @@ public class Appointment implements Persistable<Long> {
     @ManyToOne
     @JoinColumn(name = "professional_id", nullable = false)
     private User professional;
+
+    @JsonProperty("range")
+    private AppointmentRange getRange() {
+        return new AppointmentRange(date, hour, hour + 1);
+    }
 
     @Override
     public boolean isNew() {

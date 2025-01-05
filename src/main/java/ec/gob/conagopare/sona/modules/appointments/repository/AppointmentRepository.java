@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.appointments.repository;
 
-import ec.gob.conagopare.sona.modules.appointments.dto.AppoimentDetails;
+import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -38,26 +38,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
 
     @Query("""
-            SELECT new ec.gob.conagopare.sona.modules.appointments.dto.AppoimentDetails(a.date, a.hour, a.hour + 1, a.type) FROM Appointment a
+            SELECT new ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange(a.date, a.hour, a.hour + 1) FROM Appointment a
             WHERE a.professional.id = :professionalId
             AND a.date BETWEEN :from AND :to
             AND a.canceled = false
             """)
-    List<AppoimentDetails> getProfessionalAppointments(
+    List<AppointmentRange> getProfessionalAppointmentsRanges(
             @Param("professionalId") Long professionalId,
             @Param("from") LocalDate from,
             @Param("to") LocalDate to
-    );
-
-    @Query("""
-            SELECT new ec.gob.conagopare.sona.modules.appointments.dto.AppoimentDetails(a.date, a.hour, a.hour + 1) FROM Appointment a
-            WHERE a.professional.id = :professionalId
-            AND a.date BETWEEN :from AND :to
-            AND a.canceled = false
-            """)
-    List<AppoimentDetails> getProfessionalAppointmentsOnlyDates(
-            Long professionalId,
-            LocalDate from,
-            LocalDate to
     );
 }

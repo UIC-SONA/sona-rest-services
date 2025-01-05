@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.appointments.service;
 
-import ec.gob.conagopare.sona.modules.appointments.dto.AppoimentDetails;
+import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
 import ec.gob.conagopare.sona.modules.appointments.dto.CancelAppointment;
 import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
@@ -143,15 +143,14 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
             } else if (to != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("date"), LocalDate.parse(to)));
             }
-
-
             return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         });
+
         return search(search, pageable, additions);
     }
 
     @PreAuthorize("isAuthenticated()")
-    public List<AppoimentDetails> professionalAppointmentRanges(long professionalId, LocalDate from, LocalDate to) {
-        return repository.getProfessionalAppointments(professionalId, from, to);
+    public List<AppointmentRange> professionalAppointmentRanges(long professionalId, LocalDate from, LocalDate to) {
+        return repository.getProfessionalAppointmentsRanges(professionalId, from, to);
     }
 }
