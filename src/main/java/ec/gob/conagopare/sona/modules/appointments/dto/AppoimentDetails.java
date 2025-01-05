@@ -18,4 +18,7 @@ public class AppoimentDetails {
         this.type = type;
     }
 
+    public AppoimentDetails(LocalDate date, Integer fromHour, Integer toHour) {
+        this(date, fromHour, toHour, null);
+    }
 }

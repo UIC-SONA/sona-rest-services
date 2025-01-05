@@ -128,6 +128,23 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
                 predicates.add(cb.equal(root.get("canceled"), Boolean.parseBoolean(canceled)));
             }
 
+            var type = params.getFirst("type");
+            if (type != null) {
+                predicates.add(cb.equal(root.get("type"), Appointment.Type.valueOf(type)));
+            }
+
+            var from = params.getFirst("from");
+            var to = params.getFirst("to");
+
+            if (from != null && to != null) {
+                predicates.add(cb.between(root.get("date"), LocalDate.parse(from), LocalDate.parse(to)));
+            } else if (from != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("date"), LocalDate.parse(from)));
+            } else if (to != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("date"), LocalDate.parse(to)));
+            }
+
+
             return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         });
         return search(search, pageable, additions);

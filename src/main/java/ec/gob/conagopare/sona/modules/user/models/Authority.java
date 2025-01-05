@@ -30,15 +30,15 @@ public enum Authority implements GrantedAuthority {
     }
 
     public static Collection<Authority> parseAuthorities(String... roleNames) {
-        return convertToAuthorities(Arrays.stream(roleNames));
+        return parseAuthorities(Arrays.stream(roleNames));
     }
 
 
     public static Collection<Authority> parseAuthorities(Collection<String> roleNames) {
-        return convertToAuthorities(roleNames.stream());
+        return parseAuthorities(roleNames.stream());
     }
 
-    private static Collection<Authority> convertToAuthorities(Stream<String> roleStream) {
+    public static Collection<Authority> parseAuthorities(Stream<String> roleStream) {
         return roleStream
                 .map(Authority::findByRole)
                 .filter(Optional::isPresent)
