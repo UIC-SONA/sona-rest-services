@@ -15,7 +15,7 @@ public enum Authority implements GrantedAuthority, EnumSearchable {
     ADMINISTRATIVE("ROLE_administrative", "administrativo"),
     LEGAL_PROFESSIONAL("ROLE_legal_professional", "profesional legal"),
     MEDICAL_PROFESSIONAL("ROLE_medical_professional", "profesional médico"),
-    USER("ROLE_user", "Usuario");
+    USER("ROLE_user", "usuario");
 
     private final String roleName;
     private final String spanishName;
