@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.modules.user.models;
 
+import io.github.luidmidev.springframework.data.crud.jpa.utils.EnumSearchable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -9,14 +10,15 @@ import java.util.stream.Stream;
 
 
 @RequiredArgsConstructor
-public enum Authority implements GrantedAuthority {
-    ADMIN("ROLE_admin"),
-    ADMINISTRATIVE("ROLE_administrative"),
-    LEGAL_PROFESSIONAL("ROLE_legal_professional"),
-    MEDICAL_PROFESSIONAL("ROLE_medical_professional"),
-    USER("ROLE_user");
+public enum Authority implements GrantedAuthority, EnumSearchable {
+    ADMIN("ROLE_admin", "administrador"),
+    ADMINISTRATIVE("ROLE_administrative", "administrativo"),
+    LEGAL_PROFESSIONAL("ROLE_legal_professional", "profesional legal"),
+    MEDICAL_PROFESSIONAL("ROLE_medical_professional", "profesional médico"),
+    USER("ROLE_user", "Usuario");
 
     private final String roleName;
+    private final String spanishName;
 
     @Override
     public String getAuthority() {
@@ -62,12 +64,17 @@ public enum Authority implements GrantedAuthority {
 
     public static String[] convertToRoleNames(Collection<Authority> authorities) {
         return authorities.stream()
-                .map(Authority::getAuthority
-                ).toArray(String[]::new);
+                .map(Authority::getAuthority)
+                .toArray(String[]::new);
     }
 
     public static String[] convertToRoleNames(Authority... authorities) {
         return convertToRoleNames(Set.of(authorities));
+    }
+
+    @Override
+    public boolean matches(String value) {
+        return spanishName.contains(value.toLowerCase());
     }
 }
 
