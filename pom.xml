@@ -118,7 +118,7 @@
         <dependency>
             <groupId>io.github.luidmidev</groupId>
             <artifactId>spring-data-crud-jpa</artifactId>
-            <version>1.1.2</version>
+            <version>1.1.3</version>
         </dependency>
 
         <dependency>
