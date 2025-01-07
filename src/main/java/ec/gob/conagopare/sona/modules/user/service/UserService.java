@@ -159,9 +159,8 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         return profilePicture(user);
     }
 
-    @PreAuthorize("isAuthenticated()")
     public Stored profilePicture(Long id) {
-        var user = getUser(id);
+        var user = repository.findById(id).orElseThrow(() -> ApiError.badRequest("No se encontról la foto de perfil"));
         return profilePicture(user);
     }
 
@@ -214,14 +213,14 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     }
 
     @Override
-    protected Page<User> search(String search, Pageable pageable, MultiValueMap<String, String> filter) {
+    protected Page<User> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
 
         var additions = new AdditionsSearch<User>();
 
         additions.and((root, query, cb) -> {
             var predicates = new ArrayList<Predicate>();
 
-            var authorities = filter.get("authorities");
+            var authorities = params.get("authorities");
             if (authorities != null && !authorities.isEmpty()) {
                 predicates.add(root.join("authorities").in(Authority.valuesOf(authorities)));
             }
