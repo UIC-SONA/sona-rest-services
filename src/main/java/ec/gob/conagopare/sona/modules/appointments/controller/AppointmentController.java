@@ -8,7 +8,6 @@ import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +25,12 @@ import java.util.List;
 @Slf4j
 @Getter
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/appointment")
-public class AppointmentController implements ReadController<Appointment, Long, AppointmentService> {
+public class AppointmentController extends ReadController<Appointment, Long, AppointmentService> {
 
-    private final AppointmentService service;
+    public AppointmentController(AppointmentService service) {
+        super(service);
+    }
 
     @PostMapping("/program")
     public ResponseEntity<Appointment> program(
