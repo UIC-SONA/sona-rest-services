@@ -52,7 +52,10 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     @Builder.Default
     @ElementCollection(fetch = FetchType.EAGER, targetClass = Authority.class)
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
+    @CollectionTable(
+            name = "user_authorities",
+            joinColumns = @JoinColumn(name = "user_id")
+    )
     @Column(name = "authority")
     private Set<Authority> authorities = new HashSet<>();
 

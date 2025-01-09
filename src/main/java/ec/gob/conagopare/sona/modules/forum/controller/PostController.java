@@ -6,15 +6,11 @@ import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
-import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 @Getter

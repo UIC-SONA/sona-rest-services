@@ -1,13 +1,13 @@
 package ec.gob.conagopare.sona.modules.content.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import ec.gob.conagopare.sona.application.common.converters.JsonConverter;
 import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
 import io.github.luidmidev.storage.PurgableStored;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.domain.Persistable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,9 +33,15 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
-    @Convert(converter = JsonConverter.ListStringConverter.class)
-    private List<String> tags;
+    @Builder.Default
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "tip_tags",
+            joinColumns = @JoinColumn(name = "tip_id", nullable = false)
+    )
+    @Column(name = "tag", nullable = false)
+    private List<String> tags = new ArrayList<>();
 
     @JsonIgnore
     @Column(nullable = false)

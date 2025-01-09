@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.user.models;
 
-import io.github.luidmidev.springframework.data.crud.jpa.utils.EnumSearchable;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaEnumCandidate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 
 @RequiredArgsConstructor
-public enum Authority implements GrantedAuthority, EnumSearchable {
+public enum Authority implements GrantedAuthority, JpaEnumCandidate {
     ADMIN("ROLE_admin", "administrador"),
     ADMINISTRATIVE("ROLE_administrative", "administrativo"),
     LEGAL_PROFESSIONAL("ROLE_legal_professional", "profesional legal"),
@@ -73,7 +73,7 @@ public enum Authority implements GrantedAuthority, EnumSearchable {
     }
 
     @Override
-    public boolean matches(String value) {
+    public boolean isCandidate(String value) {
         return spanishName.contains(value.toLowerCase());
     }
 }

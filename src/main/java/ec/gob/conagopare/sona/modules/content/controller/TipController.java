@@ -6,12 +6,11 @@ import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
-import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -66,12 +65,8 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
     @GetMapping("/actives")
     public ResponseEntity<Page<Tip>> activesPage(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "20") int size,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction
+            Pageable pageable
     ) {
-        var pageable = CrudUtils.resolvePage(size, page, direction, properties);
         return ResponseEntity.ok(service.actives(search, pageable));
     }
 

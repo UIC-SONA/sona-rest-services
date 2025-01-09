@@ -55,13 +55,13 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
     @GetMapping("/profile-picture")
     public ResponseEntity<ByteArrayResource> profilePicture(@AuthenticationPrincipal Jwt jwt) {
         var stored = service.profilePicture(jwt);
-        return ResponseEntityUtils.resource(stored);
+        return ResponseEntityUtils.resource(stored, true);
     }
 
     @GetMapping("{id}/profile-picture")
     public ResponseEntity<ByteArrayResource> profilePicture(@PathVariable Long id) {
         var stored = service.profilePicture(id);
-        return ResponseEntityUtils.resource(stored);
+        return ResponseEntityUtils.resource(stored, true);
     }
 
     @PostMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

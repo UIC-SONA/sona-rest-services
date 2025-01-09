@@ -45,7 +45,6 @@ public class LoggingRequestFilter extends HttpFilter {
         } finally {
             this.contextHandler.setCurrentContext(currentContext);
         }
-
     }
 
     private static HttpRequest generateLogEntryHttpRequest(HttpServletRequest req, HttpServletResponse resp) {

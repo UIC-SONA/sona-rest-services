@@ -11,10 +11,12 @@ import io.github.luidmidev.springframework.data.crud.core.security.AuthorizeCrud
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.security.config.Customizer;
 
 @Slf4j
 @Configuration
+@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 public class CrudConfig {
 
     @Bean

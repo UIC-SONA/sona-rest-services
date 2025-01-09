@@ -7,10 +7,11 @@ import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
-import io.github.luidmidev.springframework.data.crud.core.utils.CrudUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Getter
 @RestController
 @RequiredArgsConstructor
@@ -50,14 +52,10 @@ public class AppointmentController implements ReadController<Appointment, Long, 
     @GetMapping("/self")
     public ResponseEntity<Page<Appointment>> selfAppointments(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "20") int size,
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false) String[] properties,
-            @RequestParam(required = false) Sort.Direction direction,
             @RequestParam(required = false) MultiValueMap<String, String> params,
+            Pageable pageable,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        var pageable = CrudUtils.resolvePage(size, page, direction, properties);
         return ResponseEntity.ok(service.selfAppointments(search, pageable, params, jwt));
     }
 
@@ -70,6 +68,25 @@ public class AppointmentController implements ReadController<Appointment, Long, 
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
         return ResponseEntity.ok(service.professionalAppointmentRanges(professionalId, from, to));
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test(@RequestParam Sort sort) {
+        log.info("Sort: {}", sort);
+        return ResponseEntity.ok("Test");
+    }
+
+    @GetMapping("/test2")
+    public ResponseEntity<String> test2(@RequestParam Pageable sort) {
+        log.info("Pageable: {}", sort);
+        return ResponseEntity.ok("Test");
+    }
+
+    @GetMapping("/test3")
+    public ResponseEntity<String> test3(Pageable sort) {
+
+        log.info("Pageable2: {}", sort);
+        return ResponseEntity.ok("Test");
     }
 
 }

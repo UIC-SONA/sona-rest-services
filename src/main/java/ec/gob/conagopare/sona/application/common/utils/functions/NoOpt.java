@@ -22,12 +22,10 @@ public final class NoOpt {
         return RUNNABLE;
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> Consumer<T> consumer() {
         return (Consumer<T>) CONSUMER;
     }
 
-    @SuppressWarnings("unchecked")
     public static <T, U> BiConsumer<T, U> biConsumer() {
         return (BiConsumer<T, U>) BICONSUMER;
     }

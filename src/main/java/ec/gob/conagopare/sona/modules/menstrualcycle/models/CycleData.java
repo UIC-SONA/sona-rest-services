@@ -1,7 +1,6 @@
 package ec.gob.conagopare.sona.modules.menstrualcycle.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import ec.gob.conagopare.sona.application.common.converters.JsonConverter;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,8 +30,12 @@ public class CycleData {
     private int cycleLength;
 
     @Builder.Default
-    @Column(nullable = false, columnDefinition = "TEXT")
-    @Convert(converter = JsonConverter.ListLocalDateConverter.class)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "cycle_data_period_dates",
+            joinColumns = @JoinColumn(name = "cycle_data_id", nullable = false)
+    )
+    @Column(name = "period_date", nullable = false)
     private List<LocalDate> periodDates = new ArrayList<>();
 
     @JsonIgnore

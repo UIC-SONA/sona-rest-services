@@ -3,7 +3,7 @@ package ec.gob.conagopare.sona.modules.appointments.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
 import ec.gob.conagopare.sona.modules.user.models.User;
-import io.github.luidmidev.springframework.data.crud.jpa.utils.EnumSearchable;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaEnumCandidate;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.domain.Persistable;
@@ -57,14 +57,14 @@ public class Appointment implements Persistable<Long> {
     }
 
     @RequiredArgsConstructor
-    public enum Type implements EnumSearchable {
+    public enum Type implements JpaEnumCandidate {
         VIRTUAL("virtual"),
         PRESENTIAL("presencial");
 
         private final String spanishName;
 
         @Override
-        public boolean matches(String value) {
+        public boolean isCandidate(String value) {
             return spanishName.contains(value.toLowerCase());
         }
     }
