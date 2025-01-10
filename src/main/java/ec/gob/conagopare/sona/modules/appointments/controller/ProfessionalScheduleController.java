@@ -21,6 +21,13 @@ public class ProfessionalScheduleController extends CrudController<ProfessionalS
         super(service);
     }
 
+    @PostMapping("/all")
+    public ResponseEntity<List<ProfessionalSchedule>> createAll(
+            @RequestBody List<ProfessionalScheduleDto> schedules
+    ) {
+        return ResponseEntity.ok(service.createAll(schedules));
+    }
+
     @GetMapping("/professional/{professionalId}")
     public ResponseEntity<List<ProfessionalSchedule>> getSchedulesByProfessional(
             @PathVariable Long professionalId,
@@ -31,4 +38,5 @@ public class ProfessionalScheduleController extends CrudController<ProfessionalS
     ) {
         return ResponseEntity.ok(service.getSchedulesByProfessional(professionalId, from, to));
     }
+
 }

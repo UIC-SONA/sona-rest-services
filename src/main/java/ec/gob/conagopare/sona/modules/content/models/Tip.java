@@ -34,7 +34,6 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
     private String description;
 
     @Builder.Default
-
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "tip_tags",

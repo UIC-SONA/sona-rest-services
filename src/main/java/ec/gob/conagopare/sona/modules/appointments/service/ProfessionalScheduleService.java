@@ -11,20 +11,21 @@ import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 
 import java.time.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Service
 public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleRepository> {
 
-    private static final ZoneId ECUADOR_ZONE = ZoneId.of("America/Guayaquil");
-
-
     private static final int MAX_DAYS_RANGE = 365;
+    private static final ZoneId ECUADOR_ZONE = ZoneId.of("America/Guayaquil");
 
     private final UserService userService;
 
@@ -119,5 +120,15 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
         }
 
         return repository.getSchedulesByProfessional(professionalId, from, to);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('admin')")
+    public List<ProfessionalSchedule> createAll(List<ProfessionalScheduleDto> schedules) {
+        var created = new ArrayList<ProfessionalSchedule>();
+        for (var schedule : schedules) {
+            created.add(doCreate(schedule));
+        }
+        return created;
     }
 }
