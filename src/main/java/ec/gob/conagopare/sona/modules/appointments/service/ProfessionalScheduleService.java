@@ -1,6 +1,7 @@
 package ec.gob.conagopare.sona.modules.appointments.service;
 
 import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalScheduleDto;
+import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalSchedulesDto;
 import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
 import ec.gob.conagopare.sona.modules.appointments.repository.ProfessionalScheduleRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
@@ -8,6 +9,7 @@ import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -124,10 +126,15 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
     @Transactional
     @PreAuthorize("hasRole('admin')")
-    public List<ProfessionalSchedule> createAll(List<ProfessionalScheduleDto> schedules) {
+    public List<ProfessionalSchedule> createAll(@Valid ProfessionalSchedulesDto schedules) {
         var created = new ArrayList<ProfessionalSchedule>();
-        for (var schedule : schedules) {
-            created.add(doCreate(schedule));
+        for (var dates : schedules.getDates()) {
+            var dto = new ProfessionalScheduleDto();
+            dto.setProfessionalId(schedules.getProfessionalId());
+            dto.setDate(dates);
+            dto.setFromHour(schedules.getFromHour());
+            dto.setToHour(schedules.getToHour());
+            created.add(doCreate(dto));
         }
         return created;
     }

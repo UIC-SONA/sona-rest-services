@@ -82,9 +82,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             var authorityToAdd = dto.getAuthoritiesToAdd();
             var password = dto.getPassword();
 
-            if (authorityToAdd.isEmpty()) {
-                throw ApiError.badRequest("No se puede crear un usuario sin roles");
-            }
+            extracted(authorityToAdd);
 
             if (password == null) {
                 throw ApiError.badRequest("No se puede crear un usuario sin contraseña");
@@ -94,6 +92,12 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
 
             var keycloakId = keycloakUserManager.create(dto.toRepresentation());
             model.setKeycloakId(keycloakId);
+        }
+    }
+
+    private static void extracted(Set<Authority> authorityToAdd) {
+        if (authorityToAdd.isEmpty()) {
+            throw ApiError.badRequest("No se puede crear un usuario sin roles");
         }
     }
 

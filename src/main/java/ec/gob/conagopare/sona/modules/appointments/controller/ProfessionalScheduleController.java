@@ -1,6 +1,7 @@
 package ec.gob.conagopare.sona.modules.appointments.controller;
 
 import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalScheduleDto;
+import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalSchedulesDto;
 import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
 import ec.gob.conagopare.sona.modules.appointments.service.ProfessionalScheduleService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
@@ -23,7 +24,7 @@ public class ProfessionalScheduleController extends CrudController<ProfessionalS
 
     @PostMapping("/all")
     public ResponseEntity<List<ProfessionalSchedule>> createAll(
-            @RequestBody List<ProfessionalScheduleDto> schedules
+            @RequestBody ProfessionalSchedulesDto schedules
     ) {
         return ResponseEntity.ok(service.createAll(schedules));
     }
