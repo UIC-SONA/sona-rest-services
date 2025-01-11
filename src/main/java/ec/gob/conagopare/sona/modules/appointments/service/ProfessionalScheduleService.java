@@ -5,6 +5,7 @@ import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalSchedulesDto;
 import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
 import ec.gob.conagopare.sona.modules.appointments.repository.ProfessionalScheduleRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
+import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
@@ -126,15 +127,36 @@ public class ProfessionalScheduleService extends JpaCrudService<ProfessionalSche
 
     @Transactional
     @PreAuthorize("hasRole('admin')")
-    public List<ProfessionalSchedule> createAll(@Valid ProfessionalSchedulesDto schedules) {
+    public List<ProfessionalSchedule> createAll(@Valid ProfessionalSchedulesDto dto) {
+
+        var user = userService.find(dto.getProfessionalId());
+
+        if (!user.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
+            throw ApiError.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
+        }
+
         var created = new ArrayList<ProfessionalSchedule>();
-        for (var dates : schedules.getDates()) {
-            var dto = new ProfessionalScheduleDto();
-            dto.setProfessionalId(schedules.getProfessionalId());
-            dto.setDate(dates);
-            dto.setFromHour(schedules.getFromHour());
-            dto.setToHour(schedules.getToHour());
-            created.add(doCreate(dto));
+        for (var dates : dto.getDates()) {
+            var startDate = ZonedDateTime.of(dates, LocalTime.of(dto.getFromHour(), 0), ECUADOR_ZONE);
+            var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
+
+            if (startDate.isBefore(nowInEcuador)) {
+                throw ApiError.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
+            }
+
+            var isOverlapping = repository.existsOverlappingSchedule(dto.getProfessionalId(), dates, dto.getFromHour(), dto.getToHour());
+
+            if (isOverlapping) {
+                throw ApiError.badRequest("Al menos uno de los horarios que intenta registrar se superpone con otro horario del profesional");
+            }
+
+            var schedule = new ProfessionalSchedule();
+            schedule.setProfessional(user);
+            schedule.setDate(dates);
+            schedule.setFromHour(dto.getFromHour());
+            schedule.setToHour(dto.getToHour());
+
+            created.add(repository.save(schedule));
         }
         return created;
     }

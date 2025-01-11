@@ -1,7 +1,6 @@
 package ec.gob.conagopare.sona.modules.appointments.dto;
 
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
@@ -14,7 +13,7 @@ import java.util.List;
 public class ProfessionalSchedulesDto {
     //
     @NotNull
-    private List<@NotNull @FutureOrPresent LocalDate> dates;
+    private List<@NotNull LocalDate> dates;
 
     @NotNull
     @Range(min = 0, max = 24)
