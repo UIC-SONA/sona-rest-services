@@ -9,6 +9,7 @@ import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
+import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
@@ -107,6 +108,17 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
         params.add(KEYCLOAK_ID_ATTRIBUTE, jwt.getSubject());
         return doPage(search, pageable, params);
     }
+
+    @Override
+    protected Page<Appointment> search(String search, Pageable pageable) {
+
+        var additions = new AdditionsSearch<Appointment>();
+        additions.addJoin(ATTENDANT_ATTRIBUTE);
+        additions.addJoin(PROFESSIONAL_ATTRIBUTE);
+
+        return JpaSmartSearch.search(entityManager, search, pageable, additions, domainClass);
+    }
+
 
     @Override
     @SuppressWarnings("java:S3776")
