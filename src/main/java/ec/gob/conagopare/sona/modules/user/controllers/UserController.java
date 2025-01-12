@@ -59,6 +59,7 @@ public class UserController extends CrudController<User, UserDto, Long, UserServ
         return ResponseEntity.ok(new Message("Contraseña actualizada correctamente"));
     }
 
+
     @GetMapping("/profile-picture")
     public ResponseEntity<ByteArrayResource> profilePicture(@AuthenticationPrincipal Jwt jwt) {
         var stored = service.profilePicture(jwt);
@@ -93,6 +94,16 @@ public class UserController extends CrudController<User, UserDto, Long, UserServ
             @AuthenticationPrincipal Jwt jwt
     ) {
         return ResponseEntity.ok(service.profile(jwt));
+    }
+
+    @PutMapping("/enable")
+    public ResponseEntity<Message> enable(
+            @RequestParam long userId,
+            @RequestParam boolean value,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        service.enable(userId, value, jwt);
+        return ResponseEntity.ok(new Message("Usuario " + (value ? "habilitado" : "deshabilitado") + " correctamente"));
     }
 
     @PostMapping("/keycloak-sync")

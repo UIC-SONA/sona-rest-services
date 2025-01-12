@@ -18,6 +18,9 @@ import java.time.LocalDate;
 @Table(name = "appointment")
 public class Appointment implements Persistable<Long> {
 
+    public static final String ATTENDANT_ATTRIBUTE = "attendant";
+    public static final String PROFESSIONAL_ATTRIBUTE = "professional";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

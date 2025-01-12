@@ -25,6 +25,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ec.gob.conagopare.sona.modules.appointments.models.Appointment.ATTENDANT_ATTRIBUTE;
+import static ec.gob.conagopare.sona.modules.appointments.models.Appointment.PROFESSIONAL_ATTRIBUTE;
 import static ec.gob.conagopare.sona.modules.user.models.User.KEYCLOAK_ID_ATTRIBUTE;
 
 @Slf4j
@@ -110,23 +112,25 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
     @SuppressWarnings("java:S3776")
     protected Page<Appointment> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
         var additions = new AdditionsSearch<Appointment>();
+        additions.addJoin(ATTENDANT_ATTRIBUTE);
+        additions.addJoin(PROFESSIONAL_ATTRIBUTE);
 
         additions.and((root, query, cb) -> {
             var predicates = new ArrayList<Predicate>();
 
             var keycloakId = params.getFirst(KEYCLOAK_ID_ATTRIBUTE);
             if (keycloakId != null) {
-                predicates.add(cb.equal(root.join("attendant").get(KEYCLOAK_ID_ATTRIBUTE), keycloakId));
+                predicates.add(cb.equal(root.join(ATTENDANT_ATTRIBUTE).get(KEYCLOAK_ID_ATTRIBUTE), keycloakId));
             }
 
             var userId = params.getFirst("userId");
             if (userId != null) {
-                predicates.add(cb.equal(root.join("attendant").get("id"), Long.parseLong(userId)));
+                predicates.add(cb.equal(root.join(ATTENDANT_ATTRIBUTE).get("id"), Long.parseLong(userId)));
             }
 
             var professionalId = params.getFirst("professionalId");
             if (professionalId != null) {
-                predicates.add(cb.equal(root.join("professional").get("id"), Long.parseLong(professionalId)));
+                predicates.add(cb.equal(root.join(PROFESSIONAL_ATTRIBUTE).get("id"), Long.parseLong(professionalId)));
             }
 
             var canceled = params.getFirst("canceled");

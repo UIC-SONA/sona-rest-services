@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.chat.controllers;
 
-import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
+import ec.gob.conagopare.sona.modules.chat.dto.ChatMessagePayload;
 import ec.gob.conagopare.sona.modules.chat.models.ChatMessage;
 import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
 import ec.gob.conagopare.sona.modules.chat.services.ChatService;
@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/chat")
@@ -25,7 +24,7 @@ public class ChatController {
     private final ChatService service;
 
     @PostMapping("/send/{roomId}")
-    public ResponseEntity<ChatMessageSent> send(
+    public ResponseEntity<ChatMessagePayload> send(
             @PathVariable String roomId,
             @RequestParam String requestId,
             @RequestBody String message,
@@ -35,7 +34,7 @@ public class ChatController {
     }
 
     @PostMapping("/send/{roomId}/image")
-    public ResponseEntity<ChatMessageSent> sendImage(
+    public ResponseEntity<ChatMessagePayload> sendImage(
             @PathVariable String roomId,
             @RequestParam String requestId,
             @RequestPart MultipartFile image,
@@ -45,7 +44,7 @@ public class ChatController {
     }
 
     @PostMapping("/send/{roomId}/voice")
-    public ResponseEntity<ChatMessageSent> sendVoice(
+    public ResponseEntity<ChatMessagePayload> sendVoice(
             @PathVariable String roomId,
             @RequestParam String requestId,
             @RequestPart MultipartFile voice,

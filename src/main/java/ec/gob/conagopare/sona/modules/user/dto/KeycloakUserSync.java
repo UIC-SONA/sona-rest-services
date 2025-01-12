@@ -9,6 +9,7 @@ public record KeycloakUserSync(
         String email,
         String firstName,
         String lastName,
+        boolean enabled,
         String realmId,
         Map<String, String> attributes,
         List<String> realmRoles,

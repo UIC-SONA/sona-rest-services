@@ -49,6 +49,9 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     protected String lastName;
 
     @Column
+    protected Boolean enabled;
+
+    @Column
     protected String email;
 
     @Builder.Default

@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 @Builder
-public class ChatMessageSent {
+public class ChatMessagePayload {
     private ChatMessage message;
     private String roomId;
     private String requestId;

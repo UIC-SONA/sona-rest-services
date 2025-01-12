@@ -1,7 +1,7 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
-import ec.gob.conagopare.sona.modules.chat.dto.ChatMessageSent;
+import ec.gob.conagopare.sona.modules.chat.dto.ChatMessagePayload;
 import ec.gob.conagopare.sona.modules.chat.dto.ReadMessages;
 import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
@@ -53,14 +53,14 @@ public class ChatService {
     private final ChatRoomRepository roomRepository;
     private final Storage storage;
 
-    public ChatMessageSent send(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
+    public ChatMessagePayload send(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
         var user = userService.getUser(jwt);
         var room = room(roomId);
         var chatMessage = ChatMessage.now(message, user.getId(), ChatMessageType.TEXT);
         return sendMessageToSuscribers(requestId, room, chatMessage);
     }
 
-    public ChatMessageSent sendImage(
+    public ChatMessagePayload sendImage(
             @Image
             @FileSize(value = 25, unit = FileSize.Unit.MB)
             MultipartFile file,
@@ -71,7 +71,7 @@ public class ChatService {
         return sendFile(file, roomId, requestId, jwt, ChatMessageType.IMAGE, "images");
     }
 
-    public ChatMessageSent sendVoice(
+    public ChatMessagePayload sendVoice(
             @ContentType("audio/*")
             @FileSize(value = 25, unit = FileSize.Unit.MB)
             MultipartFile file,
@@ -82,7 +82,7 @@ public class ChatService {
         return sendFile(file, roomId, requestId, jwt, ChatMessageType.VOICE, "voices");
     }
 
-    private ChatMessageSent sendFile(MultipartFile file, String roomId, String requestId, Jwt jwt, ChatMessageType type, String dir) throws IOException {
+    private ChatMessagePayload sendFile(MultipartFile file, String roomId, String requestId, Jwt jwt, ChatMessageType type, String dir) throws IOException {
         var user = userService.getUser(jwt);
         var room = room(roomId);
 
@@ -96,11 +96,11 @@ public class ChatService {
         return sendMessageToSuscribers(requestId, room, chatMessage);
     }
 
-    private ChatMessageSent sendMessageToSuscribers(String requestId, ChatRoom room, ChatMessage chatMessage) {
+    private ChatMessagePayload sendMessageToSuscribers(String requestId, ChatRoom room, ChatMessage chatMessage) {
         var roomId = room.getId();
         addMessage(room, chatMessage);
 
-        var chatMessageSent = ChatMessageSent.builder()
+        var chatMessageSent = ChatMessagePayload.builder()
                 .requestId(requestId)
                 .roomId(roomId)
                 .message(chatMessage)

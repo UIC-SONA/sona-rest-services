@@ -27,6 +27,11 @@ public class KeycloakUserManager {
 
     private final KeycloakClientManager cli;
 
+
+    public UserRepresentation get(String id) {
+        return cli.users().get(id).toRepresentation();
+    }
+
     /**
      * Find a user by username
      *
@@ -134,6 +139,17 @@ public class KeycloakUserManager {
         return cli.users().searchByAttributes(query);
     }
 
+    /**
+     * Toggle enabled status
+     * @param userId the user id
+     * @param enabled the new status
+     */
+    public void enabled(String userId, boolean enabled) {
+        var user = cli.users().get(userId);
+        var representation = user.toRepresentation();
+        representation.setEnabled(enabled);
+        user.update(representation);
+    }
 
     public String create(UserRepresentation newUser) {
 
@@ -234,9 +250,6 @@ public class KeycloakUserManager {
         return credentials;
     }
 
-    public UserRepresentation get(String id) {
-        return cli.users().get(id).toRepresentation();
-    }
 
     public void delete(String id) {
         try (var response = cli.users().delete(id)) {

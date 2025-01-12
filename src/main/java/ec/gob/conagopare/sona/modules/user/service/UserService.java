@@ -132,6 +132,22 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         });
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRATIVE')")
+    public void enable(long userId, boolean enabled, Jwt jwt) {
+        var user = getUser(jwt);
+        var userToEnable = getUser(userId);
+
+        if (userToEnable.is(Authority.ADMIN)) {
+            throw ApiError.badRequest("Esta acción no está permitida en usuarios administradores");
+        }
+
+        if (userToEnable.is(Authority.ADMINISTRATIVE) && !user.is(Authority.ADMIN)) {
+            throw ApiError.badRequest("No tiene permisos para habilitar/deshabilitar usuarios administrativos");
+        }
+
+        keycloakUserManager.enabled(user.getKeycloakId(), enabled);
+    }
+
     private void updateKeycloackUser(String keycloakId, UserDto userDto) {
 
         var authoritiesToRemove = userDto.getAuthoritiesToRemove();
@@ -292,6 +308,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         user.setUsername(userSync.username());
         user.setFirstName(userSync.firstName());
         user.setLastName(userSync.lastName());
+        user.setEnabled(userSync.enabled());
         user.setEmail(userSync.email());
 
         var clientRoles = userSync.clientRoles().get(clientId);
