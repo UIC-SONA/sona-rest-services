@@ -1,6 +1,7 @@
 package ec.gob.conagopare.sona.modules.user.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
 import io.github.luidmidev.storage.PurgableStored;
 import jakarta.persistence.*;
@@ -28,6 +29,7 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     @Column(nullable = false, unique = true)
     private String keycloakId;
 
+    @JsonIgnore
     @Column
     private String profilePicturePath;
 

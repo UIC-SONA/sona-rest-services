@@ -37,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -109,6 +111,13 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
                 var keycloakId = model.getKeycloakId();
                 keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(dto.getAuthoritiesToAdd()));
                 keycloakUserManager.resetPassword(keycloakId, dto.getPassword());
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status != STATUS_COMMITTED && model.isNew() && model.getKeycloakId() != null) {
+                    keycloakUserManager.delete(model.getKeycloakId());
+                }
             }
         });
     }
@@ -246,18 +255,28 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     private void createKeycloakUser(UserRepresentation representation, String password, Authority... authority) {
         var keycloakId = keycloakUserManager.create(representation);
 
-        repository.save(User.builder()
-                .keycloakId(keycloakId)
-                .build());
+        try {
+            repository.save(User.builder()
+                    .keycloakId(keycloakId)
+                    .build());
 
-        keycloakUserManager.resetPassword(keycloakId, password);
-        keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(authority));
+            keycloakUserManager.resetPassword(keycloakId, password);
+            keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(authority));
+        } catch (Exception e) {
+            keycloakUserManager.delete(keycloakId);
+            throw e;
+        }
     }
-
 
     @PreAuthorize("isAuthenticated()")
     public void changePassword(Jwt jwt, String newPassword) {
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
+    }
+
+    public Map<Long, User> map(Iterable<Long> userIds) {
+        return repository.findAllById(userIds)
+                .stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
     }
 
     public void syncKeycloak(KeycloakUserSync userSync, String apiKey) {

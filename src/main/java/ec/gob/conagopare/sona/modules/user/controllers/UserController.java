@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @RestController
@@ -32,6 +34,11 @@ public class UserController extends CrudController<User, UserDto, Long, UserServ
     public ResponseEntity<Message> signUp(@RequestBody SingUpUser singUpUser) {
         service.signUp(singUpUser);
         return ResponseEntity.ok(new Message("Usuario registrado correctamente"));
+    }
+
+    @GetMapping("/map")
+    public ResponseEntity<Map<Long, User>> map(@RequestParam List<Long> ids) {
+        return ResponseEntity.ok(service.map(ids));
     }
 
     @PostMapping("/anonymize")
