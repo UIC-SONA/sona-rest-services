@@ -145,7 +145,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             throw ApiError.badRequest("No tiene permisos para habilitar/deshabilitar usuarios administrativos");
         }
 
-        keycloakUserManager.enabled(user.getKeycloakId(), enabled);
+        keycloakUserManager.enabled(userToEnable.getKeycloakId(), enabled);
     }
 
     private void updateKeycloackUser(String keycloakId, UserDto userDto) {
