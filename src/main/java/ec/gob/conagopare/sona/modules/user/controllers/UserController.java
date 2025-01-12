@@ -67,7 +67,7 @@ public class UserController extends CrudController<User, UserDto, Long, UserServ
     }
 
     @GetMapping("{id}/profile-picture")
-    public ResponseEntity<ByteArrayResource> profilePicture(@PathVariable Long id) {
+    public ResponseEntity<ByteArrayResource> profilePicture(@PathVariable long id) {
         var stored = service.profilePicture(id);
         return ResponseEntityUtils.resource(stored, true);
     }
@@ -98,11 +98,11 @@ public class UserController extends CrudController<User, UserDto, Long, UserServ
 
     @PutMapping("/enable")
     public ResponseEntity<Message> enable(
-            @RequestParam long userId,
+            @RequestParam long id,
             @RequestParam boolean value,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        service.enable(userId, value, jwt);
+        service.enable(id, value, jwt);
         return ResponseEntity.ok(new Message("Usuario " + (value ? "habilitado" : "deshabilitado") + " correctamente"));
     }
 

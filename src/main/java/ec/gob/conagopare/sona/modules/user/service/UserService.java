@@ -188,7 +188,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         return profilePicture(user);
     }
 
-    public Stored profilePicture(Long id) {
+    public Stored profilePicture(long id) {
         var user = repository.findById(id).orElseThrow(() -> ApiError.badRequest("No se encontról la foto de perfil"));
         return profilePicture(user);
     }
