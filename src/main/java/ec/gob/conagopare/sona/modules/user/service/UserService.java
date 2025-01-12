@@ -132,7 +132,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         });
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRATIVE')")
+    @PreAuthorize("hasAnyRole('admin', 'administrative')")
     public void enable(long userId, boolean enabled, Jwt jwt) {
         var user = getUser(jwt);
         var userToEnable = getUser(userId);
