@@ -111,7 +111,6 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
 
     @Override
     protected Page<Appointment> search(String search, Pageable pageable) {
-
         var additions = new AdditionsSearch<Appointment>();
         additions.addJoin(ATTENDANT_ATTRIBUTE);
         additions.addJoin(PROFESSIONAL_ATTRIBUTE);
