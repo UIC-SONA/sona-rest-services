@@ -53,7 +53,7 @@ public class ChatService {
     private final ChatRoomRepository roomRepository;
     private final Storage storage;
 
-    public ChatMessagePayload send(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
+    public ChatMessagePayload sendMessage(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
         var user = userService.getUser(jwt);
         var room = room(roomId);
         var chatMessage = ChatMessage.now(message, user.getId(), ChatMessageType.TEXT);
@@ -61,9 +61,11 @@ public class ChatService {
     }
 
     public ChatMessagePayload sendImage(
+
             @Image
             @FileSize(value = 25, unit = FileSize.Unit.MB)
             MultipartFile file,
+
             String roomId,
             String requestId,
             Jwt jwt
@@ -72,17 +74,30 @@ public class ChatService {
     }
 
     public ChatMessagePayload sendVoice(
+
             @ContentType("audio/*")
             @FileSize(value = 25, unit = FileSize.Unit.MB)
             MultipartFile file,
+
             String roomId,
+
             String requestId,
+
             Jwt jwt
+
     ) throws IOException {
         return sendFile(file, roomId, requestId, jwt, ChatMessageType.VOICE, "voices");
     }
 
-    private ChatMessagePayload sendFile(MultipartFile file, String roomId, String requestId, Jwt jwt, ChatMessageType type, String dir) throws IOException {
+    private ChatMessagePayload sendFile(
+            MultipartFile file,
+            String roomId,
+            String requestId,
+            Jwt jwt,
+            ChatMessageType type,
+            String dir
+    ) throws IOException {
+
         var user = userService.getUser(jwt);
         var room = room(roomId);
 

@@ -2,6 +2,7 @@ package ec.gob.conagopare.sona.modules.user.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
 import io.github.luidmidev.storage.PurgableStored;
 import jakarta.persistence.*;
@@ -70,6 +71,11 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
 
     public boolean isAny(Authority... authorities) {
         return Set.of(authorities).stream().anyMatch(this.authorities::contains);
+    }
+
+    @JsonProperty("hasProfilePicture")
+    public boolean hasProfilePicture() {
+        return profilePicturePath != null;
     }
 
     @Override

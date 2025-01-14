@@ -30,7 +30,7 @@ public class ChatController {
             @RequestBody String message,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        return ResponseEntity.ok(service.send(message, roomId, requestId, jwt));
+        return ResponseEntity.ok(service.sendMessage(message, roomId, requestId, jwt));
     }
 
     @PostMapping("/send/{roomId}/image")
