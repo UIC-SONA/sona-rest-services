@@ -4,7 +4,7 @@ services:
     hostname: sona-rest
     image: sona-app
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     env_file:
       - .env
