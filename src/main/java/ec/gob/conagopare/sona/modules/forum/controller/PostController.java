@@ -7,6 +7,7 @@ import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -15,11 +16,10 @@ import org.springframework.web.bind.annotation.*;
 @Getter
 @RestController
 @RequestMapping("/forum/post")
-public class PostController extends CrudController<Post, PostDto, String, PostService> {
+@RequiredArgsConstructor
+public class PostController implements CrudController<Post, PostDto, String, PostService> {
 
-    protected PostController(PostService service) {
-        super(service);
-    }
+    private final PostService service;
 
     @PostMapping("/{forumId}/comments")
     public ResponseEntity<Post.Comment> createComment(

@@ -6,6 +6,7 @@ import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
 import ec.gob.conagopare.sona.modules.appointments.service.ProfessionalScheduleService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,10 @@ import java.util.List;
 @Getter
 @RestController
 @RequestMapping("/professional-schedule")
-public class ProfessionalScheduleController extends CrudController<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleService> {
+@RequiredArgsConstructor
+public class ProfessionalScheduleController implements CrudController<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleService> {
 
-    protected ProfessionalScheduleController(ProfessionalScheduleService service) {
-        super(service);
-    }
+    private final ProfessionalScheduleService service;
 
     @PostMapping("/all")
     public ResponseEntity<List<ProfessionalSchedule>> createAll(

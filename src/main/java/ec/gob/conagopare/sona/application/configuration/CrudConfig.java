@@ -27,14 +27,26 @@ public class CrudConfig {
                         .crudsReadOnly(TipService.class).authenticated()
                         .crudsReadOnly(DidacticContentService.class).authenticated()
                         .crudsReadOnly(ProfessionalScheduleService.class).authenticated()
-                        .cruds(PostService.class).authenticated()
+                        .cruds(
+                                PostService.class
+                        ).authenticated()
                         .cruds(
                                 UserService.class,
                                 TipService.class,
                                 DidacticContentService.class,
-                                ProfessionalScheduleService.class,
+                                ProfessionalScheduleService.class
+                        ).hasAnyAuthority(
+                                Authority.ADMIN,
+                                Authority.ADMINISTRATIVE
+                        )
+                        .cruds(
                                 AppointmentService.class
-                        ).hasAuthority(Authority.ADMIN)
+                        ).hasAnyAuthority(
+                                Authority.LEGAL_PROFESSIONAL,
+                                Authority.MEDICAL_PROFESSIONAL,
+                                Authority.ADMIN,
+                                Authority.ADMINISTRATIVE
+                        )
                         .anyOperation().permitAll();
     }
 

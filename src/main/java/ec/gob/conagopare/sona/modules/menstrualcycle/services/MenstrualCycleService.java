@@ -20,18 +20,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenstrualCycleService {
 
-    private final MenstrualCycleRepository menstrualCycleRepository;
+    private final MenstrualCycleRepository repository;
     private final UserService userService;
 
     @PreAuthorize("isAuthenticated()")
     public CycleData getCycle(Jwt jwt) {
         var user = userService.getUser(jwt);
-        return menstrualCycleRepository.findByUser(user).orElseThrow(() -> ApiError.notFound("Menstrual cycle not found"));
+        return repository.findByUser(user).orElseThrow(() -> ApiError.notFound("Menstrual cycle not found"));
     }
 
     private CycleData getCycleOrNew(Jwt jwt) {
         var user = userService.getUser(jwt);
-        return menstrualCycleRepository.findByUser(user).orElseGet(() -> CycleData
+        return repository.findByUser(user).orElseGet(() -> CycleData
                 .builder()
                 .user(user)
                 .cycleLength(28)
@@ -47,7 +47,7 @@ public class MenstrualCycleService {
         cycle.setCycleLength(cycleDetails.getCycleLength());
         cycle.setPeriodDuration(cycleDetails.getPeriodDuration());
 
-        menstrualCycleRepository.save(cycle);
+        repository.save(cycle);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -55,6 +55,6 @@ public class MenstrualCycleService {
         var cycle = getCycleOrNew(jwt);
 
         cycle.setPeriodDates(periodDates);
-        menstrualCycleRepository.save(cycle);
+        repository.save(cycle);
     }
 }

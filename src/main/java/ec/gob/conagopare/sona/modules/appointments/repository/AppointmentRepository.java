@@ -2,14 +2,17 @@ package ec.gob.conagopare.sona.modules.appointments.repository;
 
 import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
+import ec.gob.conagopare.sona.modules.user.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+public interface AppointmentRepository extends JpaRepository<Appointment, Long>, JpaSpecificationExecutor<Appointment> {
 
     @Query("""
             SELECT COUNT(a) > 0 FROM Appointment a
@@ -48,4 +51,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("from") LocalDate from,
             @Param("to") LocalDate to
     );
+
+    Optional<Appointment> findByIdAndAttendantOrProfessional(Long id, User attendant, User professional);
+
+    List<Appointment> findAllByIdInAndAttendantOrProfessional(List<Long> ids, User attendant, User professional);
 }

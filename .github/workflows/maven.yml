@@ -27,19 +27,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
-      - name: Set up Configurations pre-build
-        run: |
-          echo "TESTING"
-          mkdir -p google
-          echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" | base64 -d > google/service_account_storage.json
-          echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
-          echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
-          echo "${{ secrets.PROPERTIES }}" > src/main/resources/application.properties
-      
-
-      #      - name: Integration Test & Unit Test
-      #        run: mvn -B test
-
       - name: Build and Package with Maven
         run: mvn -B clean package -DskipTests
 

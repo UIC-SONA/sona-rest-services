@@ -7,17 +7,21 @@ import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.repository.AppointmentRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
-import io.github.luidmidev.springframework.data.crud.jpa.services.JpaReadService;
+import io.github.luidmidev.springframework.data.crud.jpa.services.JpaSpecificationReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -32,15 +36,20 @@ import static ec.gob.conagopare.sona.modules.user.models.User.KEYCLOAK_ID_ATTRIB
 
 @Slf4j
 @Service
-public class AppointmentService extends JpaReadService<Appointment, Long, AppointmentRepository> {
+@RequiredArgsConstructor
+@Getter
+public class AppointmentService implements JpaSpecificationReadService<Appointment, Long, AppointmentRepository> {
 
+    private static final Authority[] PRIVILEGED_AUTHORITIES = {Authority.ADMIN, Authority.ADMINISTRATIVE};
+
+    private final AppointmentRepository repository;
+    private final EntityManager entityManager;
     private final UserService userService;
 
-    protected AppointmentService(AppointmentRepository repository, EntityManager entityManager, UserService userService) {
-        super(repository, Appointment.class, entityManager);
-        this.userService = userService;
+    @Override
+    public Class<Appointment> getEntityClass() {
+        return Appointment.class;
     }
-
 
     @PreAuthorize("isAuthenticated()")
     public Appointment program(
@@ -83,8 +92,10 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
         return repository.save(appointment);
     }
 
+
     @PreAuthorize("isAuthenticated()")
     public void cancel(CancelAppointment cancelAppointment, Jwt jwt) {
+
         var user = userService.getUser(jwt);
         var userId = user.getId();
         var appointment = find(cancelAppointment.getAppointmentId());
@@ -110,21 +121,18 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
     }
 
     @Override
-    protected Page<Appointment> search(String search, Pageable pageable) {
+    public Page<Appointment> internalSearch(String search, Pageable pageable) {
         var additions = new AdditionsSearch<Appointment>();
-        additions.addJoin(ATTENDANT_ATTRIBUTE);
-        additions.addJoin(PROFESSIONAL_ATTRIBUTE);
-
-        return JpaSmartSearch.search(entityManager, search, pageable, additions, domainClass);
+        additions.addJoins(ATTENDANT_ATTRIBUTE, PROFESSIONAL_ATTRIBUTE);
+        return JpaSmartSearch.search(entityManager, search, pageable, additions, getEntityClass());
     }
 
 
     @Override
     @SuppressWarnings("java:S3776")
-    protected Page<Appointment> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
+    public Page<Appointment> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
         var additions = new AdditionsSearch<Appointment>();
-        additions.addJoin(ATTENDANT_ATTRIBUTE);
-        additions.addJoin(PROFESSIONAL_ATTRIBUTE);
+        additions.addJoins(ATTENDANT_ATTRIBUTE, PROFESSIONAL_ATTRIBUTE);
 
         additions.and((root, query, cb) -> {
             var predicates = new ArrayList<Predicate>();
@@ -164,14 +172,30 @@ public class AppointmentService extends JpaReadService<Appointment, Long, Appoin
             } else if (to != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("date"), LocalDate.parse(to)));
             }
+
             return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         });
 
-        return search(search, pageable, additions);
+        return internalSearch(search, pageable, additions);
     }
 
     @PreAuthorize("isAuthenticated()")
     public List<AppointmentRange> professionalAppointmentRanges(long professionalId, LocalDate from, LocalDate to) {
         return repository.getProfessionalAppointmentsRanges(professionalId, from, to);
+    }
+
+    @Override
+    public void combineSpecification(Specification<Appointment> spec) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var jwt = (Jwt) authentication.getPrincipal();
+
+        var user = userService.getUser(jwt);
+        var userId = user.getId();
+        if (!user.isAny(PRIVILEGED_AUTHORITIES)) {
+            spec.and((root, query, cb) -> cb.or(
+                    cb.equal(root.join(ATTENDANT_ATTRIBUTE).get("id"), userId),
+                    cb.equal(root.join(PROFESSIONAL_ATTRIBUTE).get("id"), userId)
+            ));
+        }
     }
 }

@@ -10,6 +10,8 @@ import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.persistence.EntityManager;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,19 +23,23 @@ import java.io.IOException;
 import java.util.UUID;
 
 @Service
-public class DidacticContentService extends JpaCrudService<DidacticContent, DidacticContentDto, UUID, DidacticContentRepository> {
+@RequiredArgsConstructor
+@Getter
+public class DidacticContentService implements JpaCrudService<DidacticContent, DidacticContentDto, UUID, DidacticContentRepository> {
     private static final String IMAGES_PATH = "didactic_content";
 
+    private final DidacticContentRepository repository;
+    private final EntityManager entityManager;
     private final Storage storage;
 
-    protected DidacticContentService(DidacticContentRepository repository, EntityManager entityManager, Storage storage) {
-        super(repository, DidacticContent.class, entityManager);
-        this.storage = storage;
+    @Override
+    public Class<DidacticContent> getEntityClass() {
+        return DidacticContent.class;
     }
 
     @SneakyThrows
     @Override
-    protected void mapModel(DidacticContentDto dto, DidacticContent model) {
+    public void mapModel(DidacticContentDto dto, DidacticContent model) {
         if (model.isNew()) {
             var image = dto.getImage();
             if (image == null) {
@@ -41,16 +47,12 @@ public class DidacticContentService extends JpaCrudService<DidacticContent, Dida
             }
 
             var imagePath = storage.store(image.getBytes(), FileUtils.factoryDateTimeFileName(image.getOriginalFilename()), IMAGES_PATH);
-
-
             model.setImage(imagePath);
 
         } else {
             var image = dto.getImage();
             if (image != null) {
-
                 var oldImage = model.getImage();
-
                 var imagePath = storage.store(image.getBytes(), FileUtils.factoryDateTimeFileName(image.getOriginalFilename()), IMAGES_PATH);
                 model.setImage(imagePath);
 
@@ -63,7 +65,7 @@ public class DidacticContentService extends JpaCrudService<DidacticContent, Dida
     }
 
     @Override
-    protected Page<DidacticContent> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
+    public Page<DidacticContent> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
         throw ApiError.badRequest("Filtro no soportado");
     }
 

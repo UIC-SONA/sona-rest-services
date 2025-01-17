@@ -12,6 +12,9 @@ import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import jakarta.persistence.EntityManager;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,7 +28,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 
 import java.time.Instant;
@@ -37,26 +39,28 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Slf4j
 @Service
-@Transactional
-public class PostService extends CrudService<Post, PostDto, String, PostRepository> {
+@Getter
+@RequiredArgsConstructor
+public class PostService implements CrudService<Post, PostDto, String, PostRepository> {
 
     private static final Set<Authority> PRIVILEGED_AUTHORITIES = Set.of(Authority.ADMIN, Authority.ADMINISTRATIVE);
     public static final String COMMENT_ARRAY_FILTER = "comment";
     public static final String COMMENT_ID_FILTER = "comment._id";
 
+    private final PostRepository repository;
+    private final EntityManager entityManager;
     private final MongoTemplate mongo;
     private final UserService userService;
 
-    public PostService(MongoTemplate mongo, UserService userService, PostRepository repository) {
-        super(repository, Post.class);
-        this.mongo = mongo;
-        this.userService = userService;
-    }
 
+    @Override
+    public Class<Post> getEntityClass() {
+        return Post.class;
+    }
 
     @Override
     @SneakyThrows
-    protected void mapModel(PostDto dto, Post model) {
+    public void mapModel(PostDto dto, Post model) {
         var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         var user = userService.getUser(jwt);
 
@@ -159,12 +163,12 @@ public class PostService extends CrudService<Post, PostDto, String, PostReposito
     }
 
     @Override
-    protected Page<Post> search(String search, Pageable pageable) {
+    public Page<Post> internalSearch(String search, Pageable pageable) {
         return repository.findAllByContentContainingIgnoreCase(search, pageable);
     }
 
     @Override
-    protected Page<Post> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
+    public Page<Post> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
 
         var author = params.getFirst("author");
         if (author != null) {

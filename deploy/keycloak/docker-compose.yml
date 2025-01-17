@@ -1,9 +1,9 @@
 services:
-  postgres:
+  keycloak-db:
     restart: always
-    container_name: db_keycloak
+    container_name: keycloak-db
     image: postgres:17
-    hostname: postgres_keycloak
+    hostname: keycloak-db
     ports:
       - "5433:5432"
     env_file:
@@ -29,7 +29,7 @@ services:
       - KC_BOOTSTRAP_ADMIN_USERNAME=${KEYCLOAK_ADMIN}
       - KC_BOOTSTRAP_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
       - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://db_keycloak:5432/keycloak
+      - KC_DB_URL=jdbc:postgresql://keycloak-db:5432/keycloak
       - KC_DB_USERNAME=${DB_USERNAME}
       - KC_DB_PASSWORD=${DB_PASSWORD}
       - KC_PROXY_HEADERS=xforwarded
@@ -38,7 +38,7 @@ services:
       - KC_SPI_EVENTS_LISTENER_USER_SYNC_SYNC_URL=${SYNC_URLS_JSON}
       - KC_SPI_EVENTS_LISTENER_USER_SYNC_API_KEY=${API_KEYS_JSON}
     depends_on:
-      - postgres
+      - keycloak-db
     volumes:
       - ./spi:/opt/keycloak/providers # Montar el directorio del SPI
     command: start --verbose

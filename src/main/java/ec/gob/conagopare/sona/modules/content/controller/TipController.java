@@ -7,6 +7,7 @@ import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,11 +24,10 @@ import java.util.UUID;
 @Getter
 @RestController
 @RequestMapping("/content/tips")
-public class TipController extends ReadController<Tip, UUID, TipService> {
+@RequiredArgsConstructor
+public class TipController implements ReadController<Tip, UUID, TipService> {
 
-    public TipController(TipService service) {
-        super(service);
-    }
+    private final TipService service;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> create(

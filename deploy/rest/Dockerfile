@@ -5,4 +5,4 @@ RUN mkdir /opt/app
 WORKDIR /opt/app
 
 COPY ./*.jar /opt/app/app.jar
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar", "--spring.config.location=file:/opt/app/application.properties"]

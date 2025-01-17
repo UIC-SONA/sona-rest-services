@@ -9,6 +9,7 @@ import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +25,10 @@ import java.util.Map;
 @Getter
 @RestController
 @RequestMapping("/user")
-public class UserController extends CrudController<User, UserDto, Long, UserService> {
+@RequiredArgsConstructor
+public class UserController implements CrudController<User, UserDto, Long, UserService> {
 
-    protected UserController(UserService service) {
-        super(service);
-    }
+    private final UserService service;
 
     @PostMapping("/sign-up")
     public ResponseEntity<Message> signUp(@RequestBody SingUpUser singUpUser) {

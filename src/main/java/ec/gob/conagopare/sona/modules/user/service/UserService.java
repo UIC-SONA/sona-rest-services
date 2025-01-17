@@ -13,18 +13,21 @@ import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
+import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,44 +45,50 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class UserService extends JpaCrudService<User, UserDto, Long, UserRepository> {
+@Getter
+public class UserService implements JpaCrudService<User, UserDto, Long, UserRepository> {
 
     private static final String USERS_PROFILE_PICTURES_PATH = "users/%d/profile-pictures";
 
+    private final UserRepository repository;
+    private final EntityManager entityManager;
     private final UserConfig config;
     private final KeycloakUserManager keycloakUserManager;
     private final Storage storage;
     private final String clientId;
 
-    public UserService(UserConfig config, UserRepository repository, EntityManager entityManager, KeycloakUserManager keycloakUserManager, Storage storage, @Value("${keycloak.client-id}") String clientId) {
-        super(repository, User.class, entityManager);
+    public UserService(UserRepository repository, EntityManager entityManager, UserConfig config, KeycloakUserManager keycloakUserManager, Storage storage, @Value("${keycloak.client-id}") String clientId) {
+        this.repository = repository;
+        this.entityManager = entityManager;
         this.config = config;
         this.keycloakUserManager = keycloakUserManager;
         this.storage = storage;
         this.clientId = clientId;
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public Class<User> getEntityClass() {
+        return User.class;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void readyEvent() {
         var bootstrap = config.getBootstrap();
-
         if (!bootstrap.isEnabled()) return;
-
         var admin = bootstrap.getAdmin();
-
         if (admin != null && !repository.existsById(admin.getId())) {
             var singUpUser = admin.toSingUpUser();
-            createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
+            createInternal(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
         }
     }
 
     @PreAuthorize("permitAll()")
     public void signUp(@Valid SingUpUser singUpUser) {
-        createKeycloakUser(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
+        createInternal(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
     }
 
     @Override
-    protected void mapModel(UserDto dto, User model) {
+    public void mapModel(UserDto dto, User model) {
         if (model.isNew()) {
             var authorityToAdd = dto.getAuthoritiesToAdd();
             var password = dto.getPassword();
@@ -103,35 +112,6 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         }
     }
 
-    @Override
-    protected void onAfterCreate(UserDto dto, User model) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                var keycloakId = model.getKeycloakId();
-                keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(dto.getAuthoritiesToAdd()));
-                keycloakUserManager.resetPassword(keycloakId, dto.getPassword());
-            }
-
-            @Override
-            public void afterCompletion(int status) {
-                if (status != STATUS_COMMITTED && model.isNew() && model.getKeycloakId() != null) {
-                    keycloakUserManager.delete(model.getKeycloakId());
-                }
-            }
-        });
-    }
-
-    @Override
-    protected void onAfterUpdate(UserDto dto, User model) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                updateKeycloackUser(model.getKeycloakId(), dto);
-            }
-        });
-    }
-
     @PreAuthorize("hasAnyRole('admin', 'administrative')")
     public void enable(long userId, boolean enabled, Jwt jwt) {
         var user = getUser(jwt);
@@ -148,27 +128,8 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
         keycloakUserManager.enabled(userToEnable.getKeycloakId(), enabled);
     }
 
-    private void updateKeycloackUser(String keycloakId, UserDto userDto) {
-
-        var authoritiesToRemove = userDto.getAuthoritiesToRemove();
-        var authoritiesToAdd = userDto.getAuthoritiesToAdd();
-
-        validateAuthorities(authoritiesToAdd);
-
-        keycloakUserManager.update(keycloakId, userDto::transferToRepresentation);
-
-        var password = userDto.getPassword();
-        if (password != null) {
-            keycloakUserManager.resetPassword(keycloakId, password);
-        }
-
-        keycloakUserManager.removeRoles(keycloakId, Authority.convertToRoleNames(authoritiesToRemove));
-        keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(authoritiesToAdd));
-    }
-
     private static void validateAuthorities(Set<Authority> authorities) {
         if (authorities.isEmpty()) return;
-
         if (authorities.contains(Authority.LEGAL_PROFESSIONAL) && authorities.contains(Authority.MEDICAL_PROFESSIONAL)) {
             throw ApiError.badRequest("No se puede asignar roles de profesional legal y profesional médico al mismo usuario");
         }
@@ -242,7 +203,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     }
 
     @Override
-    protected Page<User> search(String search, Pageable pageable, MultiValueMap<String, String> params) {
+    public Page<User> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
 
         var additions = new AdditionsSearch<User>();
 
@@ -257,7 +218,7 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
             return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
         });
 
-        return search(search, pageable, additions);
+        return internalSearch(search, pageable, additions);
     }
 
     private Stored profilePicture(User user) {
@@ -268,8 +229,18 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
                 .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
     }
 
-    private void createKeycloakUser(UserRepresentation representation, String password, Authority... authority) {
+    private void createInternal(UserRepresentation representation, String password, Authority... authority) {
         var keycloakId = keycloakUserManager.create(representation);
+
+        if (keycloakUserManager.searchByEmail(representation.getEmail()).isPresent()) {
+            log.warn("El usuario de arranque con correo electrónico {} ya existe", representation.getEmail());
+            return;
+        }
+
+        if (keycloakUserManager.searchByUsername(representation.getUsername()).isPresent()) {
+            log.warn("El usuario de arranque con nombre de usuario {} ya existe", representation.getUsername());
+            return;
+        }
 
         try {
             repository.save(User.builder()
@@ -327,4 +298,51 @@ public class UserService extends JpaCrudService<User, UserDto, Long, UserReposit
     }
 
 
+    private final CrudHooks<User, UserDto, Long> hooks = new CrudHooks<>() {
+        @Override
+        public void onAfterCreate(UserDto dto, User model) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    var keycloakId = model.getKeycloakId();
+                    keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(dto.getAuthoritiesToAdd()));
+                    keycloakUserManager.resetPassword(keycloakId, dto.getPassword());
+                }
+
+                @Override
+                public void afterCompletion(int status) {
+                    if (status != STATUS_COMMITTED && model.isNew() && model.getKeycloakId() != null) {
+                        keycloakUserManager.delete(model.getKeycloakId());
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onAfterUpdate(UserDto dto, User model) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    updateKeycloackUser(model.getKeycloakId(), dto);
+                }
+            });
+        }
+
+        private void updateKeycloackUser(String keycloakId, UserDto userDto) {
+            var authoritiesToRemove = userDto.getAuthoritiesToRemove();
+            var authoritiesToAdd = userDto.getAuthoritiesToAdd();
+
+            validateAuthorities(authoritiesToAdd);
+
+            keycloakUserManager.update(keycloakId, userDto::transferToRepresentation);
+
+            var password = userDto.getPassword();
+            if (password != null) {
+                keycloakUserManager.resetPassword(keycloakId, password);
+            }
+
+            keycloakUserManager.removeRoles(keycloakId, Authority.convertToRoleNames(authoritiesToRemove));
+            keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(authoritiesToAdd));
+        }
+    };
 }
