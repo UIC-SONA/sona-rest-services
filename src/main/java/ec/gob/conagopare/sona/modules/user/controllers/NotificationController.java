@@ -17,7 +17,7 @@ public class NotificationController {
 
     private final NotificationService service;
 
-    @PostMapping("/susbribe")
+    @PostMapping("/suscribe")
     public ResponseEntity<Void> suscribe(
             @RequestParam String token,
             @AuthenticationPrincipal Jwt jwt
@@ -26,7 +26,7 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/unsusbribe")
+    @DeleteMapping("/unsuscribe")
     public ResponseEntity<Void> unsuscribe(
             @RequestParam String token,
             @AuthenticationPrincipal Jwt jwt
