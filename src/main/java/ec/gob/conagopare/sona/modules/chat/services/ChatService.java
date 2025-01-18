@@ -127,6 +127,7 @@ public class ChatService {
             runAsync(() -> {
                 messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent);
                 if (participant.equals(chatMessage.getSentBy())) return;
+
                 notificationService.send(participant, "Abréme", "Tengo noticias para ti, te puede interesar");
             }).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }

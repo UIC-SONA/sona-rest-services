@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "notification_token")
+@Table(name = "device_token")
 public class DeviceToken {
 
     @Id
