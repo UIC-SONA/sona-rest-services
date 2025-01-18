@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Getter
 @RestController
@@ -29,7 +26,7 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/unsusbribe")
+    @DeleteMapping("/unsusbribe")
     public ResponseEntity<Void> unsuscribe(
             @RequestParam String token,
             @AuthenticationPrincipal Jwt jwt
