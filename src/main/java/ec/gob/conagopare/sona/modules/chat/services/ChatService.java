@@ -5,6 +5,7 @@ import ec.gob.conagopare.sona.modules.chat.dto.ChatMessagePayload;
 import ec.gob.conagopare.sona.modules.chat.dto.ReadMessages;
 import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
+import ec.gob.conagopare.sona.modules.user.service.NotificationService;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.jakarta.validations.ContentType;
 import io.github.luidmidev.jakarta.validations.FileSize;
@@ -51,6 +52,7 @@ public class ChatService {
     private final MongoTemplate mongoTemplate;
     private final UserService userService;
     private final ChatRoomRepository roomRepository;
+    private final NotificationService notificationService;
     private final Storage storage;
 
     public ChatMessagePayload sendMessage(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
@@ -122,7 +124,11 @@ public class ChatService {
                 .build();
 
         for (var participant : room.getParticipants()) {
-            runAsync(() -> messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent)).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
+            runAsync(() -> {
+                messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent);
+                if (participant.equals(chatMessage.getSentBy())) return;
+                notificationService.send(participant, "Abréme", "Tengo noticias para ti, te puede interesar");
+            }).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
 
         return chatMessageSent;
