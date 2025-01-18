@@ -14,7 +14,5 @@ public interface DeviceTokenRepository extends JpaRepository<DeviceToken, Long> 
 
     Optional<DeviceToken> findByToken(String token);
 
-    boolean existsByToken(String token);
-
     Optional<DeviceToken> findByTokenAndUserKeycloakId(String token, String subject);
 }

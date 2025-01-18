@@ -63,7 +63,6 @@ public class ChatService {
     }
 
     public ChatMessagePayload sendImage(
-
             @Image
             @FileSize(value = 25, unit = FileSize.Unit.MB)
             MultipartFile file,
@@ -76,7 +75,6 @@ public class ChatService {
     }
 
     public ChatMessagePayload sendVoice(
-
             @ContentType("audio/*")
             @FileSize(value = 25, unit = FileSize.Unit.MB)
             MultipartFile file,
@@ -136,7 +134,6 @@ public class ChatService {
     }
 
     public void read(String roomId, List<String> messagesIds, Jwt jwt) {
-
         log.info("Marking messages as read: roomId={}, messagesIds={}", roomId, messagesIds);
 
         var user = userService.getUser(jwt);

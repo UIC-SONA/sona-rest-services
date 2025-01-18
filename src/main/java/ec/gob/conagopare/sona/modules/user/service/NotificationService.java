@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Map; 
 
 @Slf4j
 @Service
@@ -43,10 +43,6 @@ public class NotificationService {
 
     @PreAuthorize("isAuthenticated()")
     public void unsuscribe(String token, Jwt jwt) {
-        if (repository.existsByToken(token)) {
-            return;
-        }
-
         var saved = repository.findByTokenAndUserKeycloakId(token, jwt.getSubject());
         if (saved.isEmpty()) {
             return;
