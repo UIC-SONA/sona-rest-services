@@ -44,8 +44,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
 @Getter
+@Service
 public class UserService implements JpaCrudService<User, UserDto, Long, UserRepository> {
 
     private static final String USERS_PROFILE_PICTURES_PATH = "users/%d/profile-pictures";
@@ -161,8 +161,8 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         var previousProfilePicturePath = user.getProfilePicturePath();
         var profilePictureName = FileUtils.factoryUUIDFileName(photo.getOriginalFilename());
         var profilePicturePath = storage.store(photo.getInputStream(), profilePictureName, USERS_PROFILE_PICTURES_PATH.formatted(user.getId()));
-        user.setProfilePicturePath(profilePicturePath);
 
+        user.setProfilePicturePath(profilePicturePath);
         repository.save(user);
 
         StorageUtils.tryRemoveFileAsync(storage, previousProfilePicturePath);
@@ -204,7 +204,6 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
     @Override
     public Page<User> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
-
         var additions = new AdditionsSearch<User>();
 
         additions.and((root, query, cb) -> {
@@ -261,15 +260,11 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     public Map<Long, User> map(Iterable<Long> userIds) {
-        return repository.findAllById(userIds)
-                .stream()
-                .collect(Collectors.toMap(User::getId, Function.identity()));
+        return repository.findAllById(userIds).stream().collect(Collectors.toMap(User::getId, Function.identity()));
     }
 
     public void syncKeycloak(KeycloakUserSync userSync, String apiKey) {
-
         var key = config.getSyncApiKey();
-
         if (!key.equals(apiKey)) {
             throw ApiError.forbidden("API Key inválida");
         }
@@ -284,19 +279,14 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
         var clientRoles = userSync.clientRoles().get(clientId);
         if (clientRoles != null) {
-            syncAuthorities(user, clientRoles);
+            var currentAuthorities = user.getAuthorities();
+            var newAuthorities = Authority.parseAuthorities(clientRoles);
+            CollectionsUtils.merge(currentAuthorities, newAuthorities);
         }
 
         repository.save(user);
         log.info("Sincronizando usuarios con Keycloak: {}", userSync);
     }
-
-    private void syncAuthorities(User user, List<String> clientRoles) {
-        var currentAuthorities = user.getAuthorities();
-        var newAuthorities = Authority.parseAuthorities(clientRoles);
-        CollectionsUtils.merge(currentAuthorities, newAuthorities);
-    }
-
 
     private final CrudHooks<User, UserDto, Long> hooks = new CrudHooks<>() {
         @Override
@@ -345,4 +335,6 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
             keycloakUserManager.addRoles(keycloakId, Authority.convertToRoleNames(authoritiesToAdd));
         }
     };
+
+
 }

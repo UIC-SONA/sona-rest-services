@@ -106,6 +106,7 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
         return ResponseEntity.ok(new Message("Usuario " + (value ? "habilitado" : "deshabilitado") + " correctamente"));
     }
 
+
     @PostMapping("/keycloak-sync")
     public ResponseEntity<Message> syncKeycloak(
             @RequestBody KeycloakUserSync userSync,

@@ -185,17 +185,19 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
     }
 
     @Override
-    public void combineSpecification(Specification<Appointment> spec) {
+    public Specification<Appointment> processSpecification(Specification<Appointment> spec) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         var jwt = (Jwt) authentication.getPrincipal();
 
         var user = userService.getUser(jwt);
         var userId = user.getId();
         if (!user.isAny(PRIVILEGED_AUTHORITIES)) {
-            spec.and((root, query, cb) -> cb.or(
+            return spec.and((root, query, cb) -> cb.or(
                     cb.equal(root.join(ATTENDANT_ATTRIBUTE).get("id"), userId),
                     cb.equal(root.join(PROFESSIONAL_ATTRIBUTE).get("id"), userId)
             ));
         }
+
+        return spec;
     }
 }

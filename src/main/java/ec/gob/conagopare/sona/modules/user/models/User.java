@@ -39,7 +39,6 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     private boolean anonymous = false;
 
     // USER INFORMATION SYNCED FROM KEYCLOAK
-
     @Column
     protected String username;
 
