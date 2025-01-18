@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Table(name = "device_token")
 public class DeviceToken {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

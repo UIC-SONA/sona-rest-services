@@ -26,7 +26,7 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/unsuscribe")
+    @PostMapping("/unsuscribe")
     public ResponseEntity<Void> unsuscribe(
             @RequestParam String token,
             @AuthenticationPrincipal Jwt jwt
