@@ -13,8 +13,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -55,17 +55,24 @@ public class NotificationService {
         repository.delete(saved.get());
     }
 
-    public void send(Long userId, String title, String body, Map<String, String> map) {
+    public void send(Long userId, String title, String body, Map<String, String> data) {
         var deviceTokens = repository.findByUserId(userId);
-        if (deviceTokens.isEmpty()) return;
+        if (deviceTokens.isEmpty()) {
+            log.warn("Not found device tokes for user {}", userId);
+            return;
+        }
+        var tokens = deviceTokens.stream().map(DeviceToken::getToken).toList();
+        send(tokens, title, body, data);
+    }
 
+    public void send(List<String> tokens, String title, String body, Map<String, String> data) {
         var message = MulticastMessage.builder()
                 .setNotification(Notification.builder()
                         .setTitle(title)
                         .setBody(body)
                         .build())
-                .putAllData(map)
-                .addAllTokens(deviceTokens.stream().map(DeviceToken::getToken).collect(Collectors.toList()))
+                .putAllData(data)
+                .addAllTokens(tokens)
                 .build();
 
         try {
