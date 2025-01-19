@@ -5,6 +5,7 @@ import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.repositories.TipRepository;
+import ec.gob.conagopare.sona.modules.user.service.NotificationService;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
@@ -37,6 +38,7 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
     private final TipRepository repository;
     private final EntityManager entityManager;
     private final Storage storage;
+    private final NotificationService notificationService;
 
     @Override
     public Class<Tip> getEntityClass() {
@@ -96,13 +98,23 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
 
     @Override
     public Page<Tip> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
-        throw ApiError.badRequest("Filtro no soportado");
+        return internalSearch(search, pageable);
     }
 
     private final CrudHooks<Tip, TipDto, UUID> hooks = new CrudHooks<>() {
         @Override
-        public void onAfterCreate(TipDto dto, Tip model) {
+        public void onAfterDelete(Tip model) {
             StorageUtils.tryRemoveFileAsync(storage, model.getImage());
+        }
+
+        @Override
+        public void onAfterCreate(TipDto dto, Tip model) {
+            if (model.isActive()) {
+                notificationService.sendAll(
+                        "Nuevo consejo para ti",
+                        "Hemos agregado un nuevo tip que podría interesarte. Accede a la aplicación para leerlo y aprender más."
+                );
+            }
         }
     };
 }

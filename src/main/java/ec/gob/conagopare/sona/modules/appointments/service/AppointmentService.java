@@ -6,6 +6,8 @@ import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.repository.AppointmentRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
+import ec.gob.conagopare.sona.modules.user.models.User;
+import ec.gob.conagopare.sona.modules.user.service.NotificationService;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaSpecificationReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -28,6 +31,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static ec.gob.conagopare.sona.modules.appointments.models.Appointment.ATTENDANT_ATTRIBUTE;
@@ -45,6 +49,7 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
     private final AppointmentRepository repository;
     private final EntityManager entityManager;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @Override
     public Class<Appointment> getEntityClass() {
@@ -133,7 +138,6 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
     public Page<Appointment> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
         var additions = new AdditionsSearch<Appointment>();
         additions.addJoins(ATTENDANT_ATTRIBUTE, PROFESSIONAL_ATTRIBUTE);
-
         additions.and((root, query, cb) -> {
             var predicates = new ArrayList<Predicate>();
 
@@ -199,5 +203,21 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
         }
 
         return spec;
+    }
+
+
+    @Scheduled(cron = "0 0 0 * * *")
+    public void remindAppoinments() {
+        var now = LocalDate.now();
+        var tomorrowAppointments = repository.getAppointmentsByDate(now.plusDays(1));
+        notificationService.send(
+                mapAttendantsIds(tomorrowAppointments),
+                "Rocordatorio de tu cita",
+                "Te recordamos que tienes una consulta agendada próximamanete. ¡Preparate y no olvides asistir!"
+        );
+    }
+
+    private static List<Long> mapAttendantsIds(Collection<Appointment> appointments) {
+        return appointments.stream().map(Appointment::getAttendant).map(User::getId).distinct().toList();
     }
 }

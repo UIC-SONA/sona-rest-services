@@ -2,7 +2,6 @@ package ec.gob.conagopare.sona.modules.appointments.repository;
 
 import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
-import ec.gob.conagopare.sona.modules.user.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long>, JpaSpecificationExecutor<Appointment> {
 
@@ -52,7 +50,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long>,
             @Param("to") LocalDate to
     );
 
-    Optional<Appointment> findByIdAndAttendantOrProfessional(Long id, User attendant, User professional);
 
-    List<Appointment> findAllByIdInAndAttendantOrProfessional(List<Long> ids, User attendant, User professional);
+    @Query("""
+            SELECT a FROM Appointment a
+            WHERE a.date = :date
+            AND a.canceled = false
+            ORDER BY a.hour ASC
+            """)
+    List<Appointment> getAppointmentsByDate(@Param("date") LocalDate date);
+
 }

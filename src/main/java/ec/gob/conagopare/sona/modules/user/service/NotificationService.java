@@ -13,8 +13,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map; 
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -44,24 +45,44 @@ public class NotificationService {
     @PreAuthorize("isAuthenticated()")
     public void unsuscribe(String token, Jwt jwt) {
         var saved = repository.findByTokenAndUserKeycloakId(token, jwt.getSubject());
-        if (saved.isEmpty()) {
-            return;
-        }
-
+        if (saved.isEmpty()) return;
         repository.delete(saved.get());
     }
 
+    public void send(Long userId, String title, String body) {
+        send(userId, title, body, Map.of());
+    }
+
+
     public void send(Long userId, String title, String body, Map<String, String> data) {
-        var deviceTokens = repository.findByUserId(userId);
-        if (deviceTokens.isEmpty()) {
+        var tokens = repository.findUserTokens(userId);
+        if (tokens.isEmpty()) {
             log.warn("Not found device tokes for user {}", userId);
             return;
         }
-        var tokens = deviceTokens.stream().map(DeviceToken::getToken).toList();
-        send(tokens, title, body, data);
+        internalSend(tokens, title, body, data);
     }
 
-    public void send(List<String> tokens, String title, String body, Map<String, String> data) {
+    public void send(List<Long> userIds, String title, String body) {
+        send(userIds, title, body, Map.of());
+    }
+
+    public void send(List<Long> userIds, String title, String body, Map<String, String> data) {
+        var tokens = repository.findUsersTokens(userIds);
+        if (tokens.isEmpty()) return;
+        internalSend(tokens, title, body, data);
+    }
+
+    public void sendAll(String title, String body) {
+        sendAll(title, body, Map.of());
+    }
+
+    public void sendAll(String title, String body, Map<String, String> data) {
+        var tokens = repository.findAllTokens();
+        internalSend(tokens, title, body, data);
+    }
+
+    private void internalSend(Collection<String> tokens, String title, String body, Map<String, String> data) {
         var message = MulticastMessage.builder()
                 .setNotification(Notification.builder()
                         .setTitle(title)
@@ -70,7 +91,6 @@ public class NotificationService {
                 .putAllData(data)
                 .addAllTokens(tokens)
                 .build();
-
         try {
             var response = messaging.sendEachForMulticast(message);
             log.info("Successfully sent message: success count: {}, failure count: {}", "" + response.getSuccessCount(), "" + response.getFailureCount());
@@ -79,14 +99,11 @@ public class NotificationService {
         }
     }
 
-    public void send(Long userId, String title, String body) {
-        send(userId, title, body, Map.of());
-    }
-
     @Scheduled(cron = "0 0 3 * * *")
     public void cleanupUnusedTokens() {
         try {
-            // Eliminar tokens que no se utilizan
+            // Eliminar tokens que no se utilizan (no han sido renovados hace 3 meses)
+            // Los tokens se renuevan cuando se abre la aplciación
             int deletedCount = repository.deleteByRefreshedAtBefore(LocalDateTime.now().minusMonths(3));
             log.info("Cleaned up {} unused tokens", deletedCount);
         } catch (Exception e) {
