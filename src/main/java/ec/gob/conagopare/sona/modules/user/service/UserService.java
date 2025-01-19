@@ -78,13 +78,13 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         var admin = bootstrap.getAdmin();
         if (admin != null && !repository.existsById(admin.getId())) {
             var singUpUser = admin.toSingUpUser();
-            createInternal(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
+            internalCreate(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
         }
     }
 
     @PreAuthorize("permitAll()")
     public void signUp(@Valid SingUpUser singUpUser) {
-        createInternal(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
+        internalCreate(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.USER);
     }
 
     @Override
@@ -93,8 +93,9 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
             var authorityToAdd = dto.getAuthoritiesToAdd();
             var password = dto.getPassword();
 
-            extracted(authorityToAdd);
-
+            if (authorityToAdd.isEmpty()) {
+                throw ApiError.badRequest("No se puede crear un usuario sin roles");
+            }
             if (password == null) {
                 throw ApiError.badRequest("No se puede crear un usuario sin contraseña");
             }
@@ -103,12 +104,6 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
             var keycloakId = keycloakUserManager.create(dto.toRepresentation());
             model.setKeycloakId(keycloakId);
-        }
-    }
-
-    private static void extracted(Set<Authority> authorityToAdd) {
-        if (authorityToAdd.isEmpty()) {
-            throw ApiError.badRequest("No se puede crear un usuario sin roles");
         }
     }
 
@@ -228,7 +223,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
                 .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
     }
 
-    private void createInternal(UserRepresentation representation, String password, Authority... authority) {
+    private void internalCreate(UserRepresentation representation, String password, Authority... authority) {
         var keycloakId = keycloakUserManager.create(representation);
 
         if (keycloakUserManager.searchByEmail(representation.getEmail()).isPresent()) {
