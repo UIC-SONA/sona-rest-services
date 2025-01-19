@@ -14,10 +14,10 @@ public interface DeviceTokenRepository extends JpaRepository<DeviceToken, Long> 
     @Query("select dt.token from DeviceToken dt")
     List<String> findAllTokens();
 
-    @Query("select dt.token from DeviceToken dt where dt.id = :userId")
+    @Query("select dt.token from DeviceToken dt where dt.user.id = :userId")
     List<String> findUserTokens(Long userId);
 
-    @Query("select dt.token from DeviceToken dt where dt.id in :usersIds")
+    @Query("select dt.token from DeviceToken dt where dt.user.id in :usersIds")
     List<String> findUsersTokens(List<Long> userIds);
 
     Optional<DeviceToken> findByToken(String token);
