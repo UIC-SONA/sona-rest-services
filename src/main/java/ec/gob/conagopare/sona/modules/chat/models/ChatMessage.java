@@ -1,6 +1,7 @@
 package ec.gob.conagopare.sona.modules.chat.models;
 
 import lombok.*;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,11 +24,20 @@ public class ChatMessage {
 
     private ChatMessageType type;
 
+    @Field(write = Field.Write.NON_NULL)
+    private String resource;
+
     @Builder.Default
     private List<ReadBy> readBy = new ArrayList<>();
 
     public static ChatMessage now(String message, Long sentBy, ChatMessageType type) {
-        return ChatMessage.builder().id(UUID.randomUUID().toString()).message(message).createdAt(Instant.now()).sentBy(sentBy).type(type).build();
+        return ChatMessage.builder()
+                .id(UUID.randomUUID().toString())
+                .message(message)
+                .createdAt(Instant.now())
+                .sentBy(sentBy)
+                .type(type)
+                .build();
     }
 
     @Data

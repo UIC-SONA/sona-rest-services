@@ -140,7 +140,7 @@ public class KeycloakUserManager {
     }
 
     /**
-     * Toggle enabled status
+     * Change enabled status
      * @param userId the user id
      * @param enabled the new status
      */

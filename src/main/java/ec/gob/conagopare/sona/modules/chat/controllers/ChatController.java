@@ -1,10 +1,12 @@
 package ec.gob.conagopare.sona.modules.chat.controllers;
 
+import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.chat.dto.ChatMessagePayload;
 import ec.gob.conagopare.sona.modules.chat.models.ChatMessage;
 import ec.gob.conagopare.sona.modules.chat.models.ChatRoom;
 import ec.gob.conagopare.sona.modules.chat.services.ChatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -61,6 +63,13 @@ public class ChatController {
     ) {
         service.read(roomId, messagesIds, jwt);
         return ResponseEntity.ok().build();
+    }
+
+    public ResponseEntity<ByteArrayResource> resource(
+            @PathVariable String roomId,
+            @PathVariable String messageId
+    ) throws IOException {
+        return ResponseEntityUtils.resource(service.resource(roomId, messageId));
     }
 
     @GetMapping("/rooms")

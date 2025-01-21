@@ -12,6 +12,7 @@ import io.github.luidmidev.jakarta.validations.FileSize;
 import io.github.luidmidev.jakarta.validations.Image;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
+import io.github.luidmidev.storage.Stored;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -107,8 +108,15 @@ public class ChatService {
                 String.format(USERS_CHATS_PATH, user.getId(), room.getId(), dir)
         );
 
-        var chatMessage = ChatMessage.now(filePath, user.getId(), type);
+        var chatMessage = ChatMessage.now("", user.getId(), type);
+        chatMessage.setResource(filePath);
         return sendMessageToSuscribers(requestId, room, chatMessage);
+    }
+
+    public Stored resource(String roomId, String messageId) throws IOException {
+        var message = message(roomId, messageId);
+        var resource = message.getResource();
+        return storage.download(resource).orElseThrow(ApiError::notFound);
     }
 
     private ChatMessagePayload sendMessageToSuscribers(String requestId, ChatRoom room, ChatMessage chatMessage) {
@@ -214,6 +222,29 @@ public class ChatService {
 
         var lastMessage = result.get("lastMessage", Document.class);
         return mongoTemplate.getConverter().read(ChatMessage.class, lastMessage);
+    }
+
+    private ChatMessage message(String roomId, String messageId) {
+        log.info("Searching for message: roomId={}, messageId={}", roomId, messageId);
+
+        var aggregate = Aggregation.newAggregation(
+                Aggregation.match(chunksOf(roomId)),
+                Aggregation.unwind("messages"),
+                Aggregation.match(Criteria.where("messages._id").is(messageId)),
+                Aggregation.project()
+                        .and("messages").as("message")
+        );
+
+        var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class)
+                .getUniqueMappedResult();
+
+        if (result == null) {
+            log.warn("Message not found: roomId={}, messageId={}", roomId, messageId);
+            throw ApiError.notFound("No se encontró el mensaje");
+        }
+
+        var messageDoc = result.get("message", Document.class);
+        return mongoTemplate.getConverter().read(ChatMessage.class, messageDoc);
     }
 
     public ChatRoom room(Long userId, Jwt jwt) {
