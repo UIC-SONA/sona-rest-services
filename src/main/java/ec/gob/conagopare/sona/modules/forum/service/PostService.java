@@ -233,18 +233,18 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
 
-    private final CrudHooks<Post, PostDto, String> hooks = new CrudHooks<Post, PostDto, String>() {
+    private final CrudHooks<Post, PostDto, String> hooks = new CrudHooks<>() {
         @Override
         public void onFind(Post entity) {
             var user = getCurrentUser();
-            entity.setIAmAuthor(entity.getAuthor().equals(user.getId()));
+            entity.setIAmAuthor(entity.getRealAuthor().equals(user.getId()));
         }
 
         @Override
         public void onFind(Iterable<Post> entities, Iterable<String> ids) {
             var user = getCurrentUser();
             for (var entity : entities) {
-                entity.setIAmAuthor(entity.getAuthor().equals(user.getId()));
+                entity.setIAmAuthor(entity.getRealAuthor().equals(user.getId()));
             }
         }
 
@@ -252,7 +252,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         public void onPage(Page<Post> page) {
             var user = getCurrentUser();
             for (var entity : page) {
-                entity.setIAmAuthor(entity.getAuthor().equals(user.getId()));
+                entity.setIAmAuthor(entity.getRealAuthor().equals(user.getId()));
             }
         }
 

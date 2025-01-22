@@ -20,4 +20,9 @@ public abstract class ByAuthor<T> {
         return anonymous ? null : author;
     }
 
+    @JsonIgnore
+    public T getRealAuthor() {
+        return author;
+    }
+
 }
