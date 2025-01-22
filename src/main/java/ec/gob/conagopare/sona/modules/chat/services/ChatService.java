@@ -113,8 +113,8 @@ public class ChatService {
         return sendMessageToSuscribers(requestId, room, chatMessage);
     }
 
-    public Stored resource(String messageId) throws IOException {
-        return storage.download(messageId).orElseThrow(ApiError::notFound);
+    public Stored resource(String id) throws IOException {
+        return storage.download(id).orElseThrow(ApiError::notFound);
 //        var message = message(roomId, messageId);
 //        var resource = message.getResource();
 //        return storage.download(resource).orElseThrow(ApiError::notFound);

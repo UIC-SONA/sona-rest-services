@@ -67,9 +67,9 @@ public class ChatController {
 
     @GetMapping("/resource")
     public ResponseEntity<ByteArrayResource> resource(
-            @RequestParam String resource
+            @RequestParam String id
     ) throws IOException {
-        return ResponseEntityUtils.resource(service.resource(resource));
+        return ResponseEntityUtils.resource(service.resource(id));
     }
 
     @GetMapping("/rooms")
