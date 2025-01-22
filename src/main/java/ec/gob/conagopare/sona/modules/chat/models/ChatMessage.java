@@ -49,7 +49,10 @@ public class ChatMessage {
         private Instant readAt;
 
         public static ReadBy now(Long participantId) {
-            return ReadBy.builder().participantId(participantId).readAt(Instant.now()).build();
+            return ReadBy.builder()
+                    .participantId(participantId)
+                    .readAt(Instant.now())
+                    .build();
         }
     }
 

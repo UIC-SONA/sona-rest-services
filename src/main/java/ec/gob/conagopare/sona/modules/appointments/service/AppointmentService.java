@@ -135,39 +135,39 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
 
     @Override
     @SuppressWarnings("java:S3776")
-    public Page<Appointment> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
+    public Page<Appointment> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> filters) {
         var additions = new AdditionsSearch<Appointment>();
         additions.addJoins(ATTENDANT_ATTRIBUTE, PROFESSIONAL_ATTRIBUTE);
         additions.and((root, query, cb) -> {
             var predicates = new ArrayList<Predicate>();
 
-            var keycloakId = params.getFirst(KEYCLOAK_ID_ATTRIBUTE);
+            var keycloakId = filters.getFirst(KEYCLOAK_ID_ATTRIBUTE);
             if (keycloakId != null) {
                 predicates.add(cb.equal(root.join(ATTENDANT_ATTRIBUTE).get(KEYCLOAK_ID_ATTRIBUTE), keycloakId));
             }
 
-            var userId = params.getFirst("userId");
+            var userId = filters.getFirst("userId");
             if (userId != null) {
                 predicates.add(cb.equal(root.join(ATTENDANT_ATTRIBUTE).get("id"), Long.parseLong(userId)));
             }
 
-            var professionalId = params.getFirst("professionalId");
+            var professionalId = filters.getFirst("professionalId");
             if (professionalId != null) {
                 predicates.add(cb.equal(root.join(PROFESSIONAL_ATTRIBUTE).get("id"), Long.parseLong(professionalId)));
             }
 
-            var canceled = params.getFirst("canceled");
+            var canceled = filters.getFirst("canceled");
             if (canceled != null) {
                 predicates.add(cb.equal(root.get("canceled"), Boolean.parseBoolean(canceled)));
             }
 
-            var type = params.getFirst("type");
+            var type = filters.getFirst("type");
             if (type != null) {
                 predicates.add(cb.equal(root.get("type"), Appointment.Type.valueOf(type)));
             }
 
-            var from = params.getFirst("from");
-            var to = params.getFirst("to");
+            var from = filters.getFirst("from");
+            var to = filters.getFirst("to");
 
             if (from != null && to != null) {
                 predicates.add(cb.between(root.get("date"), LocalDate.parse(from), LocalDate.parse(to)));

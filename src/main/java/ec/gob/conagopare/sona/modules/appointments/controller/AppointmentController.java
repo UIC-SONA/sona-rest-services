@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -69,24 +68,4 @@ public class AppointmentController implements ReadController<Appointment, Long, 
     ) {
         return ResponseEntity.ok(service.professionalAppointmentRanges(professionalId, from, to));
     }
-
-    @GetMapping("/test")
-    public ResponseEntity<String> test(@RequestParam Sort sort) {
-        log.info("Sort: {}", sort);
-        return ResponseEntity.ok("Test");
-    }
-
-    @GetMapping("/test2")
-    public ResponseEntity<String> test2(@RequestParam Pageable sort) {
-        log.info("Pageable: {}", sort);
-        return ResponseEntity.ok("Test");
-    }
-
-    @GetMapping("/test3")
-    public ResponseEntity<String> test3(Pageable sort) {
-
-        log.info("Pageable2: {}", sort);
-        return ResponseEntity.ok("Test");
-    }
-
 }
