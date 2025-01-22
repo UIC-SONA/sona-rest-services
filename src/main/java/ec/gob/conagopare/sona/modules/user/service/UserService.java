@@ -18,6 +18,7 @@ import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetailsException;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.persistence.*;
@@ -80,7 +81,11 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         var admin = bootstrap.getAdmin();
         if (admin != null && !repository.existsById(admin.getId())) {
             var singUpUser = admin.toSingUpUser();
-            internalCreate(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
+            try {
+                internalCreate(singUpUser.toRepresentation(), singUpUser.getPassword(), Authority.ADMIN);
+            } catch (ProblemDetailsException e) {
+                log.info("No se pudo crear el usuario administrador", e);
+            }
         }
     }
 
@@ -228,13 +233,11 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     private void internalCreate(UserRepresentation representation, String password, Authority... authority) {
 
         if (keycloakUserManager.searchByEmail(representation.getEmail()).isPresent()) {
-            log.warn("El usuario de arranque con correo electrónico {} ya existe", representation.getEmail());
-            return;
+            throw ApiError.conflict("Conflicto", "El usuario con el correo electrónico " + representation.getEmail() + " ya existe");
         }
 
         if (keycloakUserManager.searchByUsername(representation.getUsername()).isPresent()) {
-            log.warn("El usuario de arranque con nombre de usuario {} ya existe", representation.getUsername());
-            return;
+            throw ApiError.badRequest("Conflicto", "El usuario con el nombre de usuario " + representation.getUsername() + " ya existe");
         }
 
         var keycloakId = keycloakUserManager.create(representation);
