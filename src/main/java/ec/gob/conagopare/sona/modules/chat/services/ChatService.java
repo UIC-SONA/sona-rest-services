@@ -49,6 +49,7 @@ public class ChatService {
     private static final String CHAT_CHUNK_NUMBER_KEY = "number";
     private static final String CHAT_CHUNK_ROOM_KEY = "room.$id";
     private static final String USERS_CHATS_PATH = "users/%d/chats/%s/%s";
+    private static final String MESSAGES = "messages";
 
     private final SimpMessagingTemplate messaging;
     private final MongoTemplate mongoTemplate;
@@ -94,6 +95,7 @@ public class ChatService {
         return sendFile(file, roomId, requestId, jwt, ChatMessageType.VOICE, "voices");
     }
 
+    @PreAuthorize("isAuthenticated()")
     private ChatMessagePayload sendFile(
             MultipartFile file,
             String roomId,
@@ -113,15 +115,11 @@ public class ChatService {
         );
 
         var chatMessage = ChatMessage.now(filePath, user.getId(), type);
-//        chatMessage.setResource(filePath);
         return sendMessageToSuscribers(requestId, room, chatMessage);
     }
 
     public Stored resource(String id) throws IOException {
         return storage.download(id).orElseThrow(ApiError::notFound);
-//        var message = message(roomId, messageId);
-//        var resource = message.getResource();
-//        return storage.download(resource).orElseThrow(ApiError::notFound);
     }
 
     private ChatMessagePayload sendMessageToSuscribers(String requestId, ChatRoom room, ChatMessage chatMessage) {
@@ -223,7 +221,7 @@ public class ChatService {
                 Aggregation.sort(Sort.Direction.DESC, CHAT_CHUNK_NUMBER_KEY),
                 Aggregation.limit(1),
                 Aggregation.project()
-                        .and(ArrayOperators.Last.lastOf("messages")).as("lastMessage")
+                        .and(ArrayOperators.Last.lastOf(MESSAGES)).as("lastMessage")
         );
 
         var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class).getUniqueMappedResult();
@@ -239,10 +237,10 @@ public class ChatService {
 
         var aggregate = Aggregation.newAggregation(
                 Aggregation.match(chunksOf(roomId)),
-                Aggregation.unwind("messages"),
-                Aggregation.match(Criteria.where("messages._id").is(messageId)),
+                Aggregation.unwind(MESSAGES),
+                Aggregation.match(Criteria.where(MESSAGES + "._id").is(messageId)),
                 Aggregation.project()
-                        .and("messages").as("message")
+                        .and(MESSAGES).as("message")
         );
 
         var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class)
@@ -338,7 +336,7 @@ public class ChatService {
         }
 
         var update = new Update();
-        update.push("messages", message);
+        update.push(MESSAGES, message);
 
         var result = mongoTemplate.updateFirst(query, update, ChatChunk.class);
 
