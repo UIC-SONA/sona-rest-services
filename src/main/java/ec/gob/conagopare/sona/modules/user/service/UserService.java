@@ -226,7 +226,6 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     private void internalCreate(UserRepresentation representation, String password, Authority... authority) {
-        var keycloakId = keycloakUserManager.create(representation);
 
         if (keycloakUserManager.searchByEmail(representation.getEmail()).isPresent()) {
             log.warn("El usuario de arranque con correo electrónico {} ya existe", representation.getEmail());
@@ -237,6 +236,8 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
             log.warn("El usuario de arranque con nombre de usuario {} ya existe", representation.getUsername());
             return;
         }
+
+        var keycloakId = keycloakUserManager.create(representation);
 
         try {
             repository.save(User.builder()
