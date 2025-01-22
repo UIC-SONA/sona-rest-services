@@ -2,6 +2,7 @@ package ec.gob.conagopare.sona.modules.forum.models;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -26,8 +27,10 @@ public class Post extends ByAuthor<Long> implements Persistable<String> {
     private List<Comment> comments = new ArrayList<>();
     private List<Long> likedBy = new ArrayList<>();
     private List<Long> reportedBy = new ArrayList<>();
-
     private Instant createdAt;
+
+    @Transient
+    private boolean iAmAuthor = false;
 
     public static Comment newComment(String content, Long author, boolean isAnonymous) {
         var comment = new Comment();

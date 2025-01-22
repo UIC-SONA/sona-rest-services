@@ -10,6 +10,7 @@ import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
+import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import jakarta.persistence.EntityManager;
@@ -154,7 +155,6 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         return returned;
     }
 
-
     private void deletePost(Query query) {
         var result = mongo.remove(query, Post.class);
         if (result.getDeletedCount() == 0) {
@@ -169,7 +169,6 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
 
     @Override
     public Page<Post> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
-
         var author = params.getFirst("author");
         if (author != null) {
             var authorId = Long.parseLong(author);
@@ -215,10 +214,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
     private static boolean solveAnonymous(User user, Boolean anonymous) {
-        if (anonymous == null) {
-            return user.isAnonymous();
-        }
-        return anonymous;
+        return anonymous == null ? user.isAnonymous() : anonymous;
     }
 
     private static boolean isPriviliged(User user) {
@@ -236,4 +232,33 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         return Query.query(where("id").is(id));
     }
 
+
+    private final CrudHooks<Post, PostDto, String> hooks = new CrudHooks<Post, PostDto, String>() {
+        @Override
+        public void onFind(Post entity) {
+            var user = getCurrentUser();
+            entity.setIAmAuthor(entity.getAuthor().equals(user.getId()));
+        }
+
+        @Override
+        public void onFind(Iterable<Post> entities, Iterable<String> ids) {
+            var user = getCurrentUser();
+            for (var entity : entities) {
+                entity.setIAmAuthor(entity.getAuthor().equals(user.getId()));
+            }
+        }
+
+        @Override
+        public void onPage(Page<Post> page) {
+            var user = getCurrentUser();
+            for (var entity : page) {
+                entity.setIAmAuthor(entity.getAuthor().equals(user.getId()));
+            }
+        }
+
+        private User getCurrentUser() {
+            var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return userService.getUser(jwt);
+        }
+    };
 }
