@@ -8,7 +8,6 @@ import ec.gob.conagopare.sona.modules.chat.services.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -114,5 +113,4 @@ public class ChatController {
     ) {
         return ResponseEntity.ok(service.chunkCount(roomId));
     }
-
 }

@@ -62,13 +62,11 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     @Override
     @SneakyThrows
     public void mapModel(PostDto dto, Post model) {
-        var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var user = userService.getUser(jwt);
-
         if (!model.isNew()) {
             throw ApiError.badRequest("Las publicaciones no pueden ser modificadas");
         }
 
+        var user = getCurrentUser();
         var content = dto.getContent();
         var isAnonymous = solveAnonymous(user, dto.getAnonymous());
 
@@ -192,7 +190,6 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
 
 
     public void likeComment(Jwt jwt, String forumId, String commentId) {
-
         updatePost(jwt, isId(forumId), (update, user) -> update
                 .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
                 .filterArray(where(COMMENT_ID_FILTER).is(commentId))
@@ -237,14 +234,14 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         @Override
         public void onFind(Post entity) {
             var user = getCurrentUser();
-            entity.setIAmAuthor(entity.getRealAuthor().equals(user.getId()));
+            setIfIsAuthor(entity, user);
         }
 
         @Override
         public void onFind(Iterable<Post> entities, Iterable<String> ids) {
             var user = getCurrentUser();
             for (var entity : entities) {
-                entity.setIAmAuthor(entity.getRealAuthor().equals(user.getId()));
+                setIfIsAuthor(entity, user);
             }
         }
 
@@ -252,13 +249,18 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         public void onPage(Page<Post> page) {
             var user = getCurrentUser();
             for (var entity : page) {
-                entity.setIAmAuthor(entity.getRealAuthor().equals(user.getId()));
+                setIfIsAuthor(entity, user);
             }
         }
 
-        private User getCurrentUser() {
-            var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            return userService.getUser(jwt);
+        private static void setIfIsAuthor(Post entity, User user) {
+            entity.setIAmAuthor(entity.getRealAuthor().equals(user.getId()));
         }
+
     };
+
+    private User getCurrentUser() {
+        var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userService.getUser(jwt);
+    }
 }
