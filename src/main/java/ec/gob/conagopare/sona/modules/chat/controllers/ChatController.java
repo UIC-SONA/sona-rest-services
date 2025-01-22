@@ -20,7 +20,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/chat")
 @RequiredArgsConstructor
-@PreAuthorize("isAuthenticated()")
 public class ChatController {
 
     private final ChatService service;

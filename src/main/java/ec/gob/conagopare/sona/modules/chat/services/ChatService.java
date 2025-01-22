@@ -26,6 +26,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +57,7 @@ public class ChatService {
     private final NotificationService notificationService;
     private final Storage storage;
 
+    @PreAuthorize("isAuthenticated()")
     public ChatMessagePayload sendMessage(@NotEmpty String message, String roomId, String requestId, Jwt jwt) {
         var user = userService.getUser(jwt);
         var room = room(roomId);
@@ -63,6 +65,7 @@ public class ChatService {
         return sendMessageToSuscribers(requestId, room, chatMessage);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public ChatMessagePayload sendImage(
             @Image
             @FileSize(value = 25, unit = FileSize.Unit.MB)
@@ -75,6 +78,7 @@ public class ChatService {
         return sendFile(file, roomId, requestId, jwt, ChatMessageType.IMAGE, "images");
     }
 
+    @PreAuthorize("isAuthenticated()")
     public ChatMessagePayload sendVoice(
             @ContentType("audio/*")
             @FileSize(value = 25, unit = FileSize.Unit.MB)
@@ -144,6 +148,7 @@ public class ChatService {
         return chatMessageSent;
     }
 
+    @PreAuthorize("isAuthenticated()")
     public void read(String roomId, List<String> messagesIds, Jwt jwt) {
         log.info("Marking messages as read: roomId={}, messagesIds={}", roomId, messagesIds);
 
@@ -185,10 +190,12 @@ public class ChatService {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     public ChatRoom room(String chatRoomId) {
         return roomRepository.findById(chatRoomId).orElseThrow(() -> ApiError.notFound("No se encontró la sala de chat"));
     }
 
+    @PreAuthorize("isAuthenticated()")
     public List<ChatRoom> rooms(Jwt jwt) {
         var user = userService.getUser(jwt);
         assert user.getId() != null;
@@ -200,6 +207,7 @@ public class ChatService {
     }
 
 
+    @PreAuthorize("isAuthenticated()")
     public List<ChatMessage> messages(String roomId, long chunk) {
         var query = new Query()
                 .addCriteria(chunksOf(roomId).and(CHAT_CHUNK_NUMBER_KEY).is(chunk));
@@ -208,6 +216,7 @@ public class ChatService {
         return chatChunk == null ? List.of() : chatChunk.getMessages();
     }
 
+    @PreAuthorize("isAuthenticated()")
     public ChatMessage lastMessage(String roomId) {
         var aggregate = Aggregation.newAggregation(
                 Aggregation.match(chunksOf(roomId)),
@@ -248,12 +257,14 @@ public class ChatService {
         return mongoTemplate.getConverter().read(ChatMessage.class, messageDoc);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public ChatRoom room(Long userId, Jwt jwt) {
         var user = userService.getUser(jwt);
         var recipient = userService.getUser(userId);
         return findOrCreatePrivateRoom(user.getId(), recipient.getId());
     }
 
+    @PreAuthorize("isAuthenticated()")
     public long chunkCount(String roomId) {
         var query = new Query()
                 .addCriteria(chunksOf(roomId));
@@ -285,7 +296,7 @@ public class ChatService {
     }
 
 
-    public long getDocumentSize(String id, Class<?> collectionType) {
+    private long getDocumentSize(String id, Class<?> collectionType) {
         var aggregate = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("_id").is(new ObjectId(id))),
                 Aggregation.project()
