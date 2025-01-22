@@ -108,8 +108,8 @@ public class ChatService {
                 String.format(USERS_CHATS_PATH, user.getId(), room.getId(), dir)
         );
 
-        var chatMessage = ChatMessage.now("", user.getId(), type);
-        chatMessage.setResource(filePath);
+        var chatMessage = ChatMessage.now(filePath, user.getId(), type);
+//        chatMessage.setResource(filePath);
         return sendMessageToSuscribers(requestId, room, chatMessage);
     }
 
@@ -136,7 +136,7 @@ public class ChatService {
                 if (participant.equals(chatMessage.getSentBy())) return;
                 notificationService.send(participant,
                         "Tienes un nuevo mensaje",
-                        "Hemos recibido una respuesta s tu consulta. Ingresa a la aplicación para revisarla."
+                        "Hemos recibido una respuesta a tu consulta. Ingresa a la aplicación para revisarla."
                 );
             }).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
