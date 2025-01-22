@@ -65,11 +65,11 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/resource")
     public ResponseEntity<ByteArrayResource> resource(
-            @PathVariable String roomId,
-            @PathVariable String messageId
+            @RequestParam String resource
     ) throws IOException {
-        return ResponseEntityUtils.resource(service.resource(roomId, messageId));
+        return ResponseEntityUtils.resource(service.resource(resource));
     }
 
     @GetMapping("/rooms")
