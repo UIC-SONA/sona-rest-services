@@ -49,6 +49,15 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
     @Column(nullable = false)
     private boolean active;
 
+    @Transient
+    private Integer myValuation;
+
+    @Transient
+    private Integer averageValuation;
+
+    @Transient
+    private Integer totalValuations;
+
     @Override
     public String[] filesFullPaths() {
         return new String[]{image};

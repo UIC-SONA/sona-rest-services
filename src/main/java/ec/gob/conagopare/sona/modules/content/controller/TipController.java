@@ -80,4 +80,10 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
         service.deleteImage(id);
         return ResponseEntity.ok(new Message("Imagen eliminada correctamente"));
     }
+
+    @PostMapping("/valuation/{id}")
+    public ResponseEntity<Message> valuation(@PathVariable UUID id, @RequestParam Integer valuation) {
+        service.valuation(id, valuation);
+        return ResponseEntity.ok(new Message("Valoración realizada correctamente"));
+    }
 }

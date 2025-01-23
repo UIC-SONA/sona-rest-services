@@ -66,7 +66,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
             throw ApiError.badRequest("Las publicaciones no pueden ser modificadas");
         }
 
-        var user = getCurrentUser();
+        var user = userService.getCurrentUser();
         var content = dto.getContent();
         var isAnonymous = solveAnonymous(user, dto.getAnonymous());
 
@@ -233,13 +233,13 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     private final CrudHooks<Post, PostDto, String> hooks = new CrudHooks<>() {
         @Override
         public void onFind(Post entity) {
-            var user = getCurrentUser();
+            var user = userService.getCurrentUser();
             setIfIsAuthor(entity, user);
         }
 
         @Override
         public void onFind(Iterable<Post> entities, Iterable<String> ids) {
-            var user = getCurrentUser();
+            var user = userService.getCurrentUser();
             for (var entity : entities) {
                 setIfIsAuthor(entity, user);
             }
@@ -247,7 +247,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
 
         @Override
         public void onPage(Page<Post> page) {
-            var user = getCurrentUser();
+            var user = userService.getCurrentUser();
             for (var entity : page) {
                 setIfIsAuthor(entity, user);
             }
@@ -258,9 +258,4 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         }
 
     };
-
-    private User getCurrentUser() {
-        var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userService.getUser(jwt);
-    }
 }

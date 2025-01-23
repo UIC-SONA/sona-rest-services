@@ -34,6 +34,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -67,6 +68,12 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         this.keycloakUserManager = keycloakUserManager;
         this.storage = storage;
         this.clientId = clientId;
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    public User getCurrentUser() {
+        var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return getUser(jwt);
     }
 
     @Override
