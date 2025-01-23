@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "tip_valuation")
-public class TipValuation {
+@Table(name = "tip_rate")
+public class TipRate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +30,7 @@ public class TipValuation {
     private User user;
 
     @Column(nullable = false)
-    private Integer valuation;
+    private int value;
 
     @Column(nullable = false)
     private LocalDateTime valuationDate;

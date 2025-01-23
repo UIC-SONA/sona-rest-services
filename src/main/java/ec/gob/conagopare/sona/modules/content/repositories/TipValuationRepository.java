@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.content.repositories;
 
-import ec.gob.conagopare.sona.modules.content.models.TipValuation;
+import ec.gob.conagopare.sona.modules.content.models.TipRate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface TipValuationRepository extends JpaRepository<TipValuation, Long> {
+public interface TipValuationRepository extends JpaRepository<TipRate, Long> {
 
-    @Query("SELECT tv.valuation FROM TipValuation tv WHERE tv.tip.id = ?1 AND tv.user.id = ?2")
+    @Query("SELECT tv.value FROM TipRate tv WHERE tv.tip.id = ?1 AND tv.user.id = ?2")
     Integer fingUserValuation(UUID tipId, Long userId);
 
-    Optional<TipValuation> findByTipIdAndUserId(UUID tipId, Long userId);
+    Optional<TipRate> findByTipIdAndUserId(UUID tipId, Long userId);
 
-    @Query("SELECT tv.valuation FROM TipValuation tv WHERE tv.tip.id = ?1")
+    @Query("SELECT tv.value FROM TipRate tv WHERE tv.tip.id = ?1")
     List<Integer> findValuations(UUID tipId);
 
 

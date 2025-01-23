@@ -4,7 +4,7 @@ import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
 import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
-import ec.gob.conagopare.sona.modules.content.models.TipValuation;
+import ec.gob.conagopare.sona.modules.content.models.TipRate;
 import ec.gob.conagopare.sona.modules.content.repositories.TipRepository;
 import ec.gob.conagopare.sona.modules.content.repositories.TipValuationRepository;
 import ec.gob.conagopare.sona.modules.user.models.User;
@@ -94,19 +94,19 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void valuation(UUID id, @Range(min = 1, max = 5) int valuation) {
+    public void rate(UUID id, @Range(min = 1, max = 5) int value) {
         var currentUser = userService.getCurrentUser();
         var tip = find(id);
 
         var valuationEntity = valuationRepository.findByTipIdAndUserId(id, currentUser.getId())
-                .orElseGet(() -> valuationRepository.save(TipValuation.builder()
+                .orElseGet(() -> valuationRepository.save(TipRate.builder()
                         .tip(tip)
                         .user(currentUser)
                         .valuationDate(LocalDateTime.now())
                         .build())
                 );
 
-        valuationEntity.setValuation(valuation);
+        valuationEntity.setValue(value);
         valuationRepository.save(valuationEntity);
     }
 
@@ -146,22 +146,22 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
         @Override
         public void onFind(Tip entity) {
             var currentUser = userService.getCurrentUser();
-            addValuationInfo(entity, currentUser);
+            addRateInfo(entity, currentUser);
         }
 
         @Override
         public void onFind(Iterable<Tip> entities, Iterable<UUID> ids) {
             var currentUser = userService.getCurrentUser();
-            entities.forEach(entity -> addValuationInfo(entity, currentUser));
+            entities.forEach(entity -> addRateInfo(entity, currentUser));
         }
 
         @Override
         public void onPage(Page<Tip> page) {
             var currentUser = userService.getCurrentUser();
-            page.forEach(entity -> addValuationInfo(entity, currentUser));
+            page.forEach(entity -> addRateInfo(entity, currentUser));
         }
 
-        private void addValuationInfo(Tip entity, User currentUser) {
+        private void addRateInfo(Tip entity, User currentUser) {
             var myValuation = valuationRepository.fingUserValuation(entity.getId(), currentUser.getId());
             var valuations = valuationRepository.findValuations(entity.getId());
             var valuationsCount = valuations.size();
