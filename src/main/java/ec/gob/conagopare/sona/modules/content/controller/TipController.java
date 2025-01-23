@@ -81,7 +81,7 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
         return ResponseEntity.ok(new Message("Imagen eliminada correctamente"));
     }
 
-    @PostMapping("/rat/{id}")
+    @PostMapping("/rate/{id}")
     public ResponseEntity<Message> rate(@PathVariable("id") UUID id, @RequestParam int value) {
         service.rate(id, value);
         return ResponseEntity.ok(new Message("Valoración realizada correctamente"));
