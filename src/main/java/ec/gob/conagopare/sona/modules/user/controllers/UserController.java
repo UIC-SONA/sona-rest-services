@@ -64,7 +64,7 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
             @RequestParam String emailOrUsername
     ) {
         service.resetPassword(emailOrUsername);
-        return ResponseEntity.ok(new Message("Se ha enviado un correo con las instrucciones para restablecer la contraseña"));
+        return ResponseEntity.ok(new Message("Se ha enviado un correo con las instrucciones para restablecer la contraseña, por favor revise su bandeja de entrada durante los próximos minutos"));
     }
 
 
