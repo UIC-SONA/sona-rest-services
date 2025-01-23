@@ -262,7 +262,8 @@ public class KeycloakUserManager {
         return path.substring(path.lastIndexOf('/') + 1);
     }
 
-    public void recoveryPassword(String userId) {
+    public void sendEmailResetPassword(String userId) {
         cli.users().get(userId).executeActionsEmail(List.of("UPDATE_PASSWORD"));
     }
+
 }

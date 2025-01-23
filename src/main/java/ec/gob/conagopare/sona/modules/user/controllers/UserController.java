@@ -59,6 +59,14 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
         return ResponseEntity.ok(new Message("Contraseña actualizada correctamente"));
     }
 
+    @PostMapping("/password-reset")
+    public ResponseEntity<Message> resetPassword(
+            @RequestParam String emailOrUsername
+    ) {
+        service.resetPassword(emailOrUsername);
+        return ResponseEntity.ok(new Message("Se ha enviado un correo con las instrucciones para restablecer la contraseña"));
+    }
+
 
     @GetMapping("/profile-picture")
     public ResponseEntity<ByteArrayResource> profilePicture(@AuthenticationPrincipal Jwt jwt) {

@@ -14,7 +14,6 @@ import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
-import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
@@ -35,7 +34,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.MultiValueMap;
@@ -260,19 +258,14 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
     }
 
-    public void resetPassword(String email, String username) {
-        var isBlankUsername = StringUtils.isBlank(username);
-        var isBlankEmail = StringUtils.isBlank(email);
+    public void resetPassword(String emailOrUsername) {
+        var isEmail = emailOrUsername.contains("@");
 
-        if (isBlankEmail && isBlankUsername) {
-            throw ApiError.badRequest("Debe proporcionar un correo electrónico o un nombre de usuario");
-        }
+        var user = isEmail
+                ? keycloakUserManager.searchByEmail(emailOrUsername)
+                : keycloakUserManager.searchByUsername(emailOrUsername);
 
-        if (!isBlankEmail && !isBlankUsername) {
-            throw ApiError.badRequest("Debe proporcionar solo un correo electrónico o un nombre de usuario");
-        }
-
-
+        user.ifPresent(u -> keycloakUserManager.sendEmailResetPassword(u.getId()));
     }
 
     public Map<Long, User> map(Iterable<Long> userIds) {
