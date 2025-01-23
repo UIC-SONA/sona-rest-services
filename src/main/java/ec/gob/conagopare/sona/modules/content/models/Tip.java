@@ -53,7 +53,7 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
     private Integer myValuation;
 
     @Transient
-    private Integer averageValuation;
+    private Double averageValuation;
 
     @Transient
     private Integer totalValuations;
