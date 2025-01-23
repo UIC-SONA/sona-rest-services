@@ -167,9 +167,9 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
             var myValuation = valuationRepository.fingUserValuation(entity.getId(), currentUser.getId());
             var valuations = valuationRepository.findValuations(entity.getId());
             var valuationsCount = valuations.size();
-            entity.setMyValuation(myValuation);
-            entity.setAverageValuation(valuations.stream().mapToInt(Integer::intValue).average().orElse(0));
-            entity.setTotalValuations(valuationsCount);
+            entity.setMyRate(myValuation);
+            entity.setAverageRate(valuations.stream().mapToInt(Integer::intValue).average().orElse(0));
+            entity.setTotalRate(valuationsCount);
         }
     };
 }
