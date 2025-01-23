@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +29,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
@@ -93,7 +94,7 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void valuation(UUID id, Integer valuation) {
+    public void valuation(UUID id, @Range(min = 1, max = 5) int valuation) {
         var currentUser = userService.getCurrentUser();
         var tip = find(id);
 
@@ -101,6 +102,7 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
                 .orElseGet(() -> valuationRepository.save(TipValuation.builder()
                         .tip(tip)
                         .user(currentUser)
+                        .valuationDate(LocalDateTime.now())
                         .build())
                 );
 
