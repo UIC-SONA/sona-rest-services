@@ -74,7 +74,9 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
 
     @PreAuthorize("isAuthenticated()")
     public Page<Tip> actives(String search, Pageable pageable) {
-        return search == null ? repository.findAllByActiveTrue(pageable) : internalSearch(search, pageable, AND_ACTIVE_TRUE);
+        var actives = search == null ? repository.findAllByActiveTrue(pageable) : internalSearch(search, pageable, AND_ACTIVE_TRUE);
+        hooks.onPage(actives);
+        return actives;
     }
 
     @PreAuthorize("isAuthenticated()")
