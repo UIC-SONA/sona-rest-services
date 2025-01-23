@@ -82,7 +82,7 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
     }
 
     @PostMapping("/valuation/{id}")
-    public ResponseEntity<Message> valuation(@PathVariable("id") UUID id, @RequestParam Integer valuation) {
+    public ResponseEntity<Message> valuation(@PathVariable("id") UUID id, @RequestParam int valuation) {
         service.valuation(id, valuation);
         return ResponseEntity.ok(new Message("Valoración realizada correctamente"));
     }
