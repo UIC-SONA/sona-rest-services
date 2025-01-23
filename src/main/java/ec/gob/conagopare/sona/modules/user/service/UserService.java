@@ -13,6 +13,8 @@ import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
+import io.github.luidmidev.jakarta.validations.Password;
+import io.github.luidmidev.jakarta.validations.utils.DefaultPasswordRules;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
@@ -254,7 +256,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void changePassword(Jwt jwt, String newPassword) {
+    public void changePassword(Jwt jwt, @Password(DefaultPasswordRules.class) String newPassword) {
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
     }
 
