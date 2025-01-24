@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -269,22 +270,35 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         return dto;
     }
 
-
     private Post mostLiked() {
-        return mongo.find(
-                new Query()
-                        .with(Sort.by(Sort.Direction.DESC, "likedBy.size"))
-                        .limit(1),
-                Post.class
-        ).stream().findFirst().orElse(null);
+        var aggregation = Aggregation.newAggregation(
+                Aggregation.project()
+                        .andExpression("size(likedBy)").as("likesCount")
+                        .andInclude("content", "createdAt", "likedBy", "comments"),
+                Aggregation.sort(Sort.Direction.DESC, "likesCount"),
+                Aggregation.limit(1)
+        );
+
+        var results = mongo.aggregate(
+                aggregation, "post", Post.class
+        );
+
+        return results.getUniqueMappedResult();
     }
 
     private Post mostCommented() {
-        return mongo.find(
-                new Query()
-                        .with(Sort.by(Sort.Direction.DESC, "comments.size"))
-                        .limit(1),
-                Post.class
-        ).stream().findFirst().orElse(null);
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.project()
+                        .andExpression("size(comments)").as("commentsCount")
+                        .andInclude("content", "createdAt", "likedBy", "comments"),
+                Aggregation.sort(Sort.Direction.DESC, "commentsCount"),
+                Aggregation.limit(1)
+        );
+
+        var results = mongo.aggregate(
+                aggregation, "post", Post.class
+        );
+
+        return results.getUniqueMappedResult();
     }
 }
