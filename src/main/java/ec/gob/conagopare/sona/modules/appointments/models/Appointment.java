@@ -41,11 +41,11 @@ public class Appointment implements Persistable<Long> {
     @Column(nullable = false)
     private Type type;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "attendant_id", nullable = false)
     private User attendant;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "professional_id", nullable = false)
     private User professional;
 

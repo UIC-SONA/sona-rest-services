@@ -163,6 +163,11 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
             var professionalId = filters.getFirst("professionalId");
             if (professionalId != null) {
                 predicates.add(cb.equal(root.join(PROFESSIONAL_ATTRIBUTE).get("id"), Long.parseLong(professionalId)));
+            } else {
+                var professionalType = filters.getFirst("professionalType");
+                if (professionalType != null) {
+                    predicates.add(cb.equal(root.join(PROFESSIONAL_ATTRIBUTE).join("authorities"), Authority.valueOf(professionalType)));
+                }
             }
 
             var canceled = filters.getFirst("canceled");
