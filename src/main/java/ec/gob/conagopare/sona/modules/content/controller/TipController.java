@@ -87,4 +87,9 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
         return ResponseEntity.ok(new Message("Valoración realizada correctamente"));
     }
 
+    @GetMapping("/top")
+    public ResponseEntity<List<Tip>> top() {
+        return ResponseEntity.ok(service.top());
+    }
+
 }

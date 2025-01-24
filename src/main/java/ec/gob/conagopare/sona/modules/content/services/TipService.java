@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -172,4 +173,9 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
             entity.setTotalRate(valuationsCount);
         }
     };
+
+    @PreAuthorize("isAuthenticated()")
+    public List<Tip> top() {
+        return repository.topRating(3);
+    }
 }
