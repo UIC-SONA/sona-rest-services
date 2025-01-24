@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -135,8 +136,8 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
 
 
     @PreAuthorize("isAuthenticated()")
-    public List<Appointment> list(String search, MultiValueMap<String, String> filters) {
-        var unpaged = Pageable.unpaged();
+    public List<Appointment> list(String search, Sort sort, MultiValueMap<String, String> filters) {
+        var unpaged = Pageable.unpaged(sort);
         return doPage(search, unpaged, filters).getContent();
     }
 

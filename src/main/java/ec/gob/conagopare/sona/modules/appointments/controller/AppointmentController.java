@@ -6,12 +6,14 @@ import ec.gob.conagopare.sona.modules.appointments.dto.CancelAppointment;
 import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
+import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -58,13 +60,15 @@ public class AppointmentController implements ReadController<Appointment, Long, 
         return ResponseEntity.ok(service.selfAppointments(search, pageable, params, jwt));
     }
 
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<List<Appointment>> list(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) MultiValueMap<String, String> filters
+            @RequestParam(required = false) MultiValueMap<String, String> filters,
+            Sort sort
     ) {
-        filters.remove("search");
-        return ResponseEntity.ok(service.list(search, filters));
+        var ignoreParams = SpringDataCrudAutoConfiguration.getIgnoreParams();
+        if (ignoreParams != null) ignoreParams.forEach(filters::remove);
+        return ResponseEntity.ok(service.list(search, sort, filters));
     }
 
     @GetMapping("/professional/{professionalId}/ranges")
