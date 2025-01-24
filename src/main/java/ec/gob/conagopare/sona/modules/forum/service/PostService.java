@@ -2,6 +2,7 @@ package ec.gob.conagopare.sona.modules.forum.service;
 
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
+import ec.gob.conagopare.sona.modules.forum.dto.TopPostsDto;
 import ec.gob.conagopare.sona.modules.forum.models.ByAuthor;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.models.Post.Comment;
@@ -20,6 +21,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -258,4 +260,31 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         }
 
     };
+
+    @PreAuthorize("isAuthenticated()")
+    public TopPostsDto topPosts() {
+        TopPostsDto dto = new TopPostsDto();
+        dto.setMostLikedPost(mostLiked());
+        dto.setMostCommentedPost(mostCommented());
+        return dto;
+    }
+
+
+    private Post mostLiked() {
+        return mongo.find(
+                new Query()
+                        .with(Sort.by(Sort.Direction.DESC, "likedBy.size"))
+                        .limit(1),
+                Post.class
+        ).stream().findFirst().orElse(null);
+    }
+
+    private Post mostCommented() {
+        return mongo.find(
+                new Query()
+                        .with(Sort.by(Sort.Direction.DESC, "comments.size"))
+                        .limit(1),
+                Post.class
+        ).stream().findFirst().orElse(null);
+    }
 }

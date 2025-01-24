@@ -86,4 +86,5 @@ public class TipController implements ReadController<Tip, UUID, TipService> {
         service.rate(id, value);
         return ResponseEntity.ok(new Message("Valoración realizada correctamente"));
     }
+
 }
