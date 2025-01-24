@@ -58,6 +58,15 @@ public class AppointmentController implements ReadController<Appointment, Long, 
         return ResponseEntity.ok(service.selfAppointments(search, pageable, params, jwt));
     }
 
+    @GetMapping
+    public ResponseEntity<List<Appointment>> list(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) MultiValueMap<String, String> filters
+    ) {
+        filters.remove("search");
+        return ResponseEntity.ok(service.list(search, filters));
+    }
+
     @GetMapping("/professional/{professionalId}/ranges")
     public ResponseEntity<List<AppointmentRange>> professionalAppointmentRanges(
             @PathVariable long professionalId,

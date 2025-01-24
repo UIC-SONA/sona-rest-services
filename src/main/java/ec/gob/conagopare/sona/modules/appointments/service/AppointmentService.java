@@ -125,11 +125,19 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
         return doPage(search, pageable, params);
     }
 
+
     @Override
     public Page<Appointment> internalSearch(String search, Pageable pageable) {
         var additions = new AdditionsSearch<Appointment>();
         additions.addJoins(ATTENDANT_ATTRIBUTE, PROFESSIONAL_ATTRIBUTE);
         return JpaSmartSearch.search(entityManager, search, pageable, additions, getEntityClass());
+    }
+
+
+    @PreAuthorize("isAuthenticated()")
+    public List<Appointment> list(String search, MultiValueMap<String, String> filters) {
+        var unpaged = Pageable.unpaged();
+        return doPage(search, unpaged, filters).getContent();
     }
 
 
@@ -220,4 +228,5 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
     private static List<Long> mapAttendantsIds(Collection<Appointment> appointments) {
         return appointments.stream().map(Appointment::getAttendant).map(User::getId).distinct().toList();
     }
+
 }
