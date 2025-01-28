@@ -6,12 +6,16 @@ import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.dto.TopPostsDto;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.service.PostService;
+import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 @Getter
@@ -21,26 +25,6 @@ import org.springframework.web.bind.annotation.*;
 public class PostController implements CrudController<Post, PostDto, String, PostService> {
 
     private final PostService service;
-
-    @PostMapping("/{forumId}/comments")
-    public ResponseEntity<Post.Comment> createComment(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId,
-            @RequestBody NewComment newComment
-    ) {
-        var comment = service.commentPost(jwt, forumId, newComment);
-        return ResponseEntity.ok(comment);
-    }
-
-    @DeleteMapping("/{forumId}/comments/{commentId}")
-    public ResponseEntity<Message> deleteComment(
-            @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String forumId,
-            @PathVariable String commentId
-    ) {
-        service.deleteComment(jwt, forumId, commentId);
-        return ResponseEntity.ok(new Message("Comentario eliminado correctamente"));
-    }
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<Message> likePost(
@@ -68,6 +52,44 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
         service.reportPost(jwt, postId);
         return ResponseEntity.ok(new Message("Publicación reportada correctamente"));
     }
+
+    @GetMapping("/top")
+    public ResponseEntity<TopPostsDto> topPosts() {
+        return ResponseEntity.ok(service.topPosts());
+    }
+
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<Post.Comment> createComment(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String postId,
+            @RequestBody NewComment newComment
+    ) {
+        var comment = service.commentPost(jwt, postId, newComment);
+        return ResponseEntity.ok(comment);
+    }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<Page<Post.Comment>> pageComments(
+            @PathVariable(required = false) String postId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) MultiValueMap<String, String> filters,
+            Pageable pageable
+    ) {
+        var ignoreParams = SpringDataCrudAutoConfiguration.getIgnoreParams();
+        if (ignoreParams != null) ignoreParams.forEach(filters::remove);
+        return ResponseEntity.ok(service.pageComments(postId, search, pageable, filters));
+    }
+
+    @DeleteMapping("/{postId}/comments/{commentId}")
+    public ResponseEntity<Message> deleteComment(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String postId,
+            @PathVariable String commentId
+    ) {
+        service.deleteComment(jwt, postId, commentId);
+        return ResponseEntity.ok(new Message("Comentario eliminado correctamente"));
+    }
+
 
     @PostMapping("/{postId}/comments/{commentId}/like")
     public ResponseEntity<Message> likeComment(
@@ -97,10 +119,5 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
     ) {
         service.reportComment(jwt, postId, commentId);
         return ResponseEntity.ok(new Message("Comentario reportado correctamente"));
-    }
-
-    @GetMapping("/top")
-    public ResponseEntity<TopPostsDto> topPosts() {
-        return ResponseEntity.ok(service.topPosts());
     }
 }

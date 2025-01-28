@@ -8,6 +8,7 @@ import lombok.Data;
 public abstract class ByAuthor<T> {
 
     public static final String AUTHOR_FIELD = "author";
+    public static final String ANONYMOUS_FIELD = "anonymous";
 
     @JsonIgnore
     private T author;

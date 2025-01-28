@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.modules.forum.service;
 
+import ec.gob.conagopare.sona.application.common.schemas.CountResult;
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.dto.TopPostsDto;
@@ -20,10 +21,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -35,11 +38,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Slf4j
 @Service
@@ -47,7 +50,11 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @RequiredArgsConstructor
 public class PostService implements CrudService<Post, PostDto, String, PostRepository> {
 
-    private static final Set<Authority> PRIVILEGED_AUTHORITIES = Set.of(Authority.ADMIN, Authority.ADMINISTRATIVE);
+    private static final Set<Authority> PRIVILEGED_AUTHORITIES = Set.of(
+            Authority.ADMIN,
+            Authority.ADMINISTRATIVE
+    );
+
     public static final String COMMENT_ARRAY_FILTER = "comment";
     public static final String COMMENT_ID_FILTER = "comment._id";
 
@@ -79,13 +86,6 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         model.setAnonymous(isAnonymous);
     }
 
-    @PreAuthorize("isAuthenticated()")
-    public Page<Post> myLikedPosts(Jwt jwt, Pageable pageable) {
-        var user = userService.getUser(jwt);
-        var query = Query.query(where(Post.LIKED_BY_FIELD).is(user.getId()));
-        return paginatePost(pageable, query);
-    }
-
     @Override
     public void delete(String id) {
         var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -109,21 +109,21 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     public void deleteComment(Jwt jwt, String postId, String commentId) {
         var user = userService.getUser(jwt);
 
-        var criteria = where("id").is(postId);
+        var criteria = Criteria.where("id").is(postId);
 
         if (isPriviliged(user)) {
-            criteria.and(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId));
+            criteria.and(Post.COMMENTS_FIELD).elemMatch(Criteria.where("id").is(commentId));
         } else {
             criteria.andOperator(
                     new Criteria().orOperator(
-                            where(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
-                            where(ByAuthor.AUTHOR_FIELD).is(user.getId())
+                            Criteria.where(Post.COMMENTS_FIELD).elemMatch(Criteria.where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
+                            Criteria.where(ByAuthor.AUTHOR_FIELD).is(user.getId())
                     )
             );
         }
 
         var query = Query.query(criteria);
-        updatePost(query, update -> update.pull(Post.COMMENTS_FIELD, Query.query(where("id").is(commentId))));
+        updatePost(query, update -> update.pull(Post.COMMENTS_FIELD, Query.query(Criteria.where("id").is(commentId))));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -169,8 +169,8 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
     @Override
-    public Page<Post> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
-        var author = params.getFirst("author");
+    public Page<Post> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> filters) {
+        var author = filters.getFirst("author");
         if (author != null) {
             var authorId = Long.parseLong(author);
             return StringUtils.isBlank(search)
@@ -181,35 +181,25 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         throw ApiError.badRequest("Filtro no soportado");
     }
 
-    private Page<Post> paginatePost(Pageable pageable, Query query) {
-        var pagedQuery = Query.of(query).with(pageable);
-
-        return PageableExecutionUtils.getPage(
-                mongo.find(pagedQuery, Post.class),
-                pageable,
-                () -> mongo.count(query, Post.class)
-        );
-    }
-
 
     public void likeComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
                 .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
+                .filterArray(Criteria.where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
     public void unlikeComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
                 .pull(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
+                .filterArray(Criteria.where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
     public void reportComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
                 .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.REPORTED_BY_FIELD, user.getId())
-                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
+                .filterArray(Criteria.where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
@@ -225,11 +215,11 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
     private static Query isAuthor(String id, Long author) {
-        return Query.query(where("id").is(id).and(ByAuthor.AUTHOR_FIELD).is(author));
+        return Query.query(Criteria.where("id").is(id).and(ByAuthor.AUTHOR_FIELD).is(author));
     }
 
     private static Query isId(String id) {
-        return Query.query(where("id").is(id));
+        return Query.query(Criteria.where("id").is(id));
     }
 
 
@@ -274,7 +264,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         var aggregation = Aggregation.newAggregation(
                 Aggregation.project()
                         .andExpression("size(likedBy)").as("likesCount")
-                        .andInclude("content", "createdAt", "likedBy", "comments"),
+                        .andInclude(Post.CONTENT_FIELD, Post.CREATED_AT_FIELD, Post.LIKED_BY_FIELD, Post.COMMENTS_FIELD),
                 Aggregation.sort(Sort.Direction.DESC, "likesCount"),
                 Aggregation.limit(1)
         );
@@ -290,15 +280,89 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         Aggregation aggregation = Aggregation.newAggregation(
                 Aggregation.project()
                         .andExpression("size(comments)").as("commentsCount")
-                        .andInclude("content", "createdAt", "likedBy", "comments"),
+                        .andInclude(Post.CONTENT_FIELD, Post.CREATED_AT_FIELD, Post.LIKED_BY_FIELD, Post.COMMENTS_FIELD),
                 Aggregation.sort(Sort.Direction.DESC, "commentsCount"),
                 Aggregation.limit(1)
         );
 
-        var results = mongo.aggregate(
-                aggregation, "post", Post.class
-        );
+        var results = mongo.aggregate(aggregation, mongo.getCollectionName(Post.class), Post.class);
 
         return results.getUniqueMappedResult();
+    }
+
+    @PreAuthorize("hasAnyAuthority('admin', 'administrative')")
+    public Page<Comment> pageComments(String postId, String search, Pageable pageable, MultiValueMap<String, String> filters) {
+        // Crear el pipeline de agregación
+        var operations = new ArrayList<AggregationOperation>();
+
+        // Filtrar por publicación si se especifica
+        if (postId != null) {
+            operations.add(Aggregation.match(Criteria.where("id").is(postId)));
+        }
+
+        // Desenrollar los comentarios
+        operations.add(Aggregation.unwind("comments"));
+
+        // Proyectar los campos necesarios
+        operations.add(Aggregation.project()
+                .and("comments._id").as("id")
+                .and("comments.author").as(ByAuthor.AUTHOR_FIELD)
+                .and("comments.anonymous").as(ByAuthor.ANONYMOUS_FIELD)
+                .and("comments.content").as(Comment.CONTENT_FIELD)
+                .and("comments.createdAt").as(Comment.CREATED_AT_FIELD)
+                .and("comments.likedBy").as(Comment.LIKED_BY_FIELD)
+                .and("comments.reportedBy").as(Comment.REPORTED_BY_FIELD)
+        );
+
+        // Filtrar por autor si se especifica
+        var authorId = filters.getFirst("author");
+        if (authorId != null) {
+            operations.add(Aggregation.match(
+                    Criteria.where(ByAuthor.AUTHOR_FIELD).is(Long.parseLong(authorId))
+            ));
+        }
+
+        // Si hay búsqueda por texto, agregar filtro
+        var normalizedSearch = StringUtils.normalize(search);
+        if (normalizedSearch != null) {
+            operations.add(Aggregation.match(
+                    Criteria.where(Comment.CONTENT_FIELD).regex(search, "i")
+            ));
+        }
+
+        //agregamos el ordenamiento
+        if (pageable.getSort().isSorted()) {
+            operations.add(Aggregation.sort(pageable.getSort()));
+        }
+
+        var collectionName = mongo.getCollectionName(Post.class);
+
+        if (pageable.isUnpaged()) {
+            // Ejecutar agregación sin paginación
+            var aggregation = Aggregation.newAggregation(operations);
+            var results = mongo.aggregate(aggregation, collectionName, Comment.class);
+            return new PageImpl<>(results.getMappedResults());
+        }
+
+        // Agregar paginación
+        operations.add(Aggregation.skip((long) pageable.getPageNumber() * pageable.getPageSize()));
+        operations.add(Aggregation.limit(pageable.getPageSize()));
+
+        // Ejecutar agregación paginada
+        var aggregation = Aggregation.newAggregation(operations);
+        var results = mongo.aggregate(aggregation, collectionName, Comment.class);
+
+        // Crear agregación de conteo optimizada, eliminando la etapa de paginación
+        var countOperations = new ArrayList<>(operations.subList(0, operations.size() - 2));
+        countOperations.add(Aggregation.count().as("total"));
+        var countAggregation = Aggregation.newAggregation(countOperations);
+        var count = mongo.aggregate(countAggregation, collectionName, CountResult.class)
+                .getUniqueMappedResult();
+
+        return PageableExecutionUtils.getPage(
+                results.getMappedResults(),
+                pageable,
+                () -> count != null ? count.getTotal() : 0
+        );
     }
 }
