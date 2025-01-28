@@ -295,7 +295,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
 
         // Filtrar por publicación si se especifica
         if (postId != null) {
-            operations.add(Aggregation.match(Criteria.where("id").is(new ObjectId(postId))));
+            operations.add(Aggregation.match(Criteria.where("_id").is(new ObjectId(postId))));
         }
 
         // Desenrollar los comentarios
