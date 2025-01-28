@@ -91,7 +91,10 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         var user = userService.getUser(jwt);
         var query = isPriviliged(user) ? isId(id) : isAuthor(id, user.getId());
-        deletePost(query);
+        var result = mongo.remove(query, Post.class);
+        if (result.getDeletedCount() == 0) {
+            log.warn("No se encontró la publicación para eliminar");
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -156,12 +159,6 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         return returned;
     }
 
-    private void deletePost(Query query) {
-        var result = mongo.remove(query, Post.class);
-        if (result.getDeletedCount() == 0) {
-            log.warn("No se encontró la publicación para eliminar");
-        }
-    }
 
     @Override
     public Page<Post> internalSearch(String search, Pageable pageable) {
@@ -315,7 +312,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         );
 
         // Filtrar por autor si se especifica
-        var authorId = filters.getFirst("author");
+        var authorId = filters.getFirst("authorId");
         if (authorId != null) {
             operations.add(Aggregation.match(
                     Criteria.where(ByAuthor.AUTHOR_FIELD).is(Long.parseLong(authorId))
