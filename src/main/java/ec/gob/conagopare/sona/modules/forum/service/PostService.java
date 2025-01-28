@@ -33,7 +33,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -43,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 
 @Slf4j
@@ -113,21 +114,21 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     public void deleteComment(Jwt jwt, String postId, String commentId) {
         var user = userService.getUser(jwt);
 
-        var criteria = Criteria.where("id").is(postId);
+        var criteria = where("id").is(postId);
 
         if (isPriviliged(user)) {
-            criteria.and(Post.COMMENTS_FIELD).elemMatch(Criteria.where("id").is(commentId));
+            criteria.and(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId));
         } else {
             criteria.andOperator(
                     new Criteria().orOperator(
-                            Criteria.where(Post.COMMENTS_FIELD).elemMatch(Criteria.where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
-                            Criteria.where(ByAuthor.AUTHOR_FIELD).is(user.getId())
+                            where(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
+                            where(ByAuthor.AUTHOR_FIELD).is(user.getId())
                     )
             );
         }
 
         var query = Query.query(criteria);
-        updatePost(query, update -> update.pull(Post.COMMENTS_FIELD, Query.query(Criteria.where("id").is(commentId))));
+        updatePost(query, update -> update.pull(Post.COMMENTS_FIELD, Query.query(where("id").is(commentId))));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -183,21 +184,21 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     public void likeComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
                 .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(Criteria.where(COMMENT_ID_FILTER).is(commentId))
+                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
     public void unlikeComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
                 .pull(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
-                .filterArray(Criteria.where(COMMENT_ID_FILTER).is(commentId))
+                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
     public void reportComment(Jwt jwt, String forumId, String commentId) {
         updatePost(jwt, isId(forumId), (update, user) -> update
                 .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.REPORTED_BY_FIELD, user.getId())
-                .filterArray(Criteria.where(COMMENT_ID_FILTER).is(commentId))
+                .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
@@ -213,11 +214,11 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
     private static Query isAuthor(String id, Long author) {
-        return Query.query(Criteria.where("id").is(id).and(ByAuthor.AUTHOR_FIELD).is(author));
+        return Query.query(where("_id").is(new ObjectId(id)).and(ByAuthor.AUTHOR_FIELD).is(author));
     }
 
     private static Query isId(String id) {
-        return Query.query(Criteria.where("id").is(id));
+        return Query.query(where("_id").is(new ObjectId(id)));
     }
 
 
@@ -295,7 +296,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
 
         // Filtrar por publicación si se especifica
         if (postId != null) {
-            operations.add(Aggregation.match(Criteria.where("_id").is(new ObjectId(postId))));
+            operations.add(Aggregation.match(where("_id").is(new ObjectId(postId))));
         }
 
         // Desenrollar los comentarios
@@ -316,7 +317,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         var authorId = filters.getFirst("authorId");
         if (authorId != null) {
             operations.add(Aggregation.match(
-                    Criteria.where(ByAuthor.AUTHOR_FIELD).is(Long.parseLong(authorId))
+                    where(ByAuthor.AUTHOR_FIELD).is(Long.parseLong(authorId))
             ));
         }
 
@@ -324,7 +325,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         var normalizedSearch = StringUtils.normalize(search);
         if (normalizedSearch != null) {
             operations.add(Aggregation.match(
-                    Criteria.where(Comment.CONTENT_FIELD).regex(search, "i")
+                    where(Comment.CONTENT_FIELD).regex(search, "i")
             ));
         }
 
