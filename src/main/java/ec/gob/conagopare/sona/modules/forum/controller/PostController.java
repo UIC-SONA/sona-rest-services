@@ -13,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,28 +26,25 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<Message> likePost(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId
     ) {
-        service.likePost(jwt, postId);
+        service.likePost(postId);
         return ResponseEntity.ok(new Message("Publicación marcada como favorita"));
     }
 
     @PostMapping("/{postId}/unlike")
     public ResponseEntity<Message> unlikePost(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId
     ) {
-        service.unlikePost(jwt, postId);
+        service.unlikePost(postId);
         return ResponseEntity.ok(new Message("Publicación desmarcada como favorita"));
     }
 
     @PostMapping("/{postId}/report")
     public ResponseEntity<Message> reportPost(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId
     ) {
-        service.reportPost(jwt, postId);
+        service.reportPost(postId);
         return ResponseEntity.ok(new Message("Publicación reportada correctamente"));
     }
 
@@ -60,11 +55,10 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<Post.Comment> createComment(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId,
             @RequestBody NewComment newComment
     ) {
-        var comment = service.commentPost(jwt, postId, newComment);
+        var comment = service.commentPost(postId, newComment);
         return ResponseEntity.ok(comment);
     }
 
@@ -82,42 +76,38 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
 
     @DeleteMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<Message> deleteComment(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        service.deleteComment(jwt, postId, commentId);
+        service.deleteComment(postId, commentId);
         return ResponseEntity.ok(new Message("Comentario eliminado correctamente"));
     }
 
 
     @PostMapping("/{postId}/comments/{commentId}/like")
     public ResponseEntity<Message> likeComment(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        service.likeComment(jwt, postId, commentId);
+        service.likeComment(postId, commentId);
         return ResponseEntity.ok(new Message("Comentario marcado como favorito"));
     }
 
     @PostMapping("/{postId}/comments/{commentId}/unlike")
     public ResponseEntity<Message> unlikeComment(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        service.unlikeComment(jwt, postId, commentId);
+        service.unlikeComment(postId, commentId);
         return ResponseEntity.ok(new Message("Comentario desmarcado como favorito"));
     }
 
     @PostMapping("/{postId}/comments/{commentId}/report")
     public ResponseEntity<Message> reportComment(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        service.reportComment(jwt, postId, commentId);
+        service.reportComment(postId, commentId);
         return ResponseEntity.ok(new Message("Comentario reportado correctamente"));
     }
 }

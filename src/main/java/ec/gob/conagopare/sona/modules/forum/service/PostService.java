@@ -33,7 +33,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
@@ -100,8 +99,8 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
     @PreAuthorize("isAuthenticated()")
-    public Comment commentPost(Jwt jwt, String postId, NewComment newComment) {
-        return updatePost(jwt, isId(postId), (update, user) -> {
+    public Comment commentPost(String postId, NewComment newComment) {
+        return updatePost(isId(postId), (update, user) -> {
             var content = newComment.getContent();
             var anonymous = solveAnonymous(user, newComment.getAnonymous());
             var comment = Post.newComment(content, user.getId(), anonymous);
@@ -111,10 +110,10 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void deleteComment(Jwt jwt, String postId, String commentId) {
-        var user = userService.getUser(jwt);
+    public void deleteComment(String postId, String commentId) {
+        var user = userService.getCurrentUser();
 
-        var criteria = where("id").is(postId);
+        var criteria = where("_id").is(new ObjectId(postId));
 
         if (isPriviliged(user)) {
             criteria.and(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId));
@@ -132,22 +131,22 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void likePost(Jwt jwt, String postId) {
-        updatePost(jwt, isId(postId), (update, user) -> update.addToSet(Post.LIKED_BY_FIELD, user.getId()));
+    public void likePost(String postId) {
+        updatePost(isId(postId), (update, user) -> update.addToSet(Post.LIKED_BY_FIELD, user.getId()));
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void unlikePost(Jwt jwt, String postId) {
-        updatePost(jwt, isId(postId), (update, user) -> update.pull(Post.LIKED_BY_FIELD, user.getId()));
+    public void unlikePost(String postId) {
+        updatePost(isId(postId), (update, user) -> update.pull(Post.LIKED_BY_FIELD, user.getId()));
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void reportPost(Jwt jwt, String postId) {
-        updatePost(jwt, isId(postId), (update, user) -> update.addToSet("reportedBy", user.getId()));
+    public void reportPost(String postId) {
+        updatePost(isId(postId), (update, user) -> update.addToSet(Post.REPORTED_BY_FIELD, user.getId()));
     }
 
-    private <T> T updatePost(Jwt jwt, Query query, BiFunction<Update, User, T> updater) {
-        var user = userService.getUser(jwt);
+    private <T> T updatePost(Query query, BiFunction<Update, User, T> updater) {
+        var user = userService.getCurrentUser();
         return updatePost(query, update -> updater.apply(update, user));
     }
 
@@ -181,22 +180,22 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
     }
 
 
-    public void likeComment(Jwt jwt, String forumId, String commentId) {
-        updatePost(jwt, isId(forumId), (update, user) -> update
+    public void likeComment(String forumId, String commentId) {
+        updatePost(isId(forumId), (update, user) -> update
                 .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
                 .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
-    public void unlikeComment(Jwt jwt, String forumId, String commentId) {
-        updatePost(jwt, isId(forumId), (update, user) -> update
+    public void unlikeComment(String forumId, String commentId) {
+        updatePost(isId(forumId), (update, user) -> update
                 .pull(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.LIKED_BY_FIELD, user.getId())
                 .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
     }
 
-    public void reportComment(Jwt jwt, String forumId, String commentId) {
-        updatePost(jwt, isId(forumId), (update, user) -> update
+    public void reportComment(String forumId, String commentId) {
+        updatePost(isId(forumId), (update, user) -> update
                 .addToSet(Post.COMMENTS_FIELD + ".$[" + COMMENT_ARRAY_FILTER + "]." + Post.Comment.REPORTED_BY_FIELD, user.getId())
                 .filterArray(where(COMMENT_ID_FILTER).is(commentId))
         );
@@ -351,19 +350,12 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         var aggregation = Aggregation.newAggregation(operations);
         var results = mongo.aggregate(aggregation, collectionName, Comment.class);
 
-        log.info("Size results: {}", results.getMappedResults().size());
-
         // Crear agregación de conteo optimizada, eliminando la etapa de paginación
         var countOperations = new ArrayList<>(operations.subList(0, operations.size() - 2));
         countOperations.add(Aggregation.count().as("total"));
         var countAggregation = Aggregation.newAggregation(countOperations);
         var countResult = mongo.aggregate(countAggregation, collectionName, CountResult.class);
         var count = countResult.getUniqueMappedResult();
-
-        if (count != null) {
-            log.info("Total count: {}", count.getTotal());
-        }
-
 
         return PageableExecutionUtils.getPage(
                 results.getMappedResults(),
