@@ -349,12 +349,19 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         var aggregation = Aggregation.newAggregation(operations);
         var results = mongo.aggregate(aggregation, collectionName, Comment.class);
 
+        log.info("Size results: {}", results.getMappedResults().size());
+
         // Crear agregación de conteo optimizada, eliminando la etapa de paginación
         var countOperations = new ArrayList<>(operations.subList(0, operations.size() - 2));
         countOperations.add(Aggregation.count().as("total"));
         var countAggregation = Aggregation.newAggregation(countOperations);
-        var count = mongo.aggregate(countAggregation, collectionName, CountResult.class)
-                .getUniqueMappedResult();
+        var countResult = mongo.aggregate(countAggregation, collectionName, CountResult.class);
+        var count = countResult.getUniqueMappedResult();
+
+        if (count != null) {
+            log.info("Total count: {}", count.getTotal());
+        }
+
 
         return PageableExecutionUtils.getPage(
                 results.getMappedResults(),
