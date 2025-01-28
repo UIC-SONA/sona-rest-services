@@ -287,7 +287,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         return results.getUniqueMappedResult();
     }
 
-    @PreAuthorize("hasAnyAuthority('admin', 'administrative')")
+    @PreAuthorize("hasAnyRole('admin', 'administrative')")
     public Page<Comment> pageComments(String postId, String search, Pageable pageable, MultiValueMap<String, String> filters) {
         // Crear el pipeline de agregación
         var operations = new ArrayList<AggregationOperation>();
