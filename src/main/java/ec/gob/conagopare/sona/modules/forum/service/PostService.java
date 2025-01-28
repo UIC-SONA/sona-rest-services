@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -88,12 +89,12 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
 
     @Override
     public void delete(String id) {
-        var jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var user = userService.getUser(jwt);
-        var query = isPriviliged(user) ? isId(id) : isAuthor(id, user.getId());
+        var user = userService.getCurrentUser();
+        var isPriviliged = isPriviliged(user);
+        var query = isPriviliged ? isId(id) : isAuthor(id, user.getId());
         var result = mongo.remove(query, Post.class);
         if (result.getDeletedCount() == 0) {
-            log.warn("No se encontró la publicación para eliminar");
+            throw isPriviliged ? ApiError.notFound("Publicación no encontrada") : ApiError.forbidden("No tienes permisos para eliminar esta publicación");
         }
     }
 
@@ -294,7 +295,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
 
         // Filtrar por publicación si se especifica
         if (postId != null) {
-            operations.add(Aggregation.match(Criteria.where("id").is(postId)));
+            operations.add(Aggregation.match(Criteria.where("id").is(new ObjectId(postId))));
         }
 
         // Desenrollar los comentarios
