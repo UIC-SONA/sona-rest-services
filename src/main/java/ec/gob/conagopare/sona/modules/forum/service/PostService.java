@@ -304,7 +304,7 @@ public class PostService implements CrudService<Post, PostDto, String, PostRepos
         // Proyectar los campos necesarios
         operations.add(Aggregation.project()
                 .andExclude("_id")
-                .and("comments._id").as("id")
+                .and("comments._id").as("_id")
                 .and("comments.author").as(ByAuthor.AUTHOR_FIELD)
                 .and("comments.anonymous").as(ByAuthor.ANONYMOUS_FIELD)
                 .and("comments.content").as(Comment.CONTENT_FIELD)
