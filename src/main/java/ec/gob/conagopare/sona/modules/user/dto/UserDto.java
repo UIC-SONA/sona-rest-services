@@ -1,8 +1,7 @@
 package ec.gob.conagopare.sona.modules.user.dto;
 
+import ec.gob.conagopare.sona.application.common.validations.SonaPassword;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
-import io.github.luidmidev.jakarta.validations.Password;
-import io.github.luidmidev.jakarta.validations.utils.DefaultPasswordRules;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,6 +18,6 @@ public class UserDto extends BaseUser {
     @NotNull
     private Set<Authority> authoritiesToRemove;
 
-    @Password(value = DefaultPasswordRules.class, message = "La contraseña es insegura")
+    @SonaPassword
     private String password;
 }

@@ -4,6 +4,7 @@ import ec.gob.conagopare.sona.application.common.utils.CollectionsUtils;
 import ec.gob.conagopare.sona.application.common.utils.functions.FunctionThrowable;
 import ec.gob.conagopare.sona.application.common.utils.FileUtils;
 import ec.gob.conagopare.sona.application.common.utils.StorageUtils;
+import ec.gob.conagopare.sona.application.common.validations.SonaPassword;
 import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
 import ec.gob.conagopare.sona.modules.user.UserConfig;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
@@ -13,8 +14,6 @@ import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import io.github.luidmidev.jakarta.validations.Image;
-import io.github.luidmidev.jakarta.validations.Password;
-import io.github.luidmidev.jakarta.validations.utils.DefaultPasswordRules;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
@@ -263,10 +262,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void changePassword(
-            Jwt jwt,
-            @Password(value = DefaultPasswordRules.class, message = "La contraseña es insegura") String newPassword
-    ) {
+    public void changePassword(Jwt jwt, @SonaPassword String newPassword) {
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
     }
 
