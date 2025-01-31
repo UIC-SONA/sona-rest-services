@@ -59,4 +59,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long>,
             """)
     List<Appointment> getAppointmentsByDate(@Param("date") LocalDate date);
 
+    @Query("SELECT COUNT(a) FROM Appointment a " +
+            "WHERE (a.attendant.id = :userId) " +
+            "AND a.canceled = false " +
+            "AND (a.date > :currentDate OR " +
+            "(a.date = :currentDate AND a.hour >= :currentHour))")
+    long countFutureAppointments(
+            @Param("userId") Long userId,
+            @Param("currentDate") LocalDate currentDate,
+            @Param("currentHour") Integer currentHour
+    );
 }

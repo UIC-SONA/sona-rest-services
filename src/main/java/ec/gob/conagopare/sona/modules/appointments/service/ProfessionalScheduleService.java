@@ -25,6 +25,8 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static ec.gob.conagopare.sona.application.Constans.ECUADOR_ZONE;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,7 +34,6 @@ import java.util.List;
 public class ProfessionalScheduleService implements JpaCrudService<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleRepository> {
 
     private static final int MAX_DAYS_RANGE = 365;
-    private static final ZoneId ECUADOR_ZONE = ZoneId.of("America/Guayaquil");
 
     private final ProfessionalScheduleRepository repository;
     private final EntityManager entityManager;

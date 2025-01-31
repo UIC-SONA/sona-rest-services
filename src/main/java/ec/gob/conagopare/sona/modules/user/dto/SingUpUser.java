@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
 public class SingUpUser extends BaseUser {
 
     @NotNull
-    @Password(DefaultPasswordRules.class)
+    @Password(value = DefaultPasswordRules.class, message = "La contraseña es insegura")
     private String password;
 
 }

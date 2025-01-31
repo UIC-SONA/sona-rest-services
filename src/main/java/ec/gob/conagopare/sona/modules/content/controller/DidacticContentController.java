@@ -4,7 +4,7 @@ import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.content.dto.DidacticContentDto;
 import ec.gob.conagopare.sona.modules.content.models.DidacticContent;
 import ec.gob.conagopare.sona.modules.content.services.DidacticContentService;
-import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ReadController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;

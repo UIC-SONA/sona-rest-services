@@ -19,6 +19,6 @@ public class UserDto extends BaseUser {
     @NotNull
     private Set<Authority> authoritiesToRemove;
 
-    @Password(DefaultPasswordRules.class)
+    @Password(value = DefaultPasswordRules.class, message = "La contraseña es insegura")
     private String password;
 }

@@ -7,7 +7,7 @@ import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import ec.gob.conagopare.sona.modules.user.dto.KeycloakUserSync;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
-import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.CrudController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;

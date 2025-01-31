@@ -263,7 +263,10 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     @PreAuthorize("isAuthenticated()")
-    public void changePassword(Jwt jwt, @Password(DefaultPasswordRules.class) String newPassword) {
+    public void changePassword(
+            Jwt jwt,
+            @Password(value = DefaultPasswordRules.class, message = "La contraseña es insegura") String newPassword
+    ) {
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
     }
 

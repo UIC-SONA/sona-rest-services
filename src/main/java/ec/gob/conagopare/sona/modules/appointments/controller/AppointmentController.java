@@ -7,7 +7,7 @@ import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
-import io.github.luidmidev.springframework.data.crud.core.controllers.ReadController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ReadController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

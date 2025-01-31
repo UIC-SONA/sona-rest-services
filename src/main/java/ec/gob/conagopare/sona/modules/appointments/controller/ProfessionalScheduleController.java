@@ -4,7 +4,7 @@ import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalScheduleDto;
 import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalSchedulesDto;
 import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
 import ec.gob.conagopare.sona.modules.appointments.service.ProfessionalScheduleService;
-import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.CrudController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;

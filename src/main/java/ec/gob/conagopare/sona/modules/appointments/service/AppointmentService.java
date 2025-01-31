@@ -31,10 +31,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static ec.gob.conagopare.sona.application.Constans.ECUADOR_ZONE;
 import static ec.gob.conagopare.sona.modules.appointments.models.Appointment.ATTENDANT_ATTRIBUTE;
 import static ec.gob.conagopare.sona.modules.appointments.models.Appointment.PROFESSIONAL_ATTRIBUTE;
 import static ec.gob.conagopare.sona.modules.user.models.User.KEYCLOAK_ID_ATTRIBUTE;
@@ -66,11 +68,11 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
         var date = newAppointment.getDate();
         var hour = newAppointment.getHour();
 
+
         if (repository.existsAppointmentAtHour(profesionalId, date, hour)) {
             throw ApiError.badRequest("Ya existe una cita programada a esa hora");
         }
 
-        log.info("Reservando cita para el profesional {} en la fecha {} y hora {} por el usuario {}", profesionalId, date, hour, jwt.getSubject());
         if (!repository.isWithinProfessionalSchedule(profesionalId, date, hour)) {
             throw ApiError.badRequest("La hora de la cita que intenta programar no está dentro del horario de atención del profesional");
         }
@@ -81,10 +83,15 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
             throw ApiError.badRequest("El usuario, no puede tener citas programadas");
         }
 
+        var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
+        if (repository.countFutureAppointments(user.getId(), nowInEcuador.toLocalDate(), nowInEcuador.getHour()) >= 2) {
+            throw ApiError.badRequest("No puede tener más de dos a futuro activas, si requiere de agender una cita pruebe cancelando una de las activas");
+        }
+
         var profesional = userService.find(profesionalId);
 
         if (!profesional.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
-            throw ApiError.badRequest("El usuario no es un profesional, no puede tener citas programadas");
+            throw ApiError.badRequest("El usuario seleccionado no es un profesional, no puede tener citas programadas");
         }
 
         var appointment = Appointment.builder()

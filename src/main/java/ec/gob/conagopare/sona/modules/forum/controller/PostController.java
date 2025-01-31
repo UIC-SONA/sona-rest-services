@@ -7,7 +7,7 @@ import ec.gob.conagopare.sona.modules.forum.dto.TopPostsDto;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
-import io.github.luidmidev.springframework.data.crud.core.controllers.CrudController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.CrudController;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
