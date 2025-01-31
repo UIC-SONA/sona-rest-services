@@ -11,7 +11,7 @@ import ec.gob.conagopare.sona.modules.forum.repository.PostRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
-import io.github.luidmidev.springframework.data.crud.core.services.CrudService;
+import io.github.luidmidev.springframework.data.crud.core.services.StandardCrudService;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
@@ -49,7 +49,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @Service
 @Getter
 @RequiredArgsConstructor
-public class PostService implements CrudService<Post, PostDto, String, PostRepository> {
+public class PostService implements StandardCrudService<Post, PostDto, String, PostRepository> {
 
     private static final Set<Authority> PRIVILEGED_AUTHORITIES = Set.of(
             Authority.ADMIN,
