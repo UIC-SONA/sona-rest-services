@@ -48,7 +48,7 @@ public class WebSecurityConfig {
         return http
                 .csrf(CsrfConfigurer::disable)
                 .headers(header -> header
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                 )
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest()
