@@ -5,7 +5,9 @@ import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.content.dto.TipDto;
 import ec.gob.conagopare.sona.modules.content.models.Tip;
 import ec.gob.conagopare.sona.modules.content.services.TipService;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ExportController;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.ReadController;
+import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,9 +27,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/content/tips")
 @RequiredArgsConstructor
-public class TipController implements ReadController<Tip, UUID, TipService> {
+public class TipController implements ReadController<Tip, UUID, TipService>, ExportController<UUID, TipService> {
 
     private final TipService service;
+    private final SpreadSheetExporter exporter;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Tip> create(
