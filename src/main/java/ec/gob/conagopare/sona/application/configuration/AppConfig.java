@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.application.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import io.github.luidmidev.jakarta.validations.utils.LocaleContext;
@@ -65,8 +66,8 @@ public class AppConfig {
     }
 
     @Bean
-    public SpreadSheetExporter spreadSheetExporter() {
-        return new SpreadSheetExporter();
+    public SpreadSheetExporter spreadSheetExporter(ObjectMapper mapper) {
+        return new SpreadSheetExporter(mapper);
     }
 
     /**
