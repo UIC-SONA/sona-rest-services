@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.forum.service;
 
-import ec.gob.conagopare.sona.application.common.schemas.CountResult;
+import ec.gob.conagopare.sona.application.common.utils.MongoUtils;
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
 import ec.gob.conagopare.sona.modules.forum.dto.TopPostsDto;
@@ -22,18 +22,18 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.time.Instant;
@@ -49,6 +49,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @Service
 @Getter
 @RequiredArgsConstructor
+@SuppressWarnings("java:S1192")
 public class PostService implements StandardCrudService<Post, PostDto, String, PostRepository> {
 
     private static final Set<Authority> PRIVILEGED_AUTHORITIES = Set.of(
@@ -160,23 +161,41 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         return returned;
     }
 
+    @Override
+    public Page<Post> internalPage(Pageable pageable) {
+        return internalSearch(null, pageable);
+    }
 
     @Override
     public Page<Post> internalSearch(String search, Pageable pageable) {
-        return repository.findAllByContentContainingIgnoreCase(search, pageable);
+        return internalSearch(search, pageable, new LinkedMultiValueMap<>());
     }
 
     @Override
     public Page<Post> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> filters) {
-        var author = filters.getFirst("author");
-        if (author != null) {
-            var authorId = Long.parseLong(author);
-            return StringUtils.isBlank(search)
-                    ? repository.findAllByAuthor(authorId, pageable)
-                    : repository.findAllByAuthorAndContentContainingIgnoreCase(authorId, search, pageable);
+        var operations = new ArrayList<AggregationOperation>();
+
+        operations.add(
+                projectPost()
+                        .andExpression("size(likedBy)").as("likesCount")
+                        .andExpression("size(comments)").as("commentsCount")
+        );
+
+        var or = new ArrayList<Criteria>();
+
+        if (!StringUtils.isBlank(search)) {
+            or.add(where(Post.CONTENT_FIELD).regex(search, "i"));
         }
 
-        throw ApiError.badRequest("Filtro no soportado");
+        var author = filters.getFirst("author");
+        if (author != null) {
+            or.add(where(ByAuthor.AUTHOR_FIELD).is(Long.parseLong(author)));
+        }
+
+        if (!or.isEmpty()) {
+            operations.add(Aggregation.match(new Criteria().orOperator(or)));
+        }
+        return MongoUtils.getPage(mongo, pageable, operations, Post.class);
     }
 
 
@@ -252,7 +271,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
 
     @PreAuthorize("isAuthenticated()")
     public TopPostsDto topPosts() {
-        TopPostsDto dto = new TopPostsDto();
+        var dto = new TopPostsDto();
         dto.setMostLikedPost(mostLiked());
         dto.setMostCommentedPost(mostCommented());
         return dto;
@@ -260,25 +279,21 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
 
     private Post mostLiked() {
         var aggregation = Aggregation.newAggregation(
-                Aggregation.project()
-                        .andExpression("size(likedBy)").as("likesCount")
-                        .andInclude(Post.CONTENT_FIELD, Post.CREATED_AT_FIELD, Post.LIKED_BY_FIELD, Post.COMMENTS_FIELD),
+                projectPost()
+                        .andExpression("size(likedBy)").as("likesCount"),
                 Aggregation.sort(Sort.Direction.DESC, "likesCount"),
                 Aggregation.limit(1)
         );
 
-        var results = mongo.aggregate(
-                aggregation, "post", Post.class
-        );
+        var results = mongo.aggregate(aggregation, "post", Post.class);
 
         return results.getUniqueMappedResult();
     }
 
     private Post mostCommented() {
         Aggregation aggregation = Aggregation.newAggregation(
-                Aggregation.project()
-                        .andExpression("size(comments)").as("commentsCount")
-                        .andInclude(Post.CONTENT_FIELD, Post.CREATED_AT_FIELD, Post.LIKED_BY_FIELD, Post.COMMENTS_FIELD),
+                projectPost()
+                        .andExpression("size(comments)").as("commentsCount"),
                 Aggregation.sort(Sort.Direction.DESC, "commentsCount"),
                 Aggregation.limit(1)
         );
@@ -311,6 +326,8 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
                 .and("comments.createdAt").as(Comment.CREATED_AT_FIELD)
                 .and("comments.likedBy").as(Comment.LIKED_BY_FIELD)
                 .and("comments.reportedBy").as(Comment.REPORTED_BY_FIELD)
+                .andExpression("size(comments.likedBy)").as("likesCount")
+                .andExpression("size(comments.reportedBy)").as("reportsCount")
         );
 
         // Filtrar por autor si se especifica
@@ -329,39 +346,20 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
             ));
         }
 
-        //agregamos el ordenamiento
-        if (pageable.getSort().isSorted()) {
-            operations.add(Aggregation.sort(pageable.getSort()));
-        }
-
         var collectionName = mongo.getCollectionName(Post.class);
 
-        if (pageable.isUnpaged()) {
-            // Ejecutar agregación sin paginación
-            var aggregation = Aggregation.newAggregation(operations);
-            var results = mongo.aggregate(aggregation, collectionName, Comment.class);
-            return new PageImpl<>(results.getMappedResults());
-        }
+        //agregamos el ordenamiento
+        return MongoUtils.getPage(mongo, pageable, operations, collectionName, Comment.class);
+    }
 
-        // Agregar paginación
-        operations.add(Aggregation.skip((long) pageable.getPageNumber() * pageable.getPageSize()));
-        operations.add(Aggregation.limit(pageable.getPageSize()));
 
-        // Ejecutar agregación paginada
-        var aggregation = Aggregation.newAggregation(operations);
-        var results = mongo.aggregate(aggregation, collectionName, Comment.class);
-
-        // Crear agregación de conteo optimizada, eliminando la etapa de paginación
-        var countOperations = new ArrayList<>(operations.subList(0, operations.size() - 2));
-        countOperations.add(Aggregation.count().as("total"));
-        var countAggregation = Aggregation.newAggregation(countOperations);
-        var countResult = mongo.aggregate(countAggregation, collectionName, CountResult.class);
-        var count = countResult.getUniqueMappedResult();
-
-        return PageableExecutionUtils.getPage(
-                results.getMappedResults(),
-                pageable,
-                () -> count != null ? count.getTotal() : 0
+    private static ProjectionOperation projectPost() {
+        return Aggregation.project().andInclude(
+                Post.CONTENT_FIELD,
+                Post.CREATED_AT_FIELD,
+                Post.LIKED_BY_FIELD,
+                Post.COMMENTS_FIELD
         );
     }
+
 }
