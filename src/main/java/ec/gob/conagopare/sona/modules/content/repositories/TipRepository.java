@@ -36,7 +36,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
             "FROM Tip t " +
             "LEFT JOIN TipRate tr ON tr.tip = t " +
             "WHERE t.id = :tipId " +
-            "GROUP BY t.id")
+            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate")
     Optional<Map<String, Object>> findByIdMapWithRates(
             @Param("tipId") UUID id,
             @Param("userId") Long userId
@@ -61,7 +61,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
             "FROM Tip t " +
             "LEFT JOIN TipRate tr ON tr.tip = t " +
             "WHERE (:active IS NULL OR t.active = :active) " +
-            "GROUP BY t.id")
+            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate")
     Page<Map<String, Object>> findAllMapWithRatings(
             @Param("userId") Long userId,
             @Param("active") Boolean active,
@@ -92,7 +92,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
             "    OR LOWER(t.summary) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "    OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "    OR LOWER(tag) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-            "GROUP BY t.id")
+            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate")
     Page<Map<String, Object>> searchAllMapWithRatings(
             @Param("search") String search,
             @Param("userId") Long userId,
@@ -118,7 +118,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
             ") " +
             "FROM Tip t " +
             "LEFT JOIN TipRate tr ON tr.tip = t " +
-            "GROUP BY t.id " +
+            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate " +
             "ORDER BY AVG(tr.value) DESC " +
             "LIMIT :limit")
     List<Map<String, Object>> findTopRating(int limit);
