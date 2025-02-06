@@ -360,7 +360,9 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
                 Post.COMMENTS_FIELD,
                 Post.LIKED_BY_FIELD,
                 Post.REPORTED_BY_FIELD,
-                Post.CREATED_AT_FIELD
+                Post.CREATED_AT_FIELD,
+                ByAuthor.AUTHOR_FIELD,
+                ByAuthor.ANONYMOUS_FIELD
         );
     }
 
