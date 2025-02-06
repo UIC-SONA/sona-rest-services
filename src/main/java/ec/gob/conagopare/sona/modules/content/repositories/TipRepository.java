@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface TipRepository extends JpaRepository<Tip, UUID> {
 
     @Query("SELECT new ec.gob.conagopare.sona.modules.content.models.Tip(" +
-            "t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
+            "t.id, t.createdBy, t.createdDate,t.lastModifiedBy, t.lastModifiedDate, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
             "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
             "COUNT(tr) as totalRate) " +
@@ -29,7 +29,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
     );
 
     @Query("SELECT new ec.gob.conagopare.sona.modules.content.models.Tip(" +
-            "t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
+            "t.id, t.createdBy, t.createdDate,t.lastModifiedBy, t.lastModifiedDate, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
             "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
             "COUNT(tr) as totalRate) " +
@@ -44,7 +44,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
     );
 
     @Query("SELECT new ec.gob.conagopare.sona.modules.content.models.Tip(" +
-            "t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
+            "t.id, t.createdBy, t.createdDate,t.lastModifiedBy, t.lastModifiedDate, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
             "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
             "COUNT(tr) as totalRate) " +
@@ -65,7 +65,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
     );
 
     @Query("SELECT new ec.gob.conagopare.sona.modules.content.models.Tip(" +
-            "t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
+            "t.id, t.createdBy, t.createdDate,t.lastModifiedBy, t.lastModifiedDate, t.title, t.summary, t.description, t.tags, t.image, t.active, " +
             "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
             "COUNT(tr) as totalRate) " +
