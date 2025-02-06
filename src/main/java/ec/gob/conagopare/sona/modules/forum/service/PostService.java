@@ -175,11 +175,10 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
     public Page<Post> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> filters) {
         var operations = new ArrayList<AggregationOperation>();
 
-        operations.add(
-                projectPost()
-                        .andExpression("size(likedBy)").as("likesCount")
-                        .andExpression("size(comments)").as("commentsCount")
-                        .andExpression("size(reportedBy)").as("reportsCount")
+        operations.add(projection()
+                .andExpression("size(likedBy)").as("likesCount")
+                .andExpression("size(comments)").as("commentsCount")
+                .andExpression("size(reportedBy)").as("reportsCount")
         );
 
         var or = new ArrayList<Criteria>();
@@ -280,7 +279,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
 
     private Post mostLiked() {
         var aggregation = Aggregation.newAggregation(
-                projectPost()
+                projection()
                         .andExpression("size(likedBy)").as("likesCount"),
                 Aggregation.sort(Sort.Direction.DESC, "likesCount"),
                 Aggregation.limit(1)
@@ -293,7 +292,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
 
     private Post mostCommented() {
         Aggregation aggregation = Aggregation.newAggregation(
-                projectPost()
+                projection()
                         .andExpression("size(comments)").as("commentsCount"),
                 Aggregation.sort(Sort.Direction.DESC, "commentsCount"),
                 Aggregation.limit(1)
@@ -354,7 +353,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
     }
 
 
-    private static ProjectionOperation projectPost() {
+    private static ProjectionOperation projection() {
         return Aggregation.project().andInclude(
                 Post.CONTENT_FIELD,
                 Post.COMMENTS_FIELD,

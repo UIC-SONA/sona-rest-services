@@ -1,6 +1,7 @@
 package ec.gob.conagopare.sona.application.errors;
 
 
+import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.web.problemdetails.DefaultProblemDetailsExceptionHandler;
 import io.github.luidmidev.springframework.web.problemdetails.schemas.FieldMessage;
 import jakarta.validation.ConstraintViolationException;
@@ -14,8 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @ControllerAdvice
@@ -26,6 +26,12 @@ public class GlobalExceptionHandler extends DefaultProblemDetailsExceptionHandle
         var defaultDetail = "SQL Integrity Constraint Violation Exception.";
         log.warn("Se recibió una excepción de SQLIntegrityConstraintViolationException, se recomienda revisar la integridad de los datos, la excepción es: {}", ex.getMessage());
         return createDefaultResponseEntity(ex, new HttpHeaders(), INTERNAL_SERVER_ERROR, defaultDetail, null, null, request);
+    }
+
+    @ExceptionHandler(NotFoundEntityException.class)
+    public ResponseEntity<Object> handleNotFoundEntityException(NotFoundEntityException ex, WebRequest request) {
+        var defaultDetail = "No encontrado.";
+        return createDefaultResponseEntity(ex, new HttpHeaders(), NOT_FOUND, defaultDetail, null, null, request);
     }
 
     @Override

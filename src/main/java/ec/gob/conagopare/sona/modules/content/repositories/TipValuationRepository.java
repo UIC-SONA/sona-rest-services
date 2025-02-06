@@ -19,4 +19,7 @@ public interface TipValuationRepository extends JpaRepository<TipRate, Long> {
     List<Integer> findValuations(UUID tipId);
 
 
+
+
+
 }
