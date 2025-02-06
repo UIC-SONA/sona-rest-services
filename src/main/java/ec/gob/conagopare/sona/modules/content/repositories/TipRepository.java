@@ -83,13 +83,11 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
     }
 
     default Page<Tip> findAllWithRates(Long userId, Boolean active, Pageable pageable) {
-        System.out.println("findAllWithRates, userId: " + userId + ", active: " + active + ", pageable: " + pageable);
         var page = findAllMapWithRatings(userId, active, pageable);
         return page.map(toTip());
     }
 
     default Page<Tip> searchAllWithRates(String search, Long userId, Boolean active, Pageable pageable) {
-        System.out.println("searchAllWithRates, search: " + search + ", userId: " + userId + ", active: " + active + ", pageable: " + pageable);
         var page = searchAllMapWithRatings(search, userId, active, pageable);
         return page.map(toTip());
     }
