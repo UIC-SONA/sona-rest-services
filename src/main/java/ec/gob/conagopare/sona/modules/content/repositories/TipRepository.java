@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,50 +17,28 @@ import java.util.function.Function;
 public interface TipRepository extends JpaRepository<Tip, UUID> {
 
     @Query("SELECT new map(" +
-            "t.id as id, " +
-            "t.title as title, " +
-            "t.summary as summary, " +
-            "t.description as description, " +
-            "t.tags as tags, " +
-            "t.image as image, " +
-            "t.active as active, " +
-            "t.createdBy as createdBy, " +
-            "t.createdDate as createdDate, " +
-            "t.lastModifiedBy as lastModifiedBy, " +
-            "t.lastModifiedDate as lastModifiedDate, " +
+            "t as tip, " +
             "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
-            "COUNT(tr) as totalRate" +
-            ") " +
+            "COUNT(tr) as totalRate) " +
             "FROM Tip t " +
             "LEFT JOIN TipRate tr ON tr.tip = t " +
             "WHERE t.id = :tipId " +
-            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate")
+            "GROUP BY t")
     Optional<Map<String, Object>> findByIdMapWithRates(
             @Param("tipId") UUID id,
             @Param("userId") Long userId
     );
 
     @Query("SELECT new map(" +
-            "t.id as id, " +
-            "t.title as title, " +
-            "t.summary as summary, " +
-            "t.description as description, " +
-            "t.tags as tags, " +
-            "t.image as image, " +
-            "t.active as active, " +
-            "t.createdBy as createdBy, " +
-            "t.createdDate as createdDate, " +
-            "t.lastModifiedBy as lastModifiedBy, " +
-            "t.lastModifiedDate as lastModifiedDate, " +
+            "t as tip, " +
             "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
-            "COUNT(tr) as totalRate" +
-            ") " +
+            "COUNT(tr) as totalRate) " +
             "FROM Tip t " +
             "LEFT JOIN TipRate tr ON tr.tip = t " +
             "WHERE (:active IS NULL OR t.active = :active) " +
-            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate")
+            "GROUP BY t")
     Page<Map<String, Object>> findAllMapWithRatings(
             @Param("userId") Long userId,
             @Param("active") Boolean active,
@@ -69,21 +46,10 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
     );
 
     @Query("SELECT new map(" +
-            "t.id as id, " +
-            "t.title as title, " +
-            "t.summary as summary, " +
-            "t.description as description, " +
-            "t.tags as tags, " +
-            "t.image as image, " +
-            "t.active as active, " +
-            "t.createdBy as createdBy, " +
-            "t.createdDate as createdDate, " +
-            "t.lastModifiedBy as lastModifiedBy, " +
-            "t.lastModifiedDate as lastModifiedDate, " +
+            "t as tip, " +
             "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
-            "COUNT(tr) as totalRate" +
-            ") " +
+            "COUNT(tr) as totalRate) " +
             "FROM Tip t " +
             "LEFT JOIN TipRate tr ON tr.tip = t " +
             "LEFT JOIN t.tags tag " +
@@ -92,7 +58,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
             "    OR LOWER(t.summary) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "    OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%')) " +
             "    OR LOWER(tag) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate")
+            "GROUP BY t")
     Page<Map<String, Object>> searchAllMapWithRatings(
             @Param("search") String search,
             @Param("userId") Long userId,
@@ -101,24 +67,12 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
     );
 
     @Query("SELECT new map(" +
-            "t.id as id, " +
-            "t.title as title, " +
-            "t.summary as summary, " +
-            "t.description as description, " +
-            "t.tags as tags, " +
-            "t.image as image, " +
-            "t.active as active, " +
-            "t.createdBy as createdBy, " +
-            "t.createdDate as createdDate, " +
-            "t.lastModifiedBy as lastModifiedBy, " +
-            "t.lastModifiedDate as lastModifiedDate, " +
-            "COALESCE((SELECT tr.value FROM TipRate tr WHERE tr.tip = t AND tr.user.id = :userId), null) as myRate, " +
+            "t as tip, " +
             "COALESCE(AVG(tr.value), 0) as averageRate, " +
-            "COUNT(tr) as totalRate" +
-            ") " +
+            "COUNT(tr) as totalRate) " +
             "FROM Tip t " +
             "LEFT JOIN TipRate tr ON tr.tip = t " +
-            "GROUP BY t.id, t.title, t.summary, t.description, t.tags, t.image, t.active, t.createdBy, t.createdDate, t.lastModifiedBy, t.lastModifiedDate " +
+            "GROUP BY t.id " +
             "ORDER BY AVG(tr.value) DESC " +
             "LIMIT :limit")
     List<Map<String, Object>> findTopRating(int limit);
@@ -145,18 +99,7 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
 
     private static Function<Map<String, Object>, Tip> toTip() {
         return m -> {
-            var tip = new Tip();
-            tip.setId((UUID) m.get("id"));
-            tip.setTitle((String) m.get("title"));
-            tip.setSummary((String) m.get("summary"));
-            tip.setDescription((String) m.get("description"));
-            tip.setTags((List<String>) m.get("tags"));
-            tip.setImage((String) m.get("image"));
-            tip.setActive((Boolean) m.get("active"));
-            tip.setCreatedBy((String) m.get("createdBy"));
-            tip.setCreatedDate((LocalDateTime) m.get("createdDate"));
-            tip.setLastModifiedBy((String) m.get("lastModifiedBy"));
-            tip.setLastModifiedDate((LocalDateTime) m.get("lastModifiedDate"));
+            var tip = (Tip) m.get("tip");
             tip.setMyRate((Integer) m.get("myRate"));
             tip.setAverageRate((Double) m.get("averageRate"));
             tip.setTotalRate((Long) m.get("totalRate"));
