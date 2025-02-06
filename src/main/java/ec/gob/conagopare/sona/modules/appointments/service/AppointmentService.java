@@ -233,8 +233,8 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
         var tomorrowAppointments = repository.getAppointmentsByDate(now.plusDays(1));
         notificationService.send(
                 mapAttendantsIds(tomorrowAppointments),
-                "Rocordatorio de tu cita",
-                "Te recordamos que tienes una consulta agendada próximamanete. ¡Preparate y no olvides asistir!"
+                "Recordatorio de un evento en tu calendario menstrual",
+                "Te recordamos que te prepares, ¡no olvides asistir!"
         );
     }
 

@@ -143,7 +143,16 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
 
     @PreAuthorize("isAuthenticated()")
     public void reportPost(String postId) {
+        if (hasReported(postId)) {
+            throw ApiError.badRequest("Ya has reportado esta publicación");
+        }
         updatePost(isId(postId), (update, user) -> update.addToSet(Post.REPORTED_BY_FIELD, user.getId()));
+    }
+
+    private boolean hasReported(String postId) {
+        var user = userService.getCurrentUser();
+        var query = Query.query(where("_id").is(new ObjectId(postId)).elemMatch(where(Post.REPORTED_BY_FIELD).is(user.getId()));
+        return mongo.exists(query, Post.class);
     }
 
     private <T> T updatePost(Query query, BiFunction<Update, User, T> updater) {

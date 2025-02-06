@@ -137,8 +137,8 @@ public class ChatService {
                 messaging.convertAndSend("/topic/chat.inbox." + participant, chatMessageSent);
                 if (participant.equals(chatMessage.getSentBy())) return;
                 notificationService.send(participant,
-                        "Tienes un nuevo mensaje",
-                        "Hemos recibido una respuesta a tu consulta. Ingresa a la aplicación para revisarla."
+                        "Tienes un nuevo mensaje en tu calendario menstrual",
+                        "Ingresa a la aplicación para revisarla."
                 );
             }).exceptionally(logExpecionally("Error enviando mensaje a la bandeja de entrada"));
         }
