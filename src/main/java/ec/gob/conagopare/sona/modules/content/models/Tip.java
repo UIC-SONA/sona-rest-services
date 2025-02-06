@@ -59,6 +59,7 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
     @Transient
     private Long totalRate;
 
+
     public Tip(UUID id,
                String createdBy,
                LocalDateTime createdDate,
@@ -86,6 +87,8 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
         this.averageRate = averageRate;
         this.totalRate = totalRate;
     }
+
+
 
     @Override
     public String[] filesFullPaths() {
