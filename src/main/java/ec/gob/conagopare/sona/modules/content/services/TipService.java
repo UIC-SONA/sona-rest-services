@@ -171,6 +171,7 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
 
     @PreAuthorize("isAuthenticated()")
     public List<Tip> top() {
-        return repository.topRating(3);
+        var currentUser = userService.getCurrentUser();
+        return repository.topRating(3, currentUser.getId());
     }
 }
