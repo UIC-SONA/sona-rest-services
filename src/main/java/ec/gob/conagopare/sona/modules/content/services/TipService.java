@@ -77,9 +77,7 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
     @PreAuthorize("isAuthenticated()")
     public Page<Tip> actives(String search, Pageable pageable) {
         var currentUser = userService.getCurrentUser();
-        var actives = repository.searchAllWithRates(search, currentUser.getId(), true, pageable);
-        hooks.onPage(actives);
-        return actives;
+        return repository.searchAllWithRates(search, currentUser.getId(), true, pageable);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -145,7 +143,6 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
         var active = ofNullable(params.getFirst("active")).map(Boolean::parseBoolean).orElse(null);
         return repository.searchAllWithRates(search, currentUser.getId(), active, pageable);
     }
-
 
     @Override
     public Class<Tip> getEntityClass() {

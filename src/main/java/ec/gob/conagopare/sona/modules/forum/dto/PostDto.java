@@ -1,5 +1,6 @@
 package ec.gob.conagopare.sona.modules.forum.dto;
 
+import io.github.luidmidev.jakarta.validations.NoProfanity;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -15,5 +16,6 @@ public class PostDto {
     @NotNull(message = "El título de la publicación no puede estar vacío")
     @NotEmpty(message = "El contenido de la publicación no puede estar vacío")
     @Size(min = 5, max = 5000, message = "El contenido de la publicación debe tener entre 5 y 5000 caracteres")
+    @NoProfanity
     private String content;
 }
