@@ -179,6 +179,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
                 projectPost()
                         .andExpression("size(likedBy)").as("likesCount")
                         .andExpression("size(comments)").as("commentsCount")
+                        .andExpression("size(reportedBy)").as("reportsCount")
         );
 
         var or = new ArrayList<Criteria>();
@@ -356,9 +357,10 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
     private static ProjectionOperation projectPost() {
         return Aggregation.project().andInclude(
                 Post.CONTENT_FIELD,
-                Post.CREATED_AT_FIELD,
+                Post.COMMENTS_FIELD,
                 Post.LIKED_BY_FIELD,
-                Post.COMMENTS_FIELD
+                Post.REPORTED_BY_FIELD,
+                Post.CREATED_AT_FIELD
         );
     }
 
