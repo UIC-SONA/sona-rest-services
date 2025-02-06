@@ -7,7 +7,9 @@ import ec.gob.conagopare.sona.modules.appointments.dto.NewAppointment;
 import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ExportController;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.ReadController;
+import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +31,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/appointment")
 @RequiredArgsConstructor
-public class AppointmentController implements ReadController<Appointment, Long, AppointmentService> {
+public class AppointmentController implements ReadController<Appointment, Long, AppointmentService>, ExportController<Long, AppointmentService> {
 
     private final AppointmentService service;
+    private final SpreadSheetExporter exporter;
 
     @PostMapping("/program")
     public ResponseEntity<Appointment> program(

@@ -4,7 +4,9 @@ import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.content.dto.DidacticContentDto;
 import ec.gob.conagopare.sona.modules.content.models.DidacticContent;
 import ec.gob.conagopare.sona.modules.content.services.DidacticContentService;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ExportController;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.ReadController;
+import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -19,9 +21,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/content/didactic")
 @RequiredArgsConstructor
-public class DidacticContentController implements ReadController<DidacticContent, UUID, DidacticContentService> {
+public class DidacticContentController implements ReadController<DidacticContent, UUID, DidacticContentService>, ExportController<UUID, DidacticContentService> {
 
     private final DidacticContentService service;
+    private final SpreadSheetExporter exporter;
 
     @PostMapping
     public ResponseEntity<DidacticContent> create(

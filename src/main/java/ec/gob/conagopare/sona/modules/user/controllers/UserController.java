@@ -8,6 +8,8 @@ import ec.gob.conagopare.sona.modules.user.dto.KeycloakUserSync;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.CrudController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ExportController;
+import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -26,9 +28,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
-public class UserController implements CrudController<User, UserDto, Long, UserService> {
+public class UserController implements CrudController<User, UserDto, Long, UserService>, ExportController<Long, UserService> {
 
     private final UserService service;
+    private final SpreadSheetExporter exporter;
 
     @PostMapping("/sign-up")
     public ResponseEntity<Message> signUp(@RequestBody SingUpUser singUpUser) {

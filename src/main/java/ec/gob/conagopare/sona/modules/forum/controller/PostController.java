@@ -8,6 +8,8 @@ import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.CrudController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ExportController;
+import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,9 +22,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/forum/post")
 @RequiredArgsConstructor
-public class PostController implements CrudController<Post, PostDto, String, PostService> {
+public class PostController implements CrudController<Post, PostDto, String, PostService>, ExportController<String, PostService> {
 
     private final PostService service;
+    private final SpreadSheetExporter exporter;
 
     @PostMapping("/{postId}/like")
     public ResponseEntity<Message> likePost(

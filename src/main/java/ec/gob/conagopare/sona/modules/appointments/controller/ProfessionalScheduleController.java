@@ -5,6 +5,8 @@ import ec.gob.conagopare.sona.modules.appointments.dto.ProfessionalSchedulesDto;
 import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
 import ec.gob.conagopare.sona.modules.appointments.service.ProfessionalScheduleService;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.CrudController;
+import io.github.luidmidev.springframework.data.crud.core.http.controllers.ExportController;
+import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,9 +20,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/professional-schedule")
 @RequiredArgsConstructor
-public class ProfessionalScheduleController implements CrudController<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleService> {
+public class ProfessionalScheduleController implements CrudController<ProfessionalSchedule, ProfessionalScheduleDto, Long, ProfessionalScheduleService>, ExportController<Long, ProfessionalScheduleService> {
 
     private final ProfessionalScheduleService service;
+    private final SpreadSheetExporter exporter;
 
     @PostMapping("/all")
     public ResponseEntity<List<ProfessionalSchedule>> createAll(

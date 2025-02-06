@@ -3,6 +3,7 @@ package ec.gob.conagopare.sona.application.configuration;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import io.github.luidmidev.jakarta.validations.utils.LocaleContext;
+import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
 import io.github.luidmidev.springframework.web.problemdetails.ApiError;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.google.cloud.GoogleCloudStorage;
@@ -61,6 +62,11 @@ public class AppConfig {
             var bucket = storage.get("sona_app");
             return new GoogleCloudStorage(bucket);
         }
+    }
+
+    @Bean
+    public SpreadSheetExporter spreadSheetExporter() {
+        return new SpreadSheetExporter();
     }
 
     /**
