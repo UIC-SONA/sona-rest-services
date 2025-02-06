@@ -151,7 +151,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
 
     private boolean hasReported(String postId) {
         var user = userService.getCurrentUser();
-        var query = Query.query(where("_id").is(new ObjectId(postId)).elemMatch(where(Post.REPORTED_BY_FIELD).is(user.getId()));
+        var query = Query.query(where("_id").is(new ObjectId(postId)).elemMatch(where(Post.REPORTED_BY_FIELD).is(user.getId())));
         return mongo.exists(query, Post.class);
     }
 
