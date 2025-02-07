@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SonaPassword {
 
-    String message() default "Su contraseña es insegura, recuerde que una contraseña segura lleva al menos 8 caracteres, una letra mayúscula, una letra minúscula, un número y un caracter especial";
+    String message() default "Su contraseña es insegura, recuerde que una contraseña segura lleva al menos 12 caracteres, una letra mayúscula, una letra minúscula, un número y un caracter especial";
 
     Class<?>[] groups() default {};
 
