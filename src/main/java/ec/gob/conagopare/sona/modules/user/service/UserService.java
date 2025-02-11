@@ -32,6 +32,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.codec.HttpMessageWriter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -40,6 +42,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.HandlerAdapter;
 
 import java.io.IOException;
 import java.util.*;
@@ -124,7 +127,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     public void enable(long userId, boolean enabled, Jwt jwt) {
         var user = getUser(jwt);
         var userToEnable = getUser(userId);
-
+        HandlerAdapter
         if (userToEnable.is(Authority.ADMIN)) {
             throw ApiError.badRequest("Esta acción no está permitida en usuarios administradores");
         }

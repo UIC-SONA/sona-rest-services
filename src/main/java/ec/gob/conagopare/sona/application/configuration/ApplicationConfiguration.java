@@ -31,7 +31,7 @@ import java.io.IOException;
 @Configuration
 @RequiredArgsConstructor
 @EnableTransactionManagement
-public class AppConfig {
+public class ApplicationConfiguration {
 
     @EventListener(ApplicationStartedEvent.class)
     public void startedEvent() {

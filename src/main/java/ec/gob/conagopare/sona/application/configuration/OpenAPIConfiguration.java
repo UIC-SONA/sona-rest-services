@@ -19,14 +19,14 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @ConditionalOnExpression("${springdoc.api-docs.enabled:false}")
-public class OpenAPIConfig {
+public class OpenAPIConfiguration {
 
     private final String clientId;
     private final Map<String, ?> openIdConnectConfig;
 
     private static final String OAUTH2_SCHEME_NAME = "oauth2";
 
-    public OpenAPIConfig(@Value("${openapi.openid-connect-url}") String openIdConnectUrl, RestTemplate restTemplate, @Value("${keycloak.client-id}") String clientId) {
+    public OpenAPIConfiguration(@Value("${openapi.openid-connect-url}") String openIdConnectUrl, RestTemplate restTemplate, @Value("${keycloak.client-id}") String clientId) {
 
         this.clientId = clientId;
         this.openIdConnectConfig = restTemplate.exchange(openIdConnectUrl, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, ?>>() {

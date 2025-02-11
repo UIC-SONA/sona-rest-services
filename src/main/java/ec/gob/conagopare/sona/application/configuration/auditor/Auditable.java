@@ -10,7 +10,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @MappedSuperclass
@@ -23,12 +23,12 @@ public abstract class Auditable {
     private String createdBy;
 
     @CreatedDate
-    private LocalDateTime createdDate;
+    private Instant createdDate;
 
     @LastModifiedBy
     private String lastModifiedBy;
 
     @LastModifiedDate
-    private LocalDateTime lastModifiedDate;
+    private Instant lastModifiedDate;
 
 }

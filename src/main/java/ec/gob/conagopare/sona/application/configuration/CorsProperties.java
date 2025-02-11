@@ -31,8 +31,8 @@ public class CorsProperties {
         if (CollectionUtils.isEmpty(this.allowedOrigins) && CollectionUtils.isEmpty(this.allowedOriginPatterns)) {
             return null;
         }
-        var map = PropertyMapper.get();
         var config = new CorsConfiguration();
+        var map = PropertyMapper.get();
         map.from(this::getAllowedOrigins).to(config::setAllowedOrigins);
         map.from(this::getAllowedOriginPatterns).to(config::setAllowedOriginPatterns);
         map.from(this::getAllowedHeaders).whenNot(CollectionUtils::isEmpty).to(config::setAllowedHeaders);

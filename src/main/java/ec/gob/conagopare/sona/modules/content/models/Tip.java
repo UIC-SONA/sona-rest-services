@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.domain.Persistable;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -58,36 +57,6 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
 
     @Transient
     private Long totalRate;
-
-
-    public Tip(UUID id,
-               String createdBy,
-               LocalDateTime createdDate,
-               String lastModifiedBy,
-               LocalDateTime lastModifiedDate,
-               String title,
-               String summary,
-               String description,
-               List<String> tags,
-               String image,
-               boolean active,
-               Integer myRate,
-               Double averageRate,
-               Long totalRate
-    ) {
-        super(createdBy, createdDate, lastModifiedBy, lastModifiedDate);
-        this.id = id;
-        this.title = title;
-        this.summary = summary;
-        this.description = description;
-        this.tags = tags;
-        this.image = image;
-        this.active = active;
-        this.myRate = myRate;
-        this.averageRate = averageRate;
-        this.totalRate = totalRate;
-    }
-
 
 
     @Override

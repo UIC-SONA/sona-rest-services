@@ -17,7 +17,7 @@ import org.springframework.security.config.Customizer;
 @Slf4j
 @Configuration
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
-public class CrudConfig {
+public class CrudConfiguration {
 
     @Bean
     public Customizer<AuthorizationManagerCrudMatcherRegistry> authorizationCrudConfigurer() {
@@ -36,7 +36,7 @@ public class CrudConfig {
                         Authority.ADMIN,
                         Authority.ADMINISTRATIVE
                 )
-                .cruds(
+                .crudOperations(
                         AppointmentService.class
                 ).hasAnyAuthority(
                         Authority.LEGAL_PROFESSIONAL,

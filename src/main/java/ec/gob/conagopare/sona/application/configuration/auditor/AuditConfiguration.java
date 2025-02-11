@@ -8,13 +8,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider", dateTimeProviderRef = "dateTimeProvider")
-public class AuditConfig {
+public class AuditConfiguration {
 
     @Bean
     public AuditorAware<String> auditorProvider() {
@@ -35,7 +35,7 @@ public class AuditConfig {
 
     @Bean
     public DateTimeProvider dateTimeProvider() {
-        return () -> Optional.of(LocalDateTime.now());
+        return () -> Optional.of(Instant.now());
     }
 
 }
