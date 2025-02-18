@@ -26,15 +26,14 @@ public class BaseUser {
     private String email;
 
     public UserRepresentation toRepresentation() {
-        var representation = new UserRepresentation();
-        return transferToRepresentation(representation);
+        return transferToRepresentation(new UserRepresentation());
     }
 
     public UserRepresentation transferToRepresentation(UserRepresentation representation) {
-        representation.setFirstName(firstName);
-        representation.setLastName(lastName);
-        representation.setUsername(username);
-        representation.setEmail(email);
+        representation.setFirstName(firstName.trim());
+        representation.setLastName(lastName.trim());
+        representation.setUsername(username.trim());
+        representation.setEmail(email.trim());
         return representation;
     }
 
