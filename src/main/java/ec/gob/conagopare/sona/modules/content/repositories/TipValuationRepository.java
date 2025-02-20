@@ -18,8 +18,4 @@ public interface TipValuationRepository extends JpaRepository<TipRate, Long> {
     @Query("SELECT tv.value FROM TipRate tv WHERE tv.tip.id = ?1")
     List<Integer> findValuations(UUID tipId);
 
-
-
-
-
 }

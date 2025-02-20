@@ -4,7 +4,7 @@ import com.google.firebase.messaging.*;
 import ec.gob.conagopare.sona.application.firebase.messaging.DeviceToken;
 import ec.gob.conagopare.sona.application.firebase.messaging.DeviceTokenRepository;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,7 +31,7 @@ public class NotificationService {
         //
         var deviceToken = repository.findByToken(token)
                 .orElseGet(() -> {
-                    var user = userRepository.findByKeycloakId(jwt.getSubject()).orElseThrow(ApiError::badRequest);
+                    var user = userRepository.findByKeycloakId(jwt.getSubject()).orElseThrow(ProblemDetails::badRequest);
                     return DeviceToken.builder()
                             .token(token)
                             .user(user)

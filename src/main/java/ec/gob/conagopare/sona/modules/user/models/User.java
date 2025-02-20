@@ -35,7 +35,7 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
     private String profilePicturePath;
 
     @Builder.Default
-    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Column(nullable = false)
     private boolean anonymous = false;
 
     // USER INFORMATION SYNCED FROM KEYCLOAK
@@ -68,6 +68,7 @@ public class User extends Auditable implements Persistable<Long>, PurgableStored
         return this.authorities.containsAll(Set.of(authorities));
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isAny(Authority... authorities) {
         return Set.of(authorities).stream().anyMatch(this.authorities::contains);
     }

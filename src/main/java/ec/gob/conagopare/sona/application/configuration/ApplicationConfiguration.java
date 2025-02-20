@@ -5,7 +5,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import io.github.luidmidev.jakarta.validations.utils.LocaleContext;
 import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.google.cloud.GoogleCloudStorage;
 import lombok.RequiredArgsConstructor;
@@ -92,7 +92,7 @@ public class ApplicationConfiguration {
             public void handleError(@NotNull ClientHttpResponse response) throws IOException {
                 var bodyAsString = new String(response.getBody().readAllBytes());
                 log.info("Error response on web client: {}", bodyAsString);
-                throw ApiError.status(response.getStatusCode()).detail(
+                throw ProblemDetails.status(response.getStatusCode()).detail(
                         "Request Error, info: [\n" +
                                 " url: " + response.getHeaders().getLocation() + "\n" +
                                 " response: " + bodyAsString + "\n" +

@@ -6,7 +6,7 @@ import ec.gob.conagopare.sona.modules.content.dto.DidacticContentDto;
 import ec.gob.conagopare.sona.modules.content.models.DidacticContent;
 import ec.gob.conagopare.sona.modules.content.repositories.DidacticContentRepository;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.persistence.EntityManager;
@@ -43,7 +43,7 @@ public class DidacticContentService implements JpaCrudService<DidacticContent, D
         if (model.isNew()) {
             var image = dto.getImage();
             if (image == null) {
-                throw ApiError.badRequest("La imagen es requerida");
+                throw ProblemDetails.badRequest("La imagen es requerida");
             }
 
             var imagePath = storage.store(image.getBytes(), FileUtils.factoryDateTimeFileName(image.getOriginalFilename()), IMAGES_PATH);
@@ -66,7 +66,7 @@ public class DidacticContentService implements JpaCrudService<DidacticContent, D
 
     @Override
     public Page<DidacticContent> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
-        throw ApiError.badRequest("Filtro no soportado");
+        throw ProblemDetails.badRequest("Filtro no soportado");
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -74,6 +74,6 @@ public class DidacticContentService implements JpaCrudService<DidacticContent, D
         var model = find(id);
         return storage
                 .download(model.getImage())
-                .orElseThrow(() -> ApiError.notFound("Imagen no encontrada"));
+                .orElseThrow(() -> ProblemDetails.notFound("Imagen no encontrada"));
     }
 }

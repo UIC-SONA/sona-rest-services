@@ -14,7 +14,7 @@ import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.services.StandardCrudService;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.core.utils.StringUtils;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +75,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
     @SneakyThrows
     public void mapModel(PostDto dto, Post model) {
         if (!model.isNew()) {
-            throw ApiError.badRequest("Las publicaciones no pueden ser modificadas");
+            throw ProblemDetails.badRequest("Las publicaciones no pueden ser modificadas");
         }
 
         var user = userService.getCurrentUser();
@@ -95,7 +95,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         var query = isPriviliged ? isId(id) : isAuthor(id, user.getId());
         var result = mongo.remove(query, Post.class);
         if (result.getDeletedCount() == 0) {
-            throw isPriviliged ? ApiError.notFound("Publicación no encontrada") : ApiError.forbidden("No tienes permisos para eliminar esta publicación");
+            throw isPriviliged ? ProblemDetails.notFound("Publicación no encontrada") : ProblemDetails.forbidden("No tienes permisos para eliminar esta publicación");
         }
     }
 
@@ -144,7 +144,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
     @PreAuthorize("isAuthenticated()")
     public void reportPost(String postId) {
         if (hasReported(postId)) {
-            throw ApiError.badRequest("Ya has reportado esta publicación");
+            throw ProblemDetails.badRequest("Ya has reportado esta publicación");
         }
         updatePost(isId(postId), (update, user) -> update.addToSet(Post.REPORTED_BY_FIELD, user.getId()));
     }

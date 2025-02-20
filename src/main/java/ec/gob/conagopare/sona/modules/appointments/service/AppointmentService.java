@@ -12,7 +12,7 @@ import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaSpecificationReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaSmartSearch;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
@@ -68,30 +68,29 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
         var date = newAppointment.getDate();
         var hour = newAppointment.getHour();
 
-
         if (repository.existsAppointmentAtHour(profesionalId, date, hour)) {
-            throw ApiError.badRequest("Ya existe una cita programada a esa hora");
+            throw ProblemDetails.badRequest("Ya existe una cita programada a esa hora");
         }
 
         if (!repository.isWithinProfessionalSchedule(profesionalId, date, hour)) {
-            throw ApiError.badRequest("La hora de la cita que intenta programar no está dentro del horario de atención del profesional");
+            throw ProblemDetails.badRequest("La hora de la cita que intenta programar no está dentro del horario de atención del profesional");
         }
 
         var user = userService.getUser(jwt);
 
         if (!user.is(Authority.USER)) {
-            throw ApiError.badRequest("El usuario, no puede tener citas programadas");
+            throw ProblemDetails.badRequest("El usuario, no puede tener citas programadas");
         }
 
         var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
         if (repository.countFutureAppointments(user.getId(), nowInEcuador.toLocalDate(), nowInEcuador.getHour()) >= 2) {
-            throw ApiError.badRequest("No puede tener más de dos a futuro activas, si requiere de agender una cita pruebe cancelando una de las activas");
+            throw ProblemDetails.badRequest("No puede tener más de dos a futuro activas, si requiere de agender una cita pruebe cancelando una de las activas");
         }
 
         var profesional = userService.find(profesionalId);
 
         if (!profesional.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
-            throw ApiError.badRequest("El usuario seleccionado no es un profesional, no puede tener citas programadas");
+            throw ProblemDetails.badRequest("El usuario seleccionado no es un profesional, no puede tener citas programadas");
         }
 
         var appointment = Appointment.builder()
@@ -115,11 +114,11 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
 
         assert userId != null;
         if (!userId.equals(appointment.getAttendant().getId())) {
-            throw ApiError.forbidden("No tiene permisos para cancelar esta cita");
+            throw ProblemDetails.forbidden("No tiene permisos para cancelar esta cita");
         }
 
         if (appointment.isCanceled()) {
-            throw ApiError.badRequest("La cita ya ha sido cancelada");
+            throw ProblemDetails.badRequest("La cita ya ha sido cancelada");
         }
 
         appointment.setCanceled(true);

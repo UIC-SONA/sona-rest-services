@@ -8,7 +8,7 @@ import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import lombok.Getter;
@@ -51,13 +51,13 @@ public class ProfessionalScheduleService implements JpaCrudService<ProfessionalS
         var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
 
         if (startDate.isBefore(nowInEcuador)) {
-            throw ApiError.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
+            throw ProblemDetails.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
         }
 
         var user = userService.find(dto.getProfessionalId());
 
         if (!user.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
-            throw ApiError.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
+            throw ProblemDetails.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
         }
 
         var isNew = model.isNew();
@@ -71,11 +71,11 @@ public class ProfessionalScheduleService implements JpaCrudService<ProfessionalS
                 : repository.existsOverlappingScheduleExcludingId(professionalId, date, fromHour, toHour, model.getId());
 
         if (isOverlapping) {
-            throw ApiError.badRequest("El horario que intenta registrar se superpone con otro horario del profesional");
+            throw ProblemDetails.badRequest("El horario que intenta registrar se superpone con otro horario del profesional");
         }
 
         if (!isNew && repository.existsActiveAppointmentsInSchedule(professionalId, model.getDate(), model.getFromHour(), model.getToHour())) {
-            throw ApiError.badRequest("No se puede modificar un horario que tiene citas activas");
+            throw ProblemDetails.badRequest("No se puede modificar un horario que tiene citas activas");
         }
 
         model.setProfessional(user);
@@ -86,17 +86,17 @@ public class ProfessionalScheduleService implements JpaCrudService<ProfessionalS
 
     @Override
     public Page<ProfessionalSchedule> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
-        throw ApiError.badRequest("Filtro no soportado");
+        throw ProblemDetails.badRequest("Filtro no soportado");
     }
 
     public List<ProfessionalSchedule> getSchedulesByProfessional(Long professionalId, LocalDate from, LocalDate to) {
         if (from.isAfter(to)) {
-            throw ApiError.badRequest("La fecha de inicio no puede ser mayor que la fecha de fin");
+            throw ProblemDetails.badRequest("La fecha de inicio no puede ser mayor que la fecha de fin");
         }
 
         var diff = to.toEpochDay() - from.toEpochDay();
         if (diff > MAX_DAYS_RANGE) {
-            throw ApiError.badRequest("El rango de fechas no puede ser mayor a " + MAX_DAYS_RANGE + " años");
+            throw ProblemDetails.badRequest("El rango de fechas no puede ser mayor a " + MAX_DAYS_RANGE + " años");
         }
 
         return repository.getSchedulesByProfessional(professionalId, from, to);
@@ -108,7 +108,7 @@ public class ProfessionalScheduleService implements JpaCrudService<ProfessionalS
         var user = userService.find(dto.getProfessionalId());
 
         if (!user.isAny(Authority.LEGAL_PROFESSIONAL, Authority.MEDICAL_PROFESSIONAL)) {
-            throw ApiError.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
+            throw ProblemDetails.badRequest("El usuario no es un profesional, no puede tener horarios de atención");
         }
 
         var created = new ArrayList<ProfessionalSchedule>();
@@ -117,13 +117,13 @@ public class ProfessionalScheduleService implements JpaCrudService<ProfessionalS
             var nowInEcuador = ZonedDateTime.now(ECUADOR_ZONE);
 
             if (startDate.isBefore(nowInEcuador)) {
-                throw ApiError.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
+                throw ProblemDetails.badRequest("La fecha de inicio no puede ser menor a la fecha actual");
             }
 
             var isOverlapping = repository.existsOverlappingSchedule(dto.getProfessionalId(), dates, dto.getFromHour(), dto.getToHour());
 
             if (isOverlapping) {
-                throw ApiError.badRequest("Al menos uno de los horarios que intenta registrar se superpone con otro horario del profesional");
+                throw ProblemDetails.badRequest("Al menos uno de los horarios que intenta registrar se superpone con otro horario del profesional");
             }
 
             var schedule = new ProfessionalSchedule();
@@ -160,7 +160,7 @@ public class ProfessionalScheduleService implements JpaCrudService<ProfessionalS
             );
 
             if (hasActiveAppointments) {
-                throw ApiError.badRequest("No se puede eliminar un horario que tiene citas activas");
+                throw ProblemDetails.badRequest("No se puede eliminar un horario que tiene citas activas");
             }
         }
     };

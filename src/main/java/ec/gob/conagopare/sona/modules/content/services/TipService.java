@@ -12,7 +12,7 @@ import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.persistence.EntityManager;
@@ -63,7 +63,7 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
                     StorageUtils.tryRemoveFileAsync(storage, oldImage);
                 }
             } catch (IOException e) {
-                throw ApiError.internalServerError("Error al guardar la imagen: " + e.getMessage());
+                throw ProblemDetails.internalServerError("Error al guardar la imagen: " + e.getMessage());
             }
         }
 
@@ -83,7 +83,7 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
     @PreAuthorize("isAuthenticated()")
     public Stored image(UUID id) throws IOException {
         var imagePath = repository.getImagePathById(id).orElseThrow(() -> new NotFoundEntityException(getEntityClass(), id));
-        return storage.download(imagePath).orElseThrow(() -> ApiError.notFound("No se encontró la imagen"));
+        return storage.download(imagePath).orElseThrow(() -> ProblemDetails.notFound("No se encontró la imagen"));
     }
 
 

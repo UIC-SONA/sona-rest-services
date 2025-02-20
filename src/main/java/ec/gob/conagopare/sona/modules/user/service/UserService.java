@@ -17,7 +17,7 @@ import io.github.luidmidev.jakarta.validations.Image;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaCrudService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import io.github.luidmidev.springframework.web.problemdetails.ProblemDetailsException;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
@@ -107,10 +107,10 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
             var password = dto.getPassword();
 
             if (authorityToAdd.isEmpty()) {
-                throw ApiError.badRequest("No se puede crear un usuario sin roles");
+                throw ProblemDetails.badRequest("No se puede crear un usuario sin roles");
             }
             if (password == null) {
-                throw ApiError.badRequest("No se puede crear un usuario sin contraseña");
+                throw ProblemDetails.badRequest("No se puede crear un usuario sin contraseña");
             }
 
             validateAuthorities(authorityToAdd);
@@ -125,11 +125,11 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         var user = getUser(jwt);
         var userToEnable = getUser(userId);
         if (userToEnable.is(Authority.ADMIN)) {
-            throw ApiError.badRequest("Esta acción no está permitida en usuarios administradores");
+            throw ProblemDetails.badRequest("Esta acción no está permitida en usuarios administradores");
         }
 
         if (userToEnable.is(Authority.ADMINISTRATIVE) && !user.is(Authority.ADMIN)) {
-            throw ApiError.badRequest("No tiene permisos para habilitar/deshabilitar usuarios administrativos");
+            throw ProblemDetails.badRequest("No tiene permisos para habilitar/deshabilitar usuarios administrativos");
         }
 
         keycloakUserManager.enabled(userToEnable.getKeycloakId(), enabled);
@@ -138,7 +138,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     private static void validateAuthorities(Set<Authority> authorities) {
         if (authorities.isEmpty()) return;
         if (authorities.contains(Authority.LEGAL_PROFESSIONAL) && authorities.contains(Authority.MEDICAL_PROFESSIONAL)) {
-            throw ApiError.badRequest("No se puede asignar roles de profesional legal y profesional médico al mismo usuario");
+            throw ProblemDetails.badRequest("No se puede asignar roles de profesional legal y profesional médico al mismo usuario");
         }
     }
 
@@ -157,7 +157,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     public Stored profilePicture(long id) {
-        var user = repository.findById(id).orElseThrow(() -> ApiError.badRequest("No se encontról la foto de perfil"));
+        var user = repository.findById(id).orElseThrow(() -> ProblemDetails.badRequest("No se encontról la foto de perfil"));
         return profilePicture(user);
     }
 
@@ -181,7 +181,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
         var previousProfilePicturePath = user.getProfilePicturePath();
         if (previousProfilePicturePath == null) {
-            throw ApiError.notFound("Profile picture not found");
+            throw ProblemDetails.notFound("Profile picture not found");
         }
 
         user.setProfilePicturePath(null);
@@ -197,11 +197,13 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
     @PreAuthorize("isAuthenticated()")
     public User getUser(Long userId) {
-        return repository.findById(userId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado"));
+        return repository.findById(userId)
+                .orElseThrow(() -> ProblemDetails.notFound("Usuario no encontrado"));
     }
 
     private User getUser(String keycloakId) {
-        return repository.findByKeycloakId(keycloakId).orElseThrow(() -> ApiError.notFound("Usuario no encontrado"));
+        return repository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> ProblemDetails.notFound("Usuario no encontrado"));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -232,17 +234,17 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
                 .map(FunctionThrowable.unchecked(storage::download))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .orElseThrow(() -> ApiError.notFound("No se encontró la foto de perfil"));
+                .orElseThrow(() -> ProblemDetails.notFound("No se encontró la foto de perfil"));
     }
 
     private void internalCreate(UserRepresentation representation, String password, Authority... authority) {
 
         if (keycloakUserManager.searchByEmail(representation.getEmail()).isPresent()) {
-            throw ApiError.conflict("Conflicto", "El usuario con el correo electrónico " + representation.getEmail() + " ya existe");
+            throw ProblemDetails.conflict("Conflicto", "El usuario con el correo electrónico " + representation.getEmail() + " ya existe");
         }
 
         if (keycloakUserManager.searchByUsername(representation.getUsername()).isPresent()) {
-            throw ApiError.badRequest("Conflicto", "El usuario con el nombre de usuario " + representation.getUsername() + " ya existe");
+            throw ProblemDetails.badRequest("Conflicto", "El usuario con el nombre de usuario " + representation.getUsername() + " ya existe");
         }
 
         var keycloakId = keycloakUserManager.create(representation);
@@ -282,7 +284,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     public void syncKeycloak(KeycloakUserSync userSync, String apiKey) {
         var key = config.getSyncApiKey();
         if (!key.equals(apiKey)) {
-            throw ApiError.forbidden("API Key inválida");
+            throw ProblemDetails.forbidden("API Key inválida");
         }
 
         var user = getUser(userSync.userId());

@@ -4,7 +4,7 @@ import ec.gob.conagopare.sona.modules.menstrualcycle.dto.CycleDetails;
 import ec.gob.conagopare.sona.modules.menstrualcycle.models.CycleData;
 import ec.gob.conagopare.sona.modules.menstrualcycle.repositories.MenstrualCycleRepository;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +26,7 @@ public class MenstrualCycleService {
     @PreAuthorize("isAuthenticated()")
     public CycleData getCycle(Jwt jwt) {
         var user = userService.getUser(jwt);
-        return repository.findByUser(user).orElseThrow(() -> ApiError.notFound("Menstrual cycle not found"));
+        return repository.findByUser(user).orElseThrow(() -> ProblemDetails.notFound("Menstrual cycle not found"));
     }
 
     private CycleData getCycleOrNew(Jwt jwt) {

@@ -6,7 +6,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.dialogflow.cx.v3.*;
 import ec.gob.conagopare.sona.modules.bot.ChaBotConfig;
 import ec.gob.conagopare.sona.modules.bot.repositories.PromptResponseRepository;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class DialogFlowGXChatBotService extends ChatBotService {
     protected List<String> internalChat(String session, String prompt) {
         try {
             if (!activeIntentsDetection.add(session)) {
-                throw ApiError.badRequest("Ya se está detectando la intención");
+                throw ProblemDetails.badRequest("Ya se está detectando la intención");
             }
 
             var responses = getResponseMessages(session, prompt).stream()

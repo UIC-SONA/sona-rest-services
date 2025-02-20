@@ -10,7 +10,7 @@ import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.jakarta.validations.ContentType;
 import io.github.luidmidev.jakarta.validations.FileSize;
 import io.github.luidmidev.jakarta.validations.Image;
-import io.github.luidmidev.springframework.web.problemdetails.ApiError;
+import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.Stored;
 import jakarta.validation.constraints.NotEmpty;
@@ -119,7 +119,7 @@ public class ChatService {
     }
 
     public Stored resource(String id) throws IOException {
-        return storage.download(id).orElseThrow(ApiError::notFound);
+        return storage.download(id).orElseThrow(ProblemDetails::notFound);
     }
 
     private ChatMessagePayload sendMessageToSuscribers(String requestId, ChatRoom room, ChatMessage chatMessage) {
@@ -155,7 +155,7 @@ public class ChatService {
         var userId = user.getId();
 
         if (!room.getParticipants().contains(userId)) {
-            throw ApiError.forbidden("No tienes permiso para leer mensajes en esta sala de chat");
+            throw ProblemDetails.forbidden("No tienes permiso para leer mensajes en esta sala de chat");
         }
 
         var readBy = ChatMessage.ReadBy.now(userId);
@@ -190,7 +190,7 @@ public class ChatService {
 
     @PreAuthorize("isAuthenticated()")
     public ChatRoom room(String chatRoomId) {
-        return roomRepository.findById(chatRoomId).orElseThrow(() -> ApiError.notFound("No se encontró la sala de chat"));
+        return roomRepository.findById(chatRoomId).orElseThrow(() -> ProblemDetails.notFound("No se encontró la sala de chat"));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -232,6 +232,7 @@ public class ChatService {
         return mongoTemplate.getConverter().read(ChatMessage.class, lastMessage);
     }
 
+    @SuppressWarnings("unused")
     private ChatMessage message(String roomId, String messageId) {
         log.info("Searching for message: roomId={}, messageId={}", roomId, messageId);
 
@@ -248,7 +249,7 @@ public class ChatService {
 
         if (result == null) {
             log.warn("Message not found: roomId={}, messageId={}", roomId, messageId);
-            throw ApiError.notFound("No se encontró el mensaje");
+            throw ProblemDetails.notFound("No se encontró el mensaje");
         }
 
         var messageDoc = result.get("message", Document.class);
@@ -294,7 +295,7 @@ public class ChatService {
     }
 
 
-    private long getDocumentSize(String id, Class<?> collectionType) {
+    private long getChunkSize(String id) {
         var aggregate = Aggregation.newAggregation(
                 Aggregation.match(Criteria.where("_id").is(new ObjectId(id))),
                 Aggregation.project()
@@ -302,7 +303,7 @@ public class ChatService {
                         .and(context -> new Document("$bsonSize", Aggregation.ROOT)).as("size")
         );
 
-        var result = mongoTemplate.aggregate(aggregate, collectionType, Document.class).getUniqueMappedResult();
+        var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class).getUniqueMappedResult();
 
         if (result == null) return 0;
 
@@ -328,7 +329,7 @@ public class ChatService {
             return;
         }
 
-        var aproxSize = getDocumentSize(latestChunk.getId(), ChatChunk.class);
+        var aproxSize = getChunkSize(latestChunk.getId());
 
         if (aproxSize > ChatChunk.MAX_CHUNK_SIZE) {
             mongoTemplate.save(ChatChunk.withFirstMessage(chatRoom, latestChunk.getNumber() + 1, message));
@@ -341,7 +342,7 @@ public class ChatService {
         var result = mongoTemplate.updateFirst(query, update, ChatChunk.class);
 
         if (result.getModifiedCount() == 0) {
-            throw ApiError.internalServerError("No se pudo agregar el mensaje al chat, resultado de la operación: " + result);
+            throw ProblemDetails.internalServerError("No se pudo agregar el mensaje al chat, resultado de la operación: " + result);
         }
     }
 
