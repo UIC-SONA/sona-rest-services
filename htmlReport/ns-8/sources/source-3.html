@@ -1,0 +1,170 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CrudConfiguration</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.application.configuration</a>
+</div>
+
+<h1>Coverage Summary for Class: CrudConfiguration (ec.gob.conagopare.sona.application.configuration)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CrudConfiguration</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (13/13)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CrudConfiguration$$SpringCGLIB$$0</td>
+  </tr>
+  <tr>
+    <td class="name">CrudConfiguration$$SpringCGLIB$$FastClass$$0</td>
+  </tr>
+  <tr>
+    <td class="name">CrudConfiguration$$SpringCGLIB$$FastClass$$1</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (13/13)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.application.configuration;
+&nbsp;
+&nbsp;import ec.gob.conagopare.sona.modules.appointments.service.AppointmentService;
+&nbsp;import ec.gob.conagopare.sona.modules.appointments.service.ProfessionalScheduleService;
+&nbsp;import ec.gob.conagopare.sona.modules.content.services.DidacticContentService;
+&nbsp;import ec.gob.conagopare.sona.modules.content.services.TipService;
+&nbsp;import ec.gob.conagopare.sona.modules.forum.service.PostService;
+&nbsp;import ec.gob.conagopare.sona.modules.user.models.Authority;
+&nbsp;import ec.gob.conagopare.sona.modules.user.service.UserService;
+&nbsp;import io.github.luidmidev.springframework.data.crud.core.security.AuthorizeCrudConfigurer.AuthorizationManagerCrudMatcherRegistry;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.context.annotation.Bean;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;import org.springframework.data.web.config.EnableSpringDataWebSupport;
+&nbsp;import org.springframework.security.config.Customizer;
+&nbsp;
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@Configuration
+&nbsp;@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
+<b class="fc">&nbsp;public class CrudConfiguration {</b>
+&nbsp;
+&nbsp;    @Bean
+&nbsp;    public Customizer&lt;AuthorizationManagerCrudMatcherRegistry&gt; authorizationCrudConfigurer() {
+<b class="fc">&nbsp;        return registry -&gt; registry</b>
+<b class="fc">&nbsp;                .crudsReadOnly(UserService.class).authenticated()</b>
+<b class="fc">&nbsp;                .crudsReadOnly(TipService.class).authenticated()</b>
+<b class="fc">&nbsp;                .crudsReadOnly(DidacticContentService.class).authenticated()</b>
+<b class="fc">&nbsp;                .crudsReadOnly(ProfessionalScheduleService.class).authenticated()</b>
+<b class="fc">&nbsp;                .cruds(PostService.class).authenticated()</b>
+<b class="fc">&nbsp;                .cruds(</b>
+&nbsp;                        UserService.class,
+&nbsp;                        TipService.class,
+&nbsp;                        DidacticContentService.class,
+&nbsp;                        ProfessionalScheduleService.class
+<b class="fc">&nbsp;                ).hasAnyAuthority(</b>
+&nbsp;                        Authority.ADMIN,
+&nbsp;                        Authority.ADMINISTRATIVE
+&nbsp;                )
+<b class="fc">&nbsp;                .crudOperations(</b>
+&nbsp;                        AppointmentService.class
+<b class="fc">&nbsp;                ).hasAnyAuthority(</b>
+&nbsp;                        Authority.LEGAL_PROFESSIONAL,
+&nbsp;                        Authority.MEDICAL_PROFESSIONAL,
+&nbsp;                        Authority.ADMIN,
+&nbsp;                        Authority.ADMINISTRATIVE
+&nbsp;                )
+<b class="fc">&nbsp;                .anyOperation().permitAll();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

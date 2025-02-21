@@ -1,0 +1,149 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AppointmentRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.appointments.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: AppointmentRepository (ec.gob.conagopare.sona.modules.appointments.repository)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">AppointmentRepository$MockitoMock$4Wumxaua</td>
+  </tr>
+  <tr>
+    <td class="name">AppointmentRepository$MockitoMock$4Wumxaua$auxiliary$3fi9m69A</td>
+  </tr>
+  <tr>
+    <td class="name">AppointmentRepository$MockitoMock$4Wumxaua$auxiliary$B08K6bhP</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.appointments.repository;
+&nbsp;
+&nbsp;import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
+&nbsp;import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;public interface AppointmentRepository extends JpaRepository&lt;Appointment, Long&gt;, JpaSpecificationExecutor&lt;Appointment&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT COUNT(a) &gt; 0 FROM Appointment a
+&nbsp;            WHERE a.professional.id = :professionalId
+&nbsp;            AND a.date = :date
+&nbsp;            AND a.hour = :hour
+&nbsp;            AND a.canceled = false
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    boolean existsAppointmentAtHour(
+&nbsp;            @Param(&quot;professionalId&quot;) Long professionalId,
+&nbsp;            @Param(&quot;date&quot;) LocalDate date,
+&nbsp;            @Param(&quot;hour&quot;) Integer hour
+&nbsp;    );
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT COUNT(ps) &gt; 0 FROM ProfessionalSchedule ps
+&nbsp;            WHERE ps.professional.id = :professionalId
+&nbsp;            AND ps.date = :date
+&nbsp;            AND :hour &gt;= ps.fromHour
+&nbsp;            AND :hour &lt; ps.toHour
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    boolean isWithinProfessionalSchedule(
+&nbsp;            @Param(&quot;professionalId&quot;) Long professionalId,
+&nbsp;            @Param(&quot;date&quot;) LocalDate date,
+&nbsp;            @Param(&quot;hour&quot;) Integer hour
+&nbsp;    );
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT new ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange(a.date, a.hour, a.hour + 1) FROM Appointment a
+&nbsp;            WHERE a.professional.id = :professionalId
+&nbsp;            AND a.date BETWEEN :from AND :to
+&nbsp;            AND a.canceled = false
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    List&lt;AppointmentRange&gt; getProfessionalAppointmentsRanges(
+&nbsp;            @Param(&quot;professionalId&quot;) Long professionalId,
+&nbsp;            @Param(&quot;from&quot;) LocalDate from,
+&nbsp;            @Param(&quot;to&quot;) LocalDate to
+&nbsp;    );
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT a FROM Appointment a
+&nbsp;            WHERE a.date = :date
+&nbsp;            AND a.canceled = false
+&nbsp;            ORDER BY a.hour ASC
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    List&lt;Appointment&gt; getAppointmentsByDate(@Param(&quot;date&quot;) LocalDate date);
+&nbsp;
+&nbsp;    @Query(&quot;SELECT COUNT(a) FROM Appointment a &quot; +
+&nbsp;            &quot;WHERE (a.attendant.id = :userId) &quot; +
+&nbsp;            &quot;AND a.canceled = false &quot; +
+&nbsp;            &quot;AND (a.date &gt; :currentDate OR &quot; +
+&nbsp;            &quot;(a.date = :currentDate AND a.hour &gt;= :currentHour))&quot;)
+&nbsp;    long countFutureAppointments(
+&nbsp;            @Param(&quot;userId&quot;) Long userId,
+&nbsp;            @Param(&quot;currentDate&quot;) LocalDate currentDate,
+&nbsp;            @Param(&quot;currentHour&quot;) Integer currentHour
+&nbsp;    );
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

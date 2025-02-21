@@ -1,0 +1,117 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > TipRate</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.content.models</a>
+</div>
+
+<h1>Coverage Summary for Class: TipRate (ec.gob.conagopare.sona.modules.content.models)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">TipRate$HibernateInstantiator$aU5FBRn1</td>
+  </tr>
+  <tr>
+    <td class="name">TipRate$HibernateInstantiator$ErQhV51W</td>
+  </tr>
+  <tr>
+    <td class="name">TipRate$HibernateProxy$fFkjkTJy</td>
+  </tr>
+  <tr>
+    <td class="name">TipRate$HibernateProxy$hWeqtWGg</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.content.models;
+&nbsp;
+&nbsp;import ec.gob.conagopare.sona.modules.user.models.User;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.NoArgsConstructor;
+&nbsp;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;
+&nbsp;@Data
+&nbsp;@Builder
+&nbsp;@AllArgsConstructor
+&nbsp;@NoArgsConstructor
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;tip_rate&quot;)
+&nbsp;public class TipRate {
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long id;
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    @JoinColumn(name = &quot;tip_id&quot;, nullable = false)
+&nbsp;    private Tip tip;
+&nbsp;
+&nbsp;    @ManyToOne
+&nbsp;    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+&nbsp;    private User user;
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    private int value;
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    private LocalDateTime valuationDate;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

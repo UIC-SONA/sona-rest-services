@@ -1,0 +1,150 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ChatChunk</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.chat.models</a>
+</div>
+
+<h1>Coverage Summary for Class: ChatChunk (ec.gob.conagopare.sona.modules.chat.models)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ChatChunk</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.chat.models;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import jakarta.persistence.Id;
+&nbsp;import lombok.AllArgsConstructor;
+&nbsp;import lombok.Builder;
+&nbsp;import lombok.Data;
+&nbsp;import lombok.NoArgsConstructor;
+&nbsp;import org.springframework.data.mongodb.core.index.CompoundIndex;
+&nbsp;import org.springframework.data.mongodb.core.mapping.DBRef;
+&nbsp;import org.springframework.data.mongodb.core.mapping.Document;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Data
+&nbsp;@Builder
+&nbsp;@AllArgsConstructor
+&nbsp;@NoArgsConstructor
+&nbsp;@Document(collection = &quot;chat_chunks&quot;)
+&nbsp;@CompoundIndex(name = &quot;unique_number_in_room&quot;, def = &quot;{&#39;number&#39;: 1, &#39;room.$id&#39;: 1}&quot;, unique = true)
+&nbsp;public class ChatChunk {
+&nbsp;
+&nbsp;    public static final long CHUNK_LENGTH_MB = 3;
+&nbsp;    public static final long MAX_CHUNK_SIZE = CHUNK_LENGTH_MB * 1024 * 1024; // 5 MB en bytes
+&nbsp;
+&nbsp;    @Id
+&nbsp;    private String id;
+&nbsp;
+&nbsp;    private long number;
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    @DBRef(lazy = true)
+&nbsp;    private ChatRoom room;
+&nbsp;
+&nbsp;    @Builder.Default
+&nbsp;    private List&lt;ChatMessage&gt; messages = new ArrayList&lt;&gt;();
+&nbsp;
+&nbsp;    public static ChatChunk withFirstMessage(ChatRoom room, long number, ChatMessage message) {
+<b class="fc">&nbsp;        return ChatChunk.builder()</b>
+<b class="fc">&nbsp;                .room(room)</b>
+<b class="fc">&nbsp;                .number(number)</b>
+<b class="fc">&nbsp;                .messages(List.of(message))</b>
+<b class="fc">&nbsp;                .build();</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

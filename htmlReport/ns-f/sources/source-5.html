@@ -1,0 +1,95 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NewAppointment</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.appointments.dto</a>
+</div>
+
+<h1>Coverage Summary for Class: NewAppointment (ec.gob.conagopare.sona.modules.appointments.dto)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">NewAppointment</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.appointments.dto;
+&nbsp;
+&nbsp;import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
+&nbsp;import jakarta.validation.constraints.FutureOrPresent;
+&nbsp;import jakarta.validation.constraints.NotNull;
+&nbsp;import lombok.Data;
+&nbsp;import org.hibernate.validator.constraints.Range;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;
+&nbsp;@Data
+&nbsp;public class NewAppointment {
+&nbsp;
+&nbsp;    @NotNull
+&nbsp;    @FutureOrPresent
+&nbsp;    private LocalDate date;
+&nbsp;
+&nbsp;    @NotNull
+&nbsp;    @Range(min = 0, max = 23)
+&nbsp;    private Integer hour;
+&nbsp;
+&nbsp;    @NotNull
+&nbsp;    private Appointment.Type type;
+&nbsp;
+&nbsp;    @NotNull
+&nbsp;    private Long professionalId;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

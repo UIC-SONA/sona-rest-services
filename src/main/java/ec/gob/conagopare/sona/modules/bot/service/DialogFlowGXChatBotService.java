@@ -24,19 +24,16 @@ public class DialogFlowGXChatBotService extends ChatBotService {
 
     private final ChaBotConfig config;
     private final Set<String> activeIntentsDetection = ConcurrentHashMap.newKeySet();
-    private static final Credentials credentials;
+    private final Credentials credentials;
 
-    static {
+    public DialogFlowGXChatBotService(ChaBotConfig config, PromptResponseRepository promptResponseRepository) {
+        super(promptResponseRepository);
+        this.config = config;
         try (var resourceCredentials = new FileInputStream("google/service_account_dialogflow.json")) {
             credentials = GoogleCredentials.fromStream(resourceCredentials);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    public DialogFlowGXChatBotService(ChaBotConfig config, PromptResponseRepository promptResponseRepository) {
-        super(promptResponseRepository);
-        this.config = config;
     }
 
     @Override
@@ -90,7 +87,7 @@ public class DialogFlowGXChatBotService extends ChatBotService {
         return SessionName.ofProjectLocationAgentSessionName(sessionConfig.getProject(), sessionConfig.getLocation(), sessionConfig.getAgent(), session).toString();
     }
 
-    public static SessionsClient getSessionsClient() throws IOException {
+    public SessionsClient getSessionsClient() throws IOException {
         var settings = SessionsSettings.newBuilder()
                 .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
                 .build();

@@ -15,9 +15,14 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.MessageSourceAccessor;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.data.mongodb.gridfs.GridFsOperations;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.ResponseErrorHandler;
@@ -53,15 +58,19 @@ public class ApplicationConfiguration {
     }
 
     @Bean
-    public Storage storage() throws IOException {
+    public Storage storage(Environment environment) throws IOException {
+
+        log.info("Configuring Google Cloud Storage");
         try (var resourceCredentials = new FileInputStream("google/service_account_storage.json")) {
             var storage = StorageOptions.http()
                     .setCredentials(GoogleCredentials.fromStream(resourceCredentials))
                     .build()
                     .getService();
-
-            var bucket = storage.get("sona_app");
-            return new GoogleCloudStorage(bucket);
+            return new GoogleCloudStorage(storage.get(
+                    environment.acceptsProfiles(Profiles.of("test"))
+                            ? "sona_app_test"
+                            : "sona_app"
+            ));
         }
     }
 

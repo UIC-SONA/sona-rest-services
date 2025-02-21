@@ -20,10 +20,20 @@ public class KeycloakClientManager {
     private final Keycloak keycloak;
 
 
-    public KeycloakClientManager(Keycloak keycloak, KeycloakProperties.KeycloakClient client) {
-        this.realm = client.getRealm();
-        this.clientUiid = client.getClientUiid().toString();
+    public KeycloakClientManager(Keycloak keycloak, KeycloakProperties properties) {
+
+        log.info("Creating KeycloakClientManager for realm: {} and client: {}", properties.getCli().getDefaultClient().getRealm(), properties.getClientId());
+
+        this.realm = properties.getCli().getDefaultClient().getRealm();
+        var realmResource = keycloak.realm(realm)
+                .clients()
+                .findByClientId(properties.getClientId())
+                .getFirst();
+
+        this.clientUiid = realmResource.getId();
         this.keycloak = keycloak;
+
+        log.info("KeycloakClientManager created for realm: {} and client: {}, with clientUiid: {}", realm, properties.getClientId(), clientUiid);
     }
 
     public RealmResource realm() {

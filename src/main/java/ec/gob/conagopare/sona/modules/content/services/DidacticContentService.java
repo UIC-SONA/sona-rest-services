@@ -64,11 +64,6 @@ public class DidacticContentService implements JpaCrudService<DidacticContent, D
         model.setContent(dto.getContent());
     }
 
-    @Override
-    public Page<DidacticContent> internalSearch(String search, Pageable pageable, MultiValueMap<String, String> params) {
-        throw ProblemDetails.badRequest("Filtro no soportado");
-    }
-
     @PreAuthorize("isAuthenticated()")
     public Stored image(UUID id) throws IOException {
         var model = find(id);

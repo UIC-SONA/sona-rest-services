@@ -1,0 +1,179 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CorsProperties</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.application.configuration</a>
+</div>
+
+<h1>Coverage Summary for Class: CorsProperties (ec.gob.conagopare.sona.application.configuration)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CorsProperties</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    25%
+  </span>
+  <span class="absValue">
+    (1/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91,7%
+  </span>
+  <span class="absValue">
+    (11/12)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CorsProperties$$SpringCGLIB$$0</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    25%
+  </span>
+  <span class="absValue">
+    (1/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    91,7%
+  </span>
+  <span class="absValue">
+    (11/12)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.application.configuration;
+&nbsp;
+&nbsp;import lombok.Data;
+&nbsp;import org.springframework.boot.context.properties.ConfigurationProperties;
+&nbsp;import org.springframework.boot.context.properties.PropertyMapper;
+&nbsp;import org.springframework.boot.convert.DurationUnit;
+&nbsp;import org.springframework.context.annotation.Configuration;
+&nbsp;import org.springframework.util.CollectionUtils;
+&nbsp;import org.springframework.web.cors.CorsConfiguration;
+&nbsp;
+&nbsp;import java.time.Duration;
+&nbsp;import java.time.temporal.ChronoUnit;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@Data
+&nbsp;@Configuration
+&nbsp;@ConfigurationProperties(prefix = &quot;cors&quot;)
+&nbsp;public class CorsProperties {
+&nbsp;
+&nbsp;    private List&lt;String&gt; allowedOrigins = new ArrayList&lt;&gt;();
+&nbsp;    private List&lt;String&gt; allowedOriginPatterns = new ArrayList&lt;&gt;();
+&nbsp;    private List&lt;String&gt; allowedMethods = new ArrayList&lt;&gt;();
+&nbsp;    private List&lt;String&gt; allowedHeaders = new ArrayList&lt;&gt;();
+&nbsp;    private List&lt;String&gt; exposedHeaders = new ArrayList&lt;&gt;();
+&nbsp;    private Boolean allowCredentials;
+&nbsp;    @DurationUnit(ChronoUnit.SECONDS)
+&nbsp;    private Duration maxAge = Duration.ofSeconds(1800);
+&nbsp;
+&nbsp;    public CorsConfiguration toCorsConfiguration() {
+<b class="pc">&nbsp;        if (CollectionUtils.isEmpty(this.allowedOrigins) &amp;&amp; CollectionUtils.isEmpty(this.allowedOriginPatterns)) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+<b class="fc">&nbsp;        var config = new CorsConfiguration();</b>
+<b class="fc">&nbsp;        var map = PropertyMapper.get();</b>
+<b class="fc">&nbsp;        map.from(this::getAllowedOrigins).to(config::setAllowedOrigins);</b>
+<b class="fc">&nbsp;        map.from(this::getAllowedOriginPatterns).to(config::setAllowedOriginPatterns);</b>
+<b class="fc">&nbsp;        map.from(this::getAllowedHeaders).whenNot(CollectionUtils::isEmpty).to(config::setAllowedHeaders);</b>
+<b class="fc">&nbsp;        map.from(this::getAllowedMethods).whenNot(CollectionUtils::isEmpty).to(config::setAllowedMethods);</b>
+<b class="fc">&nbsp;        map.from(this::getExposedHeaders).whenNot(CollectionUtils::isEmpty).to(config::setExposedHeaders);</b>
+<b class="fc">&nbsp;        map.from(this::getMaxAge).whenNonNull().as(Duration::getSeconds).to(config::setMaxAge);</b>
+<b class="fc">&nbsp;        map.from(this::getAllowCredentials).whenNonNull().to(config::setAllowCredentials);</b>
+<b class="fc">&nbsp;        return config;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

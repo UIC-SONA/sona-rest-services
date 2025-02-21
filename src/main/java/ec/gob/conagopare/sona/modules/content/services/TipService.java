@@ -65,6 +65,8 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
             } catch (IOException e) {
                 throw ProblemDetails.internalServerError("Error al guardar la imagen: " + e.getMessage());
             }
+        } else if (model.isNew()) {
+            throw ProblemDetails.badRequest("La imagen es requerida");
         }
 
         model.setTitle(dto.getTitle());
@@ -103,12 +105,11 @@ public class TipService implements JpaCrudService<Tip, TipDto, UUID, TipReposito
         var tip = find(id);
 
         var valuationEntity = valuationRepository.findByTipIdAndUserId(id, currentUser.getId())
-                .orElseGet(() -> valuationRepository.save(TipRate.builder()
+                .orElseGet(() -> TipRate.builder()
                         .tip(tip)
                         .user(currentUser)
                         .valuationDate(LocalDateTime.now())
-                        .build())
-                );
+                        .build());
 
         valuationEntity.setValue(value);
         valuationRepository.save(valuationEntity);

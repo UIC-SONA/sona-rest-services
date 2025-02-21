@@ -1,0 +1,175 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MongoUtils</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.application.common.utils</a>
+</div>
+
+<h1>Coverage Summary for Class: MongoUtils (ec.gob.conagopare.sona.application.common.utils)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MongoUtils</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (2/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (3/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81,8%
+  </span>
+  <span class="absValue">
+    (18/22)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.application.common.utils;
+&nbsp;
+&nbsp;import ec.gob.conagopare.sona.application.common.schemas.CountResult;
+&nbsp;import org.springframework.data.domain.Page;
+&nbsp;import org.springframework.data.domain.PageImpl;
+&nbsp;import org.springframework.data.domain.Pageable;
+&nbsp;import org.springframework.data.mongodb.core.MongoOperations;
+&nbsp;import org.springframework.data.mongodb.core.aggregation.Aggregation;
+&nbsp;import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+&nbsp;import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+&nbsp;import org.springframework.data.support.PageableExecutionUtils;
+&nbsp;
+&nbsp;import java.util.ArrayList;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;public final class MongoUtils {
+<b class="nc">&nbsp;    private MongoUtils() {</b>
+<b class="nc">&nbsp;        throw new IllegalStateException(&quot;Utility class&quot;);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; Page&lt;T&gt; getPage(MongoOperations mongo, Pageable pageable, List&lt;AggregationOperation&gt; operations, String collectionName, Class&lt;T&gt; targetClass) {
+<b class="pc">&nbsp;        if (pageable.getSort().isSorted()) {</b>
+<b class="nc">&nbsp;            operations.add(Aggregation.sort(pageable.getSort()));</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        if (pageable.isUnpaged()) {</b>
+&nbsp;            // Ejecutar agregación sin paginación
+<b class="fc">&nbsp;            var aggregation = Aggregation.newAggregation(operations);</b>
+<b class="fc">&nbsp;            var results = mongo.aggregate(aggregation, collectionName, targetClass);</b>
+<b class="fc">&nbsp;            return new PageImpl&lt;&gt;(results.getMappedResults());</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Agregar paginación
+<b class="fc">&nbsp;        operations.add(Aggregation.skip((long) pageable.getPageNumber() * pageable.getPageSize()));</b>
+<b class="fc">&nbsp;        operations.add(Aggregation.limit(pageable.getPageSize()));</b>
+&nbsp;
+&nbsp;        // Ejecutar agregación paginada
+<b class="fc">&nbsp;        var aggregation = Aggregation.newAggregation(operations);</b>
+<b class="fc">&nbsp;        var results = mongo.aggregate(aggregation, collectionName, targetClass);</b>
+&nbsp;
+&nbsp;        // Crear agregación de conteo optimizada, eliminando la etapa de paginación
+<b class="fc">&nbsp;        var countOperations = new ArrayList&lt;&gt;(operations.subList(0, operations.size() - 2));</b>
+<b class="fc">&nbsp;        countOperations.add(Aggregation.count().as(&quot;total&quot;));</b>
+<b class="fc">&nbsp;        var countAggregation = Aggregation.newAggregation(countOperations);</b>
+<b class="fc">&nbsp;        AggregationResults&lt;CountResult&gt; countResult = mongo.aggregate(countAggregation, collectionName, CountResult.class);</b>
+<b class="fc">&nbsp;        var count = countResult.getUniqueMappedResult();</b>
+&nbsp;
+<b class="fc">&nbsp;        return PageableExecutionUtils.getPage(</b>
+<b class="fc">&nbsp;                results.getMappedResults(),</b>
+&nbsp;                pageable,
+<b class="nc">&nbsp;                () -&gt; count != null ? count.getTotal() : 0</b>
+&nbsp;        );
+&nbsp;    }
+&nbsp;
+&nbsp;    public static &lt;T&gt; Page&lt;T&gt; getPage(MongoOperations mongo, Pageable pageable, List&lt;AggregationOperation&gt; operations, Class&lt;T&gt; targetClass) {
+<b class="fc">&nbsp;        var collectionName = mongo.getCollectionName(targetClass);</b>
+<b class="fc">&nbsp;        return getPage(mongo, pageable, operations, collectionName, targetClass);</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

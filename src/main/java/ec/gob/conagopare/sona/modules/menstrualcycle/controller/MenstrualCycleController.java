@@ -22,12 +22,6 @@ public class MenstrualCycleController {
 
     private final MenstrualCycleService service;
 
-    @GetMapping
-    public ResponseEntity<CycleData> getCycleData(@AuthenticationPrincipal Jwt jwt) {
-        var cycleData = service.getCycle(jwt);
-        return ResponseEntity.ok(cycleData);
-    }
-
     @PostMapping("/details")
     public ResponseEntity<Message> saveCycleDetails(
             @RequestBody CycleDetails cycleDetails,
@@ -35,6 +29,12 @@ public class MenstrualCycleController {
     ) {
         service.saveCycleDetails(cycleDetails, jwt);
         return ResponseEntity.ok(new Message("Detalles de ciclo guardados correctamente"));
+    }
+
+    @GetMapping
+    public ResponseEntity<CycleData> getCycleData(@AuthenticationPrincipal Jwt jwt) {
+        var cycleData = service.getCycle(jwt);
+        return ResponseEntity.ok(cycleData);
     }
 
 

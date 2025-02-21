@@ -4,12 +4,12 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.UUID;
-
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "keycloak")
 public class KeycloakProperties {
+
+    private String clientId;
 
     private KeycloakCli cli = new KeycloakCli();
 
@@ -27,6 +27,6 @@ public class KeycloakProperties {
     @Data
     public static class KeycloakClient {
         private String realm;
-        private UUID clientUiid;
+//      private UUID clientUiid;
     }
 }

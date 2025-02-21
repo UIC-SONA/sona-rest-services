@@ -3,7 +3,7 @@ package ec.gob.conagopare.sona.modules.forum.service;
 import ec.gob.conagopare.sona.application.common.utils.MongoUtils;
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
-import ec.gob.conagopare.sona.modules.forum.dto.TopPostsDto;
+import ec.gob.conagopare.sona.modules.forum.dto.TopPostsResult;
 import ec.gob.conagopare.sona.modules.forum.models.ByAuthor;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.models.Post.Comment;
@@ -95,7 +95,8 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         var query = isPriviliged ? isId(id) : isAuthor(id, user.getId());
         var result = mongo.remove(query, Post.class);
         if (result.getDeletedCount() == 0) {
-            throw isPriviliged ? ProblemDetails.notFound("Publicación no encontrada") : ProblemDetails.forbidden("No tienes permisos para eliminar esta publicación");
+            if (isPriviliged) throw ProblemDetails.notFound("Publicación no encontrada");
+            throw ProblemDetails.forbidden("No tienes permisos para eliminar esta publicación");
         }
     }
 
@@ -121,7 +122,10 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         } else {
             criteria.andOperator(
                     new Criteria().orOperator(
-                            where(Post.COMMENTS_FIELD).elemMatch(where("id").is(commentId).and(ByAuthor.AUTHOR_FIELD).is(user.getId())),
+                            where(Post.COMMENTS_FIELD).elemMatch(where("id")
+                                    .is(commentId)
+                                    .and(ByAuthor.AUTHOR_FIELD)
+                                    .is(user.getId())),
                             where(ByAuthor.AUTHOR_FIELD).is(user.getId())
                     )
             );
@@ -168,7 +172,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         var returned = updater.apply(update);
         var result = mongo.updateFirst(query, update, Post.class);
         if (result.getModifiedCount() == 0) {
-            log.warn("No se encontró la publicación para actualizar");
+            throw ProblemDetails.notFound("Publicación no encontrada");
         }
         return returned;
     }
@@ -207,6 +211,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         if (!or.isEmpty()) {
             operations.add(Aggregation.match(new Criteria().orOperator(or)));
         }
+
         return MongoUtils.getPage(mongo, pageable, operations, Post.class);
     }
 
@@ -282,8 +287,8 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
     };
 
     @PreAuthorize("isAuthenticated()")
-    public TopPostsDto topPosts() {
-        var dto = new TopPostsDto();
+    public TopPostsResult topPosts() {
+        var dto = new TopPostsResult();
         dto.setMostLikedPost(mostLiked());
         dto.setMostCommentedPost(mostCommented());
         return dto;

@@ -27,8 +27,9 @@ public final class StorageUtils {
         };
     }
 
-    public static void tryRemoveFileAsync(Storage storage, @NotNull String... fullPaths) {
+    public static void tryRemoveFileAsync(Storage storage, String... fullPaths) {
         for (var fullPath : fullPaths) {
+            if (fullPath == null) continue;
             runAsync(() -> storage.remove(fullPath)).exceptionally(canNotRemoveFile(fullPath));
         }
     }

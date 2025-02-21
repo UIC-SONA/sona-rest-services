@@ -1,0 +1,184 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Authority</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.user.models</a>
+</div>
+
+<h1>Coverage Summary for Class: Authority (ec.gob.conagopare.sona.modules.user.models)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Authority</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    84,6%
+  </span>
+  <span class="absValue">
+    (11/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    92,6%
+  </span>
+  <span class="absValue">
+    (25/27)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.user.models;
+&nbsp;
+&nbsp;import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaEnumCandidate;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import org.springframework.security.core.GrantedAuthority;
+&nbsp;
+&nbsp;import java.util.*;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.stream.Stream;
+&nbsp;
+&nbsp;
+<b class="fc">&nbsp;@RequiredArgsConstructor</b>
+&nbsp;public enum Authority implements GrantedAuthority, JpaEnumCandidate {
+<b class="fc">&nbsp;    ADMIN(&quot;ROLE_admin&quot;, &quot;administrador&quot;),</b>
+<b class="fc">&nbsp;    ADMINISTRATIVE(&quot;ROLE_administrative&quot;, &quot;administrativo&quot;),</b>
+<b class="fc">&nbsp;    LEGAL_PROFESSIONAL(&quot;ROLE_legal_professional&quot;, &quot;profesional legal&quot;),</b>
+<b class="fc">&nbsp;    MEDICAL_PROFESSIONAL(&quot;ROLE_medical_professional&quot;, &quot;profesional médico&quot;),</b>
+<b class="fc">&nbsp;    USER(&quot;ROLE_user&quot;, &quot;usuario&quot;);</b>
+&nbsp;
+&nbsp;    private final String roleName;
+&nbsp;    private final String spanishName;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String getAuthority() {
+<b class="fc">&nbsp;        return roleName;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Optional&lt;Authority&gt; findByRole(String roleName) {
+<b class="fc">&nbsp;        return Arrays.stream(values())</b>
+<b class="fc">&nbsp;                .filter(authority -&gt; authority.getAuthority().equals(roleName))</b>
+<b class="fc">&nbsp;                .findFirst();</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Collection&lt;Authority&gt; parseAuthorities(String... roleNames) {
+<b class="nc">&nbsp;        return parseAuthorities(Arrays.stream(roleNames));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    public static Collection&lt;Authority&gt; parseAuthorities(Collection&lt;String&gt; roleNames) {
+<b class="fc">&nbsp;        return parseAuthorities(roleNames.stream());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Collection&lt;Authority&gt; parseAuthorities(Stream&lt;String&gt; roleStream) {
+<b class="fc">&nbsp;        return roleStream</b>
+<b class="fc">&nbsp;                .map(Authority::findByRole)</b>
+<b class="fc">&nbsp;                .filter(Optional::isPresent)</b>
+<b class="fc">&nbsp;                .map(Optional::get)</b>
+<b class="fc">&nbsp;                .collect(Collectors.toSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Collection&lt;Authority&gt; valuesOf(String... roleNames) {
+<b class="nc">&nbsp;        return valuesOf(Arrays.asList(roleNames));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Collection&lt;Authority&gt; valuesOf(Collection&lt;String&gt; roleNames) {
+<b class="fc">&nbsp;        return valuesOf(roleNames.stream());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static Collection&lt;Authority&gt; valuesOf(Stream&lt;String&gt; roleStream) {
+<b class="fc">&nbsp;        return roleStream</b>
+<b class="fc">&nbsp;                .map(Authority::valueOf)</b>
+<b class="fc">&nbsp;                .collect(Collectors.toSet());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String[] convertToRoleNames(Collection&lt;Authority&gt; authorities) {
+<b class="fc">&nbsp;        return authorities.stream()</b>
+<b class="fc">&nbsp;                .map(Authority::getAuthority)</b>
+<b class="fc">&nbsp;                .toArray(String[]::new);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public static String[] convertToRoleNames(Authority... authorities) {
+<b class="fc">&nbsp;        return convertToRoleNames(Set.of(authorities));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isCandidate(String value) {
+<b class="fc">&nbsp;        return spanishName.contains(value.toLowerCase());</b>
+&nbsp;    }
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

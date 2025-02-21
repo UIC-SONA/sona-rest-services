@@ -9,7 +9,7 @@ import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserMan
 import ec.gob.conagopare.sona.modules.user.UserConfig;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
-import ec.gob.conagopare.sona.modules.user.dto.KeycloakUserSync;
+import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserSync;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
@@ -30,6 +30,8 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,14 +61,16 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     private final KeycloakUserManager keycloakUserManager;
     private final Storage storage;
     private final String clientId;
+    private final Environment environment;
 
-    public UserService(UserRepository repository, EntityManager entityManager, UserConfig config, KeycloakUserManager keycloakUserManager, Storage storage, @Value("${keycloak.client-id}") String clientId) {
+    public UserService(UserRepository repository, EntityManager entityManager, UserConfig config, KeycloakUserManager keycloakUserManager, Storage storage, @Value("${keycloak.client-id}") String clientId, Environment environment) {
         this.repository = repository;
         this.entityManager = entityManager;
         this.config = config;
         this.keycloakUserManager = keycloakUserManager;
         this.storage = storage;
         this.clientId = clientId;
+        this.environment = environment;
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -102,7 +106,14 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
     @Override
     public void mapModel(UserDto dto, User model) {
+
+        var representation = dto.toRepresentation();
+        var username = representation.getUsername();
+        var email = representation.getEmail();
+
+
         if (model.isNew()) {
+            validateEmailAndUsername(email, username);
             var authorityToAdd = dto.getAuthoritiesToAdd();
             var password = dto.getPassword();
 
@@ -115,7 +126,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
             validateAuthorities(authorityToAdd);
 
-            var keycloakId = keycloakUserManager.create(dto.toRepresentation());
+            var keycloakId = keycloakUserManager.create(representation);
             model.setKeycloakId(keycloakId);
         }
     }
@@ -202,8 +213,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     private User getUser(String keycloakId) {
-        return repository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> ProblemDetails.notFound("Usuario no encontrado"));
+        return repository.findByKeycloakId(keycloakId).orElseThrow(() -> ProblemDetails.notFound("Usuario no encontrado"));
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -230,6 +240,7 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     private Stored profilePicture(User user) {
+        log.info("Obteniendo foto de perfil del usuario: {} en {}", user.getId(), user.getProfilePicturePath());
         return Optional.ofNullable(user.getProfilePicturePath())
                 .map(FunctionThrowable.unchecked(storage::download))
                 .filter(Optional::isPresent)
@@ -239,13 +250,10 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
     private void internalCreate(UserRepresentation representation, String password, Authority... authority) {
 
-        if (keycloakUserManager.searchByEmail(representation.getEmail()).isPresent()) {
-            throw ProblemDetails.conflict("Conflicto", "El usuario con el correo electrónico " + representation.getEmail() + " ya existe");
-        }
+        var email = representation.getEmail();
+        var username = representation.getUsername();
 
-        if (keycloakUserManager.searchByUsername(representation.getUsername()).isPresent()) {
-            throw ProblemDetails.badRequest("Conflicto", "El usuario con el nombre de usuario " + representation.getUsername() + " ya existe");
-        }
+        validateEmailAndUsername(email, username);
 
         var keycloakId = keycloakUserManager.create(representation);
 
@@ -259,6 +267,16 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         } catch (Exception e) {
             keycloakUserManager.delete(keycloakId);
             throw e;
+        }
+    }
+
+    private void validateEmailAndUsername(String email, String username) {
+        if (keycloakUserManager.searchByEmail(email).isPresent()) {
+            throw ProblemDetails.conflict("Conflicto", "El usuario con el correo electrónico " + email + " ya existe");
+        }
+
+        if (keycloakUserManager.searchByUsername(username).isPresent()) {
+            throw ProblemDetails.conflict("Conflicto", "El usuario con el nombre de usuario " + username + " ya existe");
         }
     }
 
@@ -282,6 +300,8 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     }
 
     public void syncKeycloak(KeycloakUserSync userSync, String apiKey) {
+        log.info("Sincronizando usuarios con Keycloak: {}", userSync);
+
         var key = config.getSyncApiKey();
         if (!key.equals(apiKey)) {
             throw ProblemDetails.forbidden("API Key inválida");
@@ -309,6 +329,11 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
     private final CrudHooks<User, UserDto, Long> hooks = new CrudHooks<>() {
         @Override
         public void onAfterCreate(UserDto dto, User model) {
+
+            if (environment.acceptsProfiles(Profiles.of("mockTest"))) {
+                return;
+            }
+
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
@@ -328,6 +353,11 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
 
         @Override
         public void onAfterUpdate(UserDto dto, User model) {
+
+            if (environment.acceptsProfiles(Profiles.of("mockTest"))) {
+                return;
+            }
+
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {

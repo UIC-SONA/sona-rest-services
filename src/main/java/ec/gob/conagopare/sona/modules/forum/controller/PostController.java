@@ -3,7 +3,7 @@ package ec.gob.conagopare.sona.modules.forum.controller;
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.modules.forum.dto.NewComment;
 import ec.gob.conagopare.sona.modules.forum.dto.PostDto;
-import ec.gob.conagopare.sona.modules.forum.dto.TopPostsDto;
+import ec.gob.conagopare.sona.modules.forum.dto.TopPostsResult;
 import ec.gob.conagopare.sona.modules.forum.models.Post;
 import ec.gob.conagopare.sona.modules.forum.service.PostService;
 import io.github.luidmidev.springframework.data.crud.core.SpringDataCrudAutoConfiguration;
@@ -52,7 +52,7 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
     }
 
     @GetMapping("/top")
-    public ResponseEntity<TopPostsDto> topPosts() {
+    public ResponseEntity<TopPostsResult> topPosts() {
         return ResponseEntity.ok(service.topPosts());
     }
 

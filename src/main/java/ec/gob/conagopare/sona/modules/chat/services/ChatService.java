@@ -232,30 +232,30 @@ public class ChatService {
         return mongoTemplate.getConverter().read(ChatMessage.class, lastMessage);
     }
 
-    @SuppressWarnings("unused")
-    private ChatMessage message(String roomId, String messageId) {
-        log.info("Searching for message: roomId={}, messageId={}", roomId, messageId);
 
-        var aggregate = Aggregation.newAggregation(
-                Aggregation.match(chunksOf(roomId)),
-                Aggregation.unwind(MESSAGES),
-                Aggregation.match(Criteria.where(MESSAGES + "._id").is(messageId)),
-                Aggregation.project()
-                        .and(MESSAGES).as("message")
-        );
-
-        var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class)
-                .getUniqueMappedResult();
-
-        if (result == null) {
-            log.warn("Message not found: roomId={}, messageId={}", roomId, messageId);
-            throw ProblemDetails.notFound("No se encontró el mensaje");
-        }
-
-        var messageDoc = result.get("message", Document.class);
-        return mongoTemplate.getConverter().read(ChatMessage.class, messageDoc);
-    }
-
+    /**
+     *     private ChatMessage message(String roomId, String messageId) {
+     *         log.info("Searching for message: roomId={}, messageId={}", roomId, messageId);
+     *         var aggregate = Aggregation.newAggregation(
+     *                 Aggregation.match(chunksOf(roomId)),
+     *                 Aggregation.unwind(MESSAGES),
+     *                 Aggregation.match(Criteria.where(MESSAGES + "._id").is(messageId)),
+     *                 Aggregation.project()
+     *                         .and(MESSAGES).as("message")
+     *         );
+     *         var result = mongoTemplate.aggregate(aggregate, ChatChunk.class, Document.class)
+     *                 .getUniqueMappedResult();
+     *         if (result == null) {
+     *             log.warn("Message not found: roomId={}, messageId={}", roomId, messageId);
+     *             throw ProblemDetails.notFound("No se encontró el mensaje");
+     *         }
+     *         var messageDoc = result.get("message", Document.class);
+     *         return mongoTemplate.getConverter().read(ChatMessage.class, messageDoc);
+     *     }
+     * @param userId id del usuario con el que se quiere iniciar un chat
+     * @param jwt token de autenticación
+     * @return ChatRoom
+     */
     @PreAuthorize("isAuthenticated()")
     public ChatRoom room(Long userId, Jwt jwt) {
         var user = userService.getUser(jwt);

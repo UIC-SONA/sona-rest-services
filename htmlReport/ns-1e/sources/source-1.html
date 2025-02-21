@@ -1,0 +1,153 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MenstrualCycleController</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.menstrualcycle.controller</a>
+</div>
+
+<h1>Coverage Summary for Class: MenstrualCycleController (ec.gob.conagopare.sona.modules.menstrualcycle.controller)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MenstrualCycleController</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (7/7)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.menstrualcycle.controller;
+&nbsp;
+&nbsp;import ec.gob.conagopare.sona.application.common.schemas.Message;
+&nbsp;import ec.gob.conagopare.sona.modules.menstrualcycle.dto.CycleDetails;
+&nbsp;import ec.gob.conagopare.sona.modules.menstrualcycle.models.CycleData;
+&nbsp;import ec.gob.conagopare.sona.modules.menstrualcycle.services.MenstrualCycleService;
+&nbsp;import lombok.RequiredArgsConstructor;
+&nbsp;import lombok.extern.slf4j.Slf4j;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.security.core.annotation.AuthenticationPrincipal;
+&nbsp;import org.springframework.security.oauth2.jwt.Jwt;
+&nbsp;import org.springframework.web.bind.annotation.*;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;@RestController
+<b class="fc">&nbsp;@Slf4j</b>
+&nbsp;@RequestMapping(&quot;/menstrual-cycle&quot;)
+&nbsp;@RequiredArgsConstructor
+&nbsp;public class MenstrualCycleController {
+&nbsp;
+&nbsp;    private final MenstrualCycleService service;
+&nbsp;
+&nbsp;    @PostMapping(&quot;/details&quot;)
+&nbsp;    public ResponseEntity&lt;Message&gt; saveCycleDetails(
+&nbsp;            @RequestBody CycleDetails cycleDetails,
+&nbsp;            @AuthenticationPrincipal Jwt jwt
+&nbsp;    ) {
+<b class="fc">&nbsp;        service.saveCycleDetails(cycleDetails, jwt);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(new Message(&quot;Detalles de ciclo guardados correctamente&quot;));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @GetMapping
+&nbsp;    public ResponseEntity&lt;CycleData&gt; getCycleData(@AuthenticationPrincipal Jwt jwt) {
+<b class="fc">&nbsp;        var cycleData = service.getCycle(jwt);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(cycleData);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;    @PostMapping(&quot;/period-logs&quot;)
+&nbsp;    public ResponseEntity&lt;Message&gt; savePeriodDates(
+&nbsp;            @RequestBody List&lt;LocalDate&gt; periodDates,
+&nbsp;            @AuthenticationPrincipal Jwt jwt
+&nbsp;    ) {
+<b class="fc">&nbsp;        service.savePeriodDates(periodDates, jwt);</b>
+<b class="fc">&nbsp;        return ResponseEntity.ok(new Message(&quot;Fechas de periodo guardadas correctamente&quot;));</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,233 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > User</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.user.models</a>
+</div>
+
+<h1>Coverage Summary for Class: User (ec.gob.conagopare.sona.modules.user.models)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">User</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">User$HibernateInstantiator$jRwVKFnZ</td>
+  </tr>
+  <tr>
+    <td class="name">User$HibernateInstantiator$U1WIes6v</td>
+  </tr>
+  <tr>
+    <td class="name">User$HibernateProxy$d7hKlPxf</td>
+  </tr>
+  <tr>
+    <td class="name">User$HibernateProxy$sd6agwBY</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.user.models;
+&nbsp;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonIgnore;
+&nbsp;import com.fasterxml.jackson.annotation.JsonProperty;
+&nbsp;import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;
+&nbsp;import io.github.luidmidev.storage.PurgableStored;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import lombok.*;
+&nbsp;import org.springframework.data.domain.Persistable;
+&nbsp;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.Set;
+&nbsp;
+&nbsp;@EqualsAndHashCode(callSuper = true)
+&nbsp;@Data
+&nbsp;@Builder
+&nbsp;@AllArgsConstructor
+&nbsp;@NoArgsConstructor
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;sona_user&quot;)
+&nbsp;public class User extends Auditable implements Persistable&lt;Long&gt;, PurgableStored {
+&nbsp;
+&nbsp;    public static final String KEYCLOAK_ID_ATTRIBUTE = &quot;keycloakId&quot;;
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long id;
+&nbsp;
+&nbsp;    @Column(nullable = false, unique = true)
+&nbsp;    private String keycloakId;
+&nbsp;
+&nbsp;    @JsonIgnore
+&nbsp;    @Column
+&nbsp;    private String profilePicturePath;
+&nbsp;
+&nbsp;    @Builder.Default
+&nbsp;    @Column(nullable = false)
+&nbsp;    private boolean anonymous = false;
+&nbsp;
+&nbsp;    // USER INFORMATION SYNCED FROM KEYCLOAK
+&nbsp;    @Column
+&nbsp;    protected String username;
+&nbsp;
+&nbsp;    @Column
+&nbsp;    protected String firstName;
+&nbsp;
+&nbsp;    @Column
+&nbsp;    protected String lastName;
+&nbsp;
+&nbsp;    @Column
+&nbsp;    protected Boolean enabled;
+&nbsp;
+&nbsp;    @Column
+&nbsp;    protected String email;
+&nbsp;
+&nbsp;    @Builder.Default
+&nbsp;    @ElementCollection(fetch = FetchType.EAGER, targetClass = Authority.class)
+&nbsp;    @Enumerated(EnumType.STRING)
+&nbsp;    @CollectionTable(
+&nbsp;            name = &quot;user_authorities&quot;,
+&nbsp;            joinColumns = @JoinColumn(name = &quot;user_id&quot;)
+&nbsp;    )
+&nbsp;    @Column(name = &quot;authority&quot;)
+&nbsp;    private Set&lt;Authority&gt; authorities = new HashSet&lt;&gt;();
+&nbsp;
+&nbsp;    public boolean is(Authority... authorities) {
+<b class="fc">&nbsp;        return this.authorities.containsAll(Set.of(authorities));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressWarnings(&quot;BooleanMethodIsAlwaysInverted&quot;)
+&nbsp;    public boolean isAny(Authority... authorities) {
+<b class="fc">&nbsp;        return Set.of(authorities).stream().anyMatch(this.authorities::contains);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @JsonProperty(&quot;hasProfilePicture&quot;)
+&nbsp;    public boolean hasProfilePicture() {
+<b class="pc">&nbsp;        return profilePicturePath != null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String[] filesFullPaths() {
+<b class="nc">&nbsp;        return new String[]{profilePicturePath};</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isNew() {
+<b class="fc">&nbsp;        return id == null;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

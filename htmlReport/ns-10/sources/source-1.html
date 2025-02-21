@@ -1,0 +1,236 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > Appointment</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.appointments.models</a>
+</div>
+
+<h1>Coverage Summary for Class: Appointment (ec.gob.conagopare.sona.modules.appointments.models)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">Appointment</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (1/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (1/2)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">Appointment$HibernateInstantiator$KDyRIryY</td>
+  </tr>
+  <tr>
+    <td class="name">Appointment$HibernateInstantiator$PK3pQALH</td>
+  </tr>
+  <tr>
+    <td class="name">Appointment$HibernateProxy$uuAjhsy9</td>
+  </tr>
+  <tr>
+    <td class="name">Appointment$HibernateProxy$uzEEcgY4</td>
+  </tr>
+  <tr>
+    <td class="name">Appointment$Type</td>
+<td class="coverageStat">
+  <span class="percent">
+    66,7%
+  </span>
+  <span class="absValue">
+    (2/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (3/4)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    60%
+  </span>
+  <span class="absValue">
+    (3/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    66,7%
+  </span>
+  <span class="absValue">
+    (4/6)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.appointments.models;
+&nbsp;
+&nbsp;import com.fasterxml.jackson.annotation.JsonProperty;
+&nbsp;import ec.gob.conagopare.sona.modules.appointments.dto.AppointmentRange;
+&nbsp;import ec.gob.conagopare.sona.modules.user.models.User;
+&nbsp;import io.github.luidmidev.springframework.data.crud.jpa.utils.JpaEnumCandidate;
+&nbsp;import jakarta.persistence.*;
+&nbsp;import lombok.*;
+&nbsp;import org.springframework.data.domain.Persistable;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;
+&nbsp;@Data
+&nbsp;@Builder
+&nbsp;@AllArgsConstructor
+&nbsp;@NoArgsConstructor
+&nbsp;@Entity
+&nbsp;@Table(name = &quot;appointment&quot;)
+&nbsp;public class Appointment implements Persistable&lt;Long&gt; {
+&nbsp;
+&nbsp;    public static final String ATTENDANT_ATTRIBUTE = &quot;attendant&quot;;
+&nbsp;    public static final String PROFESSIONAL_ATTRIBUTE = &quot;professional&quot;;
+&nbsp;
+&nbsp;    @Id
+&nbsp;    @GeneratedValue(strategy = GenerationType.IDENTITY)
+&nbsp;    private Long id;
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    private LocalDate date;
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    private Integer hour;
+&nbsp;
+&nbsp;    @Column(nullable = false)
+&nbsp;    private boolean canceled;
+&nbsp;
+&nbsp;    @Column(length = 1000)
+&nbsp;    private String cancellationReason;
+&nbsp;
+&nbsp;    @Enumerated(EnumType.ORDINAL)
+&nbsp;    @Column(nullable = false)
+&nbsp;    private Type type;
+&nbsp;
+&nbsp;    @ManyToOne(fetch = FetchType.EAGER)
+&nbsp;    @JoinColumn(name = &quot;attendant_id&quot;, nullable = false)
+&nbsp;    private User attendant;
+&nbsp;
+&nbsp;    @ManyToOne(fetch = FetchType.EAGER)
+&nbsp;    @JoinColumn(name = &quot;professional_id&quot;, nullable = false)
+&nbsp;    private User professional;
+&nbsp;
+&nbsp;    @JsonProperty(&quot;range&quot;)
+&nbsp;    private AppointmentRange getRange() {
+<b class="nc">&nbsp;        return new AppointmentRange(date, hour, hour + 1);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public boolean isNew() {
+<b class="fc">&nbsp;        return id == null;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    @RequiredArgsConstructor</b>
+&nbsp;    public enum Type implements JpaEnumCandidate {
+<b class="fc">&nbsp;        VIRTUAL(&quot;virtual&quot;),</b>
+<b class="fc">&nbsp;        PRESENTIAL(&quot;presencial&quot;);</b>
+&nbsp;
+&nbsp;        private final String spanishName;
+&nbsp;
+&nbsp;        @Override
+&nbsp;        public boolean isCandidate(String value) {
+<b class="nc">&nbsp;            return spanishName.contains(value.toLowerCase());</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

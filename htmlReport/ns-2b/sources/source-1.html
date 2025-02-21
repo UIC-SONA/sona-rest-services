@@ -1,0 +1,152 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ProfessionalScheduleRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">ec.gob.conagopare.sona.modules.appointments.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: ProfessionalScheduleRepository (ec.gob.conagopare.sona.modules.appointments.repository)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">ProfessionalScheduleRepository$MockitoMock$UyfOUX28</td>
+  </tr>
+  <tr>
+    <td class="name">ProfessionalScheduleRepository$MockitoMock$UyfOUX28$auxiliary$ahPC0Pvz</td>
+  </tr>
+  <tr>
+    <td class="name">ProfessionalScheduleRepository$MockitoMock$UyfOUX28$auxiliary$n8BjgabW</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package ec.gob.conagopare.sona.modules.appointments.repository;
+&nbsp;
+&nbsp;import ec.gob.conagopare.sona.modules.appointments.models.ProfessionalSchedule;
+&nbsp;import org.springframework.data.jpa.repository.JpaRepository;
+&nbsp;import org.springframework.data.jpa.repository.Query;
+&nbsp;import org.springframework.data.repository.query.Param;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.List;
+&nbsp;
+&nbsp;public interface ProfessionalScheduleRepository extends JpaRepository&lt;ProfessionalSchedule, Long&gt; {
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT COUNT(ps) &gt; 0 FROM ProfessionalSchedule ps
+&nbsp;            WHERE ps.professional.id = :professionalId
+&nbsp;            AND ps.date = :date
+&nbsp;            AND (
+&nbsp;                (:fromHour &gt;= ps.fromHour AND :fromHour &lt; ps.toHour) OR
+&nbsp;                (:toHour &gt; ps.fromHour AND :toHour &lt;= ps.toHour) OR
+&nbsp;                (:fromHour &lt;= ps.fromHour AND :toHour &gt;= ps.toHour)
+&nbsp;            )
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    boolean existsOverlappingSchedule(
+&nbsp;            @Param(&quot;professionalId&quot;) Long professionalId,
+&nbsp;            @Param(&quot;date&quot;) LocalDate date,
+&nbsp;            @Param(&quot;fromHour&quot;) Integer fromHour,
+&nbsp;            @Param(&quot;toHour&quot;) Integer toHour
+&nbsp;    );
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT COUNT(ps) &gt; 0 FROM ProfessionalSchedule ps
+&nbsp;            WHERE ps.professional.id = :professionalId
+&nbsp;            AND ps.date = :date
+&nbsp;            AND ps.id != :scheduleId
+&nbsp;            AND (
+&nbsp;                (:fromHour &gt;= ps.fromHour AND :fromHour &lt; ps.toHour) OR
+&nbsp;                (:toHour &gt; ps.fromHour AND :toHour &lt;= ps.toHour) OR
+&nbsp;                (:fromHour &lt;= ps.fromHour AND :toHour &gt;= ps.toHour)
+&nbsp;            )
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    boolean existsOverlappingScheduleExcludingId(
+&nbsp;            @Param(&quot;professionalId&quot;) Long professionalId,
+&nbsp;            @Param(&quot;date&quot;) LocalDate date,
+&nbsp;            @Param(&quot;fromHour&quot;) Integer fromHour,
+&nbsp;            @Param(&quot;toHour&quot;) Integer toHour,
+&nbsp;            @Param(&quot;scheduleId&quot;) Long scheduleId
+&nbsp;    );
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT COUNT(a) &gt; 0 FROM Appointment a
+&nbsp;            WHERE a.professional.id = :professionalId
+&nbsp;            AND a.date = :date
+&nbsp;            AND a.hour &gt;= :fromHour
+&nbsp;            AND a.hour &lt; :toHour
+&nbsp;            AND a.canceled = false
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    boolean existsActiveAppointmentsInSchedule(
+&nbsp;            @Param(&quot;professionalId&quot;) Long professionalId,
+&nbsp;            @Param(&quot;date&quot;) LocalDate date,
+&nbsp;            @Param(&quot;fromHour&quot;) Integer fromHour,
+&nbsp;            @Param(&quot;toHour&quot;) Integer toHour
+&nbsp;    );
+&nbsp;
+&nbsp;
+&nbsp;    @Query(&quot;&quot;&quot;
+&nbsp;            SELECT ps FROM ProfessionalSchedule ps
+&nbsp;            WHERE ps.professional.id = :professionalId
+&nbsp;            AND ps.date BETWEEN :from AND :to
+&nbsp;            &quot;&quot;&quot;)
+&nbsp;    List&lt;ProfessionalSchedule&gt; getSchedulesByProfessional(
+&nbsp;            @Param(&quot;professionalId&quot;) Long professionalId,
+&nbsp;            @Param(&quot;from&quot;) LocalDate from,
+&nbsp;            @Param(&quot;to&quot;) LocalDate to
+&nbsp;    );
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-02-21 14:48</div>
+</div>
+</body>
+</html>

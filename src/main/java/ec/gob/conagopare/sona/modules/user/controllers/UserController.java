@@ -4,7 +4,7 @@ import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
 import ec.gob.conagopare.sona.modules.user.dto.UserDto;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
-import ec.gob.conagopare.sona.modules.user.dto.KeycloakUserSync;
+import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserSync;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.CrudController;
@@ -70,6 +70,14 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
         return ResponseEntity.ok(new Message("Se ha enviado un correo con las instrucciones para restablecer la contraseña, por favor revise su bandeja de entrada durante los próximos minutos"));
     }
 
+    @PostMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Message> uploadProfilePicture(
+            @RequestPart MultipartFile photo,
+            @AuthenticationPrincipal Jwt jwt
+    ) throws IOException {
+        service.uploadProfilePicture(photo, jwt);
+        return ResponseEntity.ok(new Message("Foto de perfil establecida corrextamente"));
+    }
 
     @GetMapping("/profile-picture")
     public ResponseEntity<ByteArrayResource> profilePicture(@AuthenticationPrincipal Jwt jwt) {
@@ -81,15 +89,6 @@ public class UserController implements CrudController<User, UserDto, Long, UserS
     public ResponseEntity<ByteArrayResource> profilePicture(@PathVariable long id) {
         var stored = service.profilePicture(id);
         return ResponseEntityUtils.resource(stored, true);
-    }
-
-    @PostMapping(value = "/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Message> uploadProfilePicture(
-            @RequestPart MultipartFile photo,
-            @AuthenticationPrincipal Jwt jwt
-    ) throws IOException {
-        service.uploadProfilePicture(photo, jwt);
-        return ResponseEntity.ok(new Message("Foto de perfil establecida corrextamente"));
     }
 
     @DeleteMapping("/profile-picture")

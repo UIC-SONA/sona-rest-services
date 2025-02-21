@@ -127,11 +127,6 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
         repository.save(appointment);
     }
 
-    public Page<Appointment> selfAppointments(String search, Pageable pageable, MultiValueMap<String, String> params, Jwt jwt) {
-        params.add(KEYCLOAK_ID_ATTRIBUTE, jwt.getSubject());
-        return doPage(search, pageable, params);
-    }
-
 
     @Override
     public Page<Appointment> internalSearch(String search, Pageable pageable) {
@@ -201,6 +196,13 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
         });
 
         return internalSearch(search, pageable, additions);
+    }
+
+
+    @PreAuthorize("isAuthenticated()")
+    public Page<Appointment> selfAppointments(String search, Pageable pageable, MultiValueMap<String, String> params, Jwt jwt) {
+        params.add(KEYCLOAK_ID_ATTRIBUTE, jwt.getSubject());
+        return doPage(search, pageable, params);
     }
 
     @PreAuthorize("isAuthenticated()")
