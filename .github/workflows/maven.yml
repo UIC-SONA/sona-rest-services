@@ -30,12 +30,6 @@ jobs:
       - name: Build and Package with Maven
         run: mvn -B clean package -DskipTests
 
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: sona-rest-services
-#          path: target/*.jar
-
       - name: Send artifact to remote server
         if: success()
         env:
