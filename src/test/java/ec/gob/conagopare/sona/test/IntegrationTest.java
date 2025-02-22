@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 "spring.messages.encoding=UTF-8",
                 "spring.messages.basename=org.springframework.security.messages,io.github.luidmidev.springframework.web.problemdetails.messages,messages",
                 "spring.web.problemdetails.all-errors=true",
+                "spring.web.problemdetails.send-stack-trace=true",
                 "user.bootstrap.enabled=true",
                 "user.bootstrap.admin.id=1",
                 "user.bootstrap.admin.email=admin@localhost.com",
@@ -40,7 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 "chatbot.session.agent=4c534ade-f1a6-4b64-a46f-23d5814ca66c",
                 "chatbot.session.project=elated-cathode-438218-g7",
                 "chatbot.session.location=global",
-                "spring.jpa.hibernate.ddl-auto=update",
+                "spring.jpa.hibernate.ddl-auto=create-drop",
+                "spring.jpa.show-sql=true",
+                "spring.jpa.properties.hibernate.format_sql=true",
                 "springdoc.api-docs.enabled=false",
         }
 )
