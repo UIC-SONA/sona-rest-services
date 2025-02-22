@@ -39,6 +39,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
                 "chatbot.session.agent=4c534ade-f1a6-4b64-a46f-23d5814ca66c",
                 "chatbot.session.project=elated-cathode-438218-g7",
                 "chatbot.session.location=global",
+                "spring.jpa.hibernate.ddl-auto=update",
+                "springdoc.api-docs.enabled=false",
         }
 )
 public abstract class IntegrationTest {
