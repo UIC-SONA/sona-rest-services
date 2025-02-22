@@ -43,8 +43,12 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_STORAGE_JSON }}" | base64 -d > google/service_account_storage.json
           echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }} | base64 -d" > google/service_account_dialogflow.json
-          echo "${{ secrets.SERVICE_ACCOUNT_FIREBASE_ADMINSDK_JSON }}" | base64 -d > google/service_account_firebase.json
-
+          echo "${{ secrets.SERVICE_ACCOUNT_FIREBASE_ADMINSDK_JSON }}" | base64 -d > google/service_account_firebase_adminsdk.json
+          
+          echo google/service_account_storage.json
+          echo google/service_account_logging.json
+          echo google/service_account_dialogflow.json
+          echo google/service_account_firebase.json
 
       - name: Build and analyze
         env:
