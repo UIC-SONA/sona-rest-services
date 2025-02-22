@@ -274,7 +274,7 @@ class UserIntegrationTest extends IntegrationTest {
                 .andExpect(status().isOk());
 
 
-        mockMvc.perform(get("/user/4")
+        mockMvc.perform(get("/user/{id}", CREATED_USERS.get(2))
                         .header("Authorization", adminBearerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enabled").value(false));
