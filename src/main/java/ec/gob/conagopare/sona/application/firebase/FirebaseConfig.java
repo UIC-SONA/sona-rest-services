@@ -14,7 +14,7 @@ import java.io.IOException;
 
 @Slf4j
 @Configuration
-public class FirebaseConfig implements DisposableBean {
+public class FirebaseConfig {
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
@@ -33,15 +33,5 @@ public class FirebaseConfig implements DisposableBean {
     @Bean
     public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
         return FirebaseMessaging.getInstance(firebaseApp);
-    }
-
-    @Override
-    public void destroy() {
-        try {
-            FirebaseApp.getInstance().delete();
-            log.info("Firebase app deleted");
-        } catch (IllegalStateException e) {
-            log.debug("No Firebase instance to delete");
-        }
     }
 }

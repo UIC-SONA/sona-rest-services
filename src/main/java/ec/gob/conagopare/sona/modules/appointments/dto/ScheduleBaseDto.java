@@ -24,7 +24,6 @@ public class ScheduleBaseDto {
         if (fromHour == null || toHour == null) {
             return true;
         }
-
         return fromHour < toHour;
     }
 }
