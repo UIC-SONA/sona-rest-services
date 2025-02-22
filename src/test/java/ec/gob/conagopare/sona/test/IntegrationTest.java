@@ -6,6 +6,8 @@ import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,6 +26,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @ActiveProfiles("test")
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
+        properties = {
+                "spring.messages.encoding=UTF-8",
+                "spring.messages.basename=org.springframework.security.messages,io.github.luidmidev.springframework.web.problemdetails.messages,messages",
+                "user.bootstrap.enabled=true",
+                "user.bootstrap.admin.id=1",
+                "user.bootstrap.admin.email=admin@localhost.com",
+                "user.bootstrap.admin.firstname=Admin",
+                "user.bootstrap.admin.lastname=Admin",
+                "user.bootstrap.admin.username=admin",
+                "user.bootstrap.admin.password=QwertyMoonK1598.",
+                "chatbot.session.agent=4c534ade-f1a6-4b64-a46f-23d5814ca66c",
+                "chatbot.session.project=elated-cathode-438218-g7",
+                "chatbot.session.location=global",
+        }
+)
 public abstract class IntegrationTest {
 
     @Autowired
