@@ -44,18 +44,6 @@ jobs:
           echo "${{ secrets.SERVICE_ACCOUNT_LOGGING_JSON }}" | base64 -d > google/service_account_logging.json
           echo "${{ secrets.SERVICE_ACCOUNT_DIALOGFLOW_JSON }}" | base64 -d > google/service_account_dialogflow.json
           echo "${{ secrets.SERVICE_ACCOUNT_FIREBASE_ADMINSDK_JSON }}" | base64 -d > google/service_account_firebase_adminsdk.json
-          
-          echo "Service Account Storage"
-          cat google/service_account_storage.json
-          
-          echo "Service Account Logging"
-          cat google/service_account_logging.json
-          
-          echo "Service Account Dialogflow"
-          cat google/service_account_dialogflow.json
-          
-          echo "Service Account Firebase AdminSDK"
-          cat google/service_account_firebase_adminsdk.json
 
       - name: Build and analyze
         env:

@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         properties = {
                 "spring.messages.encoding=UTF-8",
                 "spring.messages.basename=org.springframework.security.messages,io.github.luidmidev.springframework.web.problemdetails.messages,messages",
+                "spring.web.problemdetails.all-errors=true",
                 "user.bootstrap.enabled=true",
                 "user.bootstrap.admin.id=1",
                 "user.bootstrap.admin.email=admin@localhost.com",
