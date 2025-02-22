@@ -5,9 +5,7 @@ import com.jayway.jsonpath.JsonPath;
 import ec.gob.conagopare.sona.modules.user.dto.SingUpUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -48,11 +46,9 @@ public abstract class IntegrationTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
-    @Value("${user.bootstrap.admin.username}")
-    private String adminUsername;
+    private static final String ADMIN_USERNAME = "admin";
 
-    @Value("${user.bootstrap.admin.password}")
-    private String adminPassword;
+    private static final String ADMIN_PASSWORD = "QwertyMoonK1598.";
 
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
@@ -114,7 +110,7 @@ public abstract class IntegrationTest {
     }
 
     public final Credentials getAdminCredentials() {
-        return new Credentials(adminUsername, adminPassword);
+        return new Credentials(ADMIN_USERNAME, ADMIN_PASSWORD);
     }
 
     public final String obtainAdminBearerToken() {
