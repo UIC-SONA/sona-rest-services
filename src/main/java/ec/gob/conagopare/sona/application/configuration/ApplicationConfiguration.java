@@ -5,28 +5,20 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import io.github.luidmidev.jakarta.validations.utils.LocaleContext;
 import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;
-import io.github.luidmidev.springframework.web.problemdetails.ProblemDetails;
 import io.github.luidmidev.storage.Storage;
 import io.github.luidmidev.storage.google.cloud.GoogleCloudStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
-import org.springframework.data.mongodb.gridfs.GridFsOperations;
-import org.springframework.data.mongodb.gridfs.GridFsTemplate;
-import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.client.ResponseErrorHandler;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.FileInputStream;
@@ -77,39 +69,5 @@ public class ApplicationConfiguration {
     @Bean
     public SpreadSheetExporter spreadSheetExporter(ObjectMapper mapper) {
         return new SpreadSheetExporter(mapper);
-    }
-
-    /**
-     * Crear un bean para manejar las peticiones http mediante el cliente RestTemplate
-     *
-     * @return RestTemplate configurado para manejar errores de respuesta
-     */
-    @Bean
-    public RestTemplate restTemplate() {
-        log.info("Configuring rest template for http client");
-
-        var client = new RestTemplate();
-        client.setErrorHandler(new ResponseErrorHandler() {
-
-            @Override
-            public boolean hasError(@NotNull ClientHttpResponse response) throws IOException {
-                var status = response.getStatusCode();
-                return status.isError() || status.is5xxServerError() || status.is4xxClientError();
-            }
-
-            @Override
-            public void handleError(@NotNull ClientHttpResponse response) throws IOException {
-                var bodyAsString = new String(response.getBody().readAllBytes());
-                log.info("Error response on web client: {}", bodyAsString);
-                throw ProblemDetails.status(response.getStatusCode()).detail(
-                        "Request Error, info: [\n" +
-                                " url: " + response.getHeaders().getLocation() + "\n" +
-                                " response: " + bodyAsString + "\n" +
-                                " status: " + response.getStatusCode() + "\n" +
-                                "]"
-                );
-            }
-        });
-        return client;
     }
 }

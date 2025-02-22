@@ -70,7 +70,7 @@ public class TipController implements ReadController<Tip, UUID, TipService>, Exp
             @RequestParam(required = false) String search,
             Pageable pageable
     ) {
-        return ResponseEntity.ok(service.actives(search, pageable));
+        return ResponseEntity.ok(service.actives(search == null ? "" : search, pageable));
     }
 
     @GetMapping("/{id}/image")

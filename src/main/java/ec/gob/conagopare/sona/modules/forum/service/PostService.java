@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -197,19 +198,19 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
                 .andExpression("size(reportedBy)").as("reportsCount")
         );
 
-        var or = new ArrayList<Criteria>();
+        var and = new ArrayList<Criteria>();
 
         if (!StringUtils.isBlank(search)) {
-            or.add(where(Post.CONTENT_FIELD).regex(search, "i"));
+            and.add(where(Post.CONTENT_FIELD).regex(search, "i"));
         }
 
         var author = filters.getFirst("author");
         if (author != null) {
-            or.add(where(ByAuthor.AUTHOR_FIELD).is(Long.parseLong(author)));
+            and.add(where(ByAuthor.AUTHOR_FIELD).is(Long.parseLong(author)));
         }
 
-        if (!or.isEmpty()) {
-            operations.add(Aggregation.match(new Criteria().orOperator(or)));
+        if (!and.isEmpty()) {
+            operations.add(Aggregation.match(new Criteria().andOperator(and)));
         }
 
         return MongoUtils.getPage(mongo, pageable, operations, Post.class);
@@ -286,7 +287,6 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
 
     };
 
-    @PreAuthorize("isAuthenticated()")
     public TopPostsResult topPosts() {
         var dto = new TopPostsResult();
         dto.setMostLikedPost(mostLiked());
@@ -320,7 +320,7 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         return results.getUniqueMappedResult();
     }
 
-    @PreAuthorize("hasAnyRole('admin', 'administrative')")
+    @PreAuthorize("isAuthenticated()")
     public Page<Comment> pageComments(String postId, String search, Pageable pageable, MultiValueMap<String, String> filters) {
         // Crear el pipeline de agregación
         var operations = new ArrayList<AggregationOperation>();
@@ -358,8 +358,11 @@ public class PostService implements StandardCrudService<Post, PostDto, String, P
         // Si hay búsqueda por texto, agregar filtro
         var normalizedSearch = StringUtils.normalize(search);
         if (normalizedSearch != null) {
+
+            var escapedSearch = Pattern.quote(normalizedSearch); // Escapar input del usuario
+
             operations.add(Aggregation.match(
-                    where(Comment.CONTENT_FIELD).regex(search, "i")
+                    where(Comment.CONTENT_FIELD).regex(escapedSearch, "i")
             ));
         }
 

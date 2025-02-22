@@ -5,6 +5,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,7 +14,7 @@ import java.io.IOException;
 
 @Slf4j
 @Configuration
-public class FirebaseConfig {
+public class FirebaseConfig implements DisposableBean {
 
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
@@ -32,5 +33,15 @@ public class FirebaseConfig {
     @Bean
     public FirebaseMessaging firebaseMessaging(FirebaseApp firebaseApp) {
         return FirebaseMessaging.getInstance(firebaseApp);
+    }
+
+    @Override
+    public void destroy() {
+        try {
+            FirebaseApp.getInstance().delete();
+            log.info("Firebase app deleted");
+        } catch (IllegalStateException e) {
+            log.debug("No Firebase instance to delete");
+        }
     }
 }

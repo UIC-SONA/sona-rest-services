@@ -9,8 +9,8 @@ import java.text.Normalizer;
 public final class NormalizerUtils {
 
 
-    private NormalizerUtils() {
-        throw new IllegalStateException("Utility class");
+    NormalizerUtils() {
+        throw new UnsupportedOperationException("Utility class");
     }
 
     public static @NotNull String toASCII(@NotNull String string) {

@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 public final class CollectionsUtils {
 
-    private CollectionsUtils() {
+    CollectionsUtils() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 

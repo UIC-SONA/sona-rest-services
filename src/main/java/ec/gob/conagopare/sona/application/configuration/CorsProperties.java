@@ -28,9 +28,7 @@ public class CorsProperties {
     private Duration maxAge = Duration.ofSeconds(1800);
 
     public CorsConfiguration toCorsConfiguration() {
-        if (CollectionUtils.isEmpty(this.allowedOrigins) && CollectionUtils.isEmpty(this.allowedOriginPatterns)) {
-            return null;
-        }
+        if (CollectionUtils.isEmpty(this.allowedOrigins) && CollectionUtils.isEmpty(this.allowedOriginPatterns)) return null;
         var config = new CorsConfiguration();
         var map = PropertyMapper.get();
         map.from(this::getAllowedOrigins).to(config::setAllowedOrigins);

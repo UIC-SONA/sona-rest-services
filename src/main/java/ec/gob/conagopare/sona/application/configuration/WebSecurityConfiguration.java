@@ -1,13 +1,9 @@
 package ec.gob.conagopare.sona.application.configuration;
 
 
-import ec.gob.conagopare.sona.application.common.utils.functions.Extractor;
-import ec.gob.conagopare.sona.application.configuration.keycloak.KeycloakUserManager;
 import ec.gob.conagopare.sona.application.filters.AuthenticationMDCFilter;
-import ec.gob.conagopare.sona.modules.user.models.Authority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -87,21 +83,6 @@ public class WebSecurityConfiguration {
             return clientRoles.stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toUnmodifiableList());
-        };
-    }
-
-    @Bean
-    public Extractor<UserRepresentation, Collection<Authority>> authorityExtractor(KeycloakUserManager keycloakUserManager) {
-        return representation -> {
-
-            var clientsRoles = keycloakUserManager.userRoles(representation.getId());
-
-            var authorities = new HashSet<Authority>();
-            for (var role : clientsRoles) {
-                Authority.findByRole(role.getName()).ifPresent(authorities::add);
-            }
-
-            return authorities;
         };
     }
 }

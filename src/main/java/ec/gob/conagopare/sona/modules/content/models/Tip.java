@@ -43,7 +43,7 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
     private List<String> tags = new ArrayList<>();
 
     @JsonIgnore
-    @Column(nullable = false)
+    @Column
     private String image;
 
     @Column(nullable = false)

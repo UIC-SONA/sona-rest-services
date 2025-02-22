@@ -280,7 +280,6 @@ public class UserService implements JpaCrudService<User, UserDto, Long, UserRepo
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
     public void changePassword(Jwt jwt, @SonaPassword String newPassword) {
         keycloakUserManager.resetPassword(jwt.getSubject(), newPassword);
     }

@@ -26,10 +26,10 @@ public class OpenAPIConfiguration {
 
     private static final String OAUTH2_SCHEME_NAME = "oauth2";
 
-    public OpenAPIConfiguration(@Value("${openapi.openid-connect-url}") String openIdConnectUrl, RestTemplate restTemplate, @Value("${keycloak.client-id}") String clientId) {
+    public OpenAPIConfiguration(@Value("${openapi.openid-connect-url}") String openIdConnectUrl, @Value("${keycloak.client-id}") String clientId) {
 
         this.clientId = clientId;
-        this.openIdConnectConfig = restTemplate.exchange(openIdConnectUrl, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, ?>>() {
+        this.openIdConnectConfig = new RestTemplate().exchange(openIdConnectUrl, HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, ?>>() {
         }).getBody();
 
         if (this.openIdConnectConfig == null) {

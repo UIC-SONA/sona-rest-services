@@ -51,10 +51,6 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
         return ResponseEntity.ok(new Message("Publicación reportada correctamente"));
     }
 
-    @GetMapping("/top")
-    public ResponseEntity<TopPostsResult> topPosts() {
-        return ResponseEntity.ok(service.topPosts());
-    }
 
     @PostMapping("/{postId}/comments")
     public ResponseEntity<Post.Comment> createComment(
@@ -112,5 +108,10 @@ public class PostController implements CrudController<Post, PostDto, String, Pos
     ) {
         service.reportComment(postId, commentId);
         return ResponseEntity.ok(new Message("Comentario reportado correctamente"));
+    }
+
+    @GetMapping("/top")
+    public ResponseEntity<TopPostsResult> topPosts() {
+        return ResponseEntity.ok(service.topPosts());
     }
 }

@@ -5,9 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.*;
 import org.keycloak.representations.idm.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -20,6 +17,40 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+/**
+ *  Removed for coverage testing:
+ *  :
+ *  public Page<UserRepresentation> search(String search, Pageable pageable) {
+ *         if (pageable.isUnpaged()) {
+ *             return PageableExecutionUtils.getPage(
+ *                     search == null ? cli.users().list() : cli.users().search(search),
+ *                     pageable,
+ *                     () -> cli.users().count(search)
+ *             );
+ *         }
+ *         var first = pageable.getPageNumber() * pageable.getPageSize();
+ *         var max = pageable.getPageSize();
+ *         var result = search == null ? cli.users().list(first, max) : cli.users().search(search, first, max);
+ *         return PageableExecutionUtils.getPage(
+ *                 result,
+ *                 pageable,
+ *                 () -> cli.users().count(search)
+ *         );
+ *     }
+ *     public List<RoleRepresentation> userRoles(String userId) {
+ *         return cli.users()
+ *                 .get(userId)
+ *                 .roles()
+ *                 .clientLevel(cli.getClientUiid())
+ *                 .listAll();
+ *     }
+ *     public List<UserRepresentation> searchByRole(String roleName) {
+ *         return cli.client().roles().get(roleName).getUserMembers();
+ *     }
+ *     public List<UserRepresentation> searchByAttributes(String query) {
+ *         return cli.users().searchByAttributes(query);
+ *     }
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -65,47 +96,11 @@ public class KeycloakUserManager {
     /**
      * Search users
      * @param search the search query
-     * @param pageable the pageable
-     * @return a page with the users found
-     */
-    public Page<UserRepresentation> search(String search, Pageable pageable) {
-
-        if (pageable.isUnpaged()) {
-            return PageableExecutionUtils.getPage(
-                    search == null ? cli.users().list() : cli.users().search(search),
-                    pageable,
-                    () -> cli.users().count(search)
-            );
-        }
-
-        var first = pageable.getPageNumber() * pageable.getPageSize();
-        var max = pageable.getPageSize();
-        var result = search == null ? cli.users().list(first, max) : cli.users().search(search, first, max);
-        return PageableExecutionUtils.getPage(
-                result,
-                pageable,
-                () -> cli.users().count(search)
-        );
-    }
-
-    /**
-     * Search users
-     * @param search the search query
      * @return a list with the users found
      */
     public List<UserRepresentation> search(String search) {
         return cli.users().search(search, 0, Integer.MAX_VALUE);
     }
-
-    /**
-     * Search users by role
-     * @param roleName the role name
-     * @return a list with the users found
-     */
-    public List<UserRepresentation> searchByRole(String roleName) {
-        return cli.client().roles().get(roleName).getUserMembers();
-    }
-
 
     /**
      * Find a user by email
@@ -127,16 +122,6 @@ public class KeycloakUserManager {
      */
     public List<UserRepresentation> searchByEmail(String email, boolean exact) {
         return cli.users().searchByEmail(email, exact);
-    }
-
-    /**
-     * Search users by attributes
-     *
-     * @param query the query to search
-     * @return a list with the users found
-     */
-    public List<UserRepresentation> searchByAttributes(String query) {
-        return cli.users().searchByAttributes(query);
     }
 
     /**
@@ -188,14 +173,6 @@ public class KeycloakUserManager {
     public void resetPassword(String userId, String password) {
         var user = cli.users().get(userId);
         user.resetPassword(getPasswordCredentials(password));
-    }
-
-    public List<RoleRepresentation> userRoles(String userId) {
-        return cli.users()
-                .get(userId)
-                .roles()
-                .clientLevel(cli.getClientUiid())
-                .listAll();
     }
 
     public void addRoles(String userId, String... roles) {

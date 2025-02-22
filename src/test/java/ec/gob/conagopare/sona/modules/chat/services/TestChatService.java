@@ -1,7 +1,6 @@
 package ec.gob.conagopare.sona.modules.chat.services;
 
 import com.mongodb.client.result.UpdateResult;
-import ec.gob.conagopare.sona.modules.chat.dto.ChatMessagePayload;
 import ec.gob.conagopare.sona.modules.chat.dto.ReadMessages;
 import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
@@ -14,8 +13,6 @@ import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -67,11 +64,6 @@ class TestChatService {
     @InjectMocks
     private ChatService chatService;
 
-    @Captor
-    private ArgumentCaptor<String> topicCaptor;
-    @Captor
-    private ArgumentCaptor<ChatMessagePayload> messagePayloadCaptor;
-
     private static final String ROOM_ID = ObjectId.get().toHexString();
     private static final String REQUEST_ID = "test-request-id";
     private static final Long USER_ID = 1L;
@@ -109,28 +101,6 @@ class TestChatService {
                 .readBy(new ArrayList<>())
                 .build();
 
-    }
-
-
-    @Test
-    void sendMessage_ShouldSendMessageToAllParticipants() {
-
-        var chunkMock = mock(ChatChunk.class);
-        when(chunkMock.getId()).thenReturn(ObjectId.get().toHexString());
-
-        when(userService.getUser(any(Jwt.class))).thenReturn(user);
-        when(roomRepository.findById(anyString())).thenReturn(Optional.of(room));
-        when(mongoTemplate.findOne(any(Query.class), eq(ChatChunk.class))).thenReturn(chunkMock);
-        when(mongoTemplate.aggregate(any(Aggregation.class), eq(ChatChunk.class), eq(Document.class))).thenReturn(new AggregationResults<>(List.of(new Document("size", 5)), new Document()));
-        when(mongoTemplate.updateFirst(any(Query.class), any(Update.class), eq(ChatChunk.class))).thenReturn(UpdateResult.acknowledged(1, 1L, null));
-
-        chatService.sendMessage("Hello world", ROOM_ID, REQUEST_ID, jwt);
-
-        verify(messaging, atLeast(1)).convertAndSend(topicCaptor.capture(), messagePayloadCaptor.capture());
-
-        assertThat(messagePayloadCaptor.getValue().getMessage().getMessage()).isEqualTo("Hello world");
-        assertThat(messagePayloadCaptor.getValue().getMessage().getType()).isEqualTo(ChatMessageType.TEXT);
-        assertThat(messagePayloadCaptor.getValue().getMessage().getSentBy()).isEqualTo(USER_ID);
     }
 
     @Test

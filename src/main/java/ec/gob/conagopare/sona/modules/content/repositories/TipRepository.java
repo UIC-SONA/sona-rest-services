@@ -79,6 +79,8 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
 
     default Optional<Tip> findByIdWithRates(UUID id, Long userId) {
         var map = findByIdMapWithRates(id, userId);
+        if (map.isEmpty()) return Optional.empty();
+        if (map.get().isEmpty()) return Optional.empty();
         return map.map(toTip());
     }
 
@@ -94,7 +96,10 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
 
     default List<Tip> topRating(int limit) {
         var list = findTopRating(limit);
-        return list.stream().map(toTip()).toList();
+        return list.stream()
+                .map(toTip())
+                .sorted((a, b) -> Double.compare(b.getAverageRate(), a.getAverageRate()))
+                .toList();
     }
 
     private static Function<Map<String, Object>, Tip> toTip() {

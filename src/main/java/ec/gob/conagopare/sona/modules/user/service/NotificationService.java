@@ -83,6 +83,9 @@ public class NotificationService {
     }
 
     private void internalSend(Collection<String> tokens, String title, String body, Map<String, String> data) {
+        if (tokens.isEmpty()) {
+            return;
+        }
         var message = MulticastMessage.builder()
                 .setNotification(Notification.builder()
                         .setTitle(title)

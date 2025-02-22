@@ -70,7 +70,7 @@ class TestDialogFlowGXChatBotService {
     }
 
     @Test
-    void shouldHandleEmptyResponse() throws IOException {
+    void shouldHandleEmptyResponse() {
         when(detectIntentResponse.getQueryResult()).thenReturn(queryResult);
         when(queryResult.getResponseMessagesList()).thenReturn(List.of());
         when(sessionsClient.detectIntent(any())).thenReturn(detectIntentResponse);

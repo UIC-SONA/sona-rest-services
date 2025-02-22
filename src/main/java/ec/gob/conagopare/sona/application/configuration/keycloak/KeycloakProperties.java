@@ -27,6 +27,5 @@ public class KeycloakProperties {
     @Data
     public static class KeycloakClient {
         private String realm;
-//      private UUID clientUiid;
     }
 }

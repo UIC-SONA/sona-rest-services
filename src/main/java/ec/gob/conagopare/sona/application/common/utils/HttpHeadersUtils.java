@@ -11,7 +11,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 public final class HttpHeadersUtils {
 
 
-    private HttpHeadersUtils() {
+    HttpHeadersUtils() {
         throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 

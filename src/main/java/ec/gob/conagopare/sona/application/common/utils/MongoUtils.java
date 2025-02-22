@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class MongoUtils {
-    private MongoUtils() {
-        throw new IllegalStateException("Utility class");
+    MongoUtils() {
+        throw new UnsupportedOperationException("Utility class");
     }
 
     public static <T> Page<T> getPage(MongoOperations mongo, Pageable pageable, List<AggregationOperation> operations, String collectionName, Class<T> targetClass) {

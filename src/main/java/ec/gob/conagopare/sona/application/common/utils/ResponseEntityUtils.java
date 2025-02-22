@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 public final class ResponseEntityUtils {
 
-    private ResponseEntityUtils() {
+    ResponseEntityUtils() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
