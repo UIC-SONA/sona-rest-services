@@ -156,7 +156,7 @@ public class AppointmentService implements JpaSpecificationReadService<Appointme
                 predicates.add(cb.equal(root.join(ATTENDANT_ATTRIBUTE).get(KEYCLOAK_ID_ATTRIBUTE), keycloakId));
             }
 
-            var userId = filters.getFirst("userId");
+                var userId = filters.getFirst("userId");
             if (userId != null) {
                 predicates.add(cb.equal(root.join(ATTENDANT_ATTRIBUTE).get("id"), Long.parseLong(userId)));
             }

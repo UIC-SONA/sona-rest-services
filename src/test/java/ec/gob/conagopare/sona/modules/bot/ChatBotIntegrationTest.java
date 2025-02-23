@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ChatBotTest extends IntegrationTest {
+class ChatBotIntegrationTest extends IntegrationTest {
 
     public static boolean isSetUp = false;
     private static final String USER_USERNAME = "Maria.Juana";
