@@ -77,11 +77,11 @@ class AppointmentIntegrationTest extends IntegrationTest {
         var professionalAccessToken = obtainAccessToken(PROFESSIONAL_USER_USERNAME, PROFESSIONAL_USER_PASSWORD);
         professionalId = getUserId(professionalAccessToken, mockMvc);
 
+
         var adminBearerToken = obtainAdminBearerToken();
 
         var authoritiesToAdd = Set.of(Authority.MEDICAL_PROFESSIONAL);
         var authoritiesToRemove = Set.of(Authority.USER);
-
         var dto = new UserDto();
         dto.setAuthoritiesToAdd(authoritiesToAdd);
         dto.setAuthoritiesToRemove(authoritiesToRemove);
