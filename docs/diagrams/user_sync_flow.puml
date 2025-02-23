@@ -1,0 +1,49 @@
+@startuml
+!theme plain
+skinparam participant {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+}
+
+skinparam actor {
+    BackgroundColor LightGreen
+    BorderColor DarkGreen
+}
+
+skinparam sequence {
+    ArrowColor DarkRed
+    LineThickness 2
+}
+actor "User/Admin" as User
+participant "Resource Server" as RS
+participant "Keycloak Server" as KC
+
+note over User, KC: Initial Update Flow
+
+User -> RS: Update user information
+activate RS
+
+RS -> RS: Apply local changes
+RS -> KC: Update user via Admin API
+activate KC
+
+note over KC, RS: Synchronization Flow
+
+KC -> KC: Process user update
+KC -> KC: Trigger UserSyncEventListener
+
+KC -> RS: POST /keycloak-sync\n(X-Api-Key + Updated User Data)
+note right: Includes user details,\nroles, and attributes
+
+RS -> RS: Validate API Key
+RS -> RS: Update local user data
+RS --> KC: 200 OK Response
+
+deactivate KC
+deactivate RS
+
+note over KC, RS #LightBlue: User data is now synchronized in both systems
+
+footer Created with PlantUML
+
+@enduml
