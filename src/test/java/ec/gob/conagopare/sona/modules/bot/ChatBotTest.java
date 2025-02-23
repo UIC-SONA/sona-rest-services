@@ -84,7 +84,6 @@ class ChatBotTest extends IntegrationTest {
                 .andExpect(jsonPath("$.size()").value(2))
                 .andExpect(jsonPath("$[0].prompt").value("Hola, que se debe hacer en caso de violencia de género?"))
                 .andExpect(jsonPath("$[1].prompt").value("Hola, cuantos años de carcel puede llegar a tener un violador?"));
-
     }
 
 }
