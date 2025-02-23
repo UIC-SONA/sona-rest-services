@@ -1,0 +1,64 @@
+@startuml
+
+' Definición de los estilos con skinparam
+skinparam participant {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+}
+
+skinparam actor {
+    BackgroundColor LightGreen
+    BorderColor DarkGreen
+}
+
+skinparam sequence {
+    ArrowColor DarkRed
+    LineThickness 2
+}
+
+' Definir las entidades y actores
+actor User as "Usuario"
+participant "GitHub Actions Runner" as Runner
+participant "Maven (Unit/Integration Tests)" as Maven
+participant "SonarQube" as SonarQube
+participant "Remote Server" as RemoteServer
+participant "Docker" as Docker
+
+' Flujo de la secuencia
+User -> Runner: Push o Pull Request (main)
+Runner -> Runner: "Check out the code"
+Runner -> Runner: "Set up JDK (Java 21, Temurin)"
+Runner -> Runner: "Revisar cache \n de Maven, JDK, y SonarQube"
+
+Runner -> Maven: "Build and analyze"
+note over Maven
+  Ejecutando pruebas unitarias e integración
+  usando Test Containers
+end note
+Maven -> SonarQube: "Ejecutar análisis de código"
+SonarQube -> Maven: "Resultado de análisis"
+
+alt Análisis exitoso
+  Runner -> Runner: "Configurar SSH"
+  note over Runner
+    - Crear directorio .ssh
+    - Configurar deploy_key
+    - Agregar known_hosts
+  end note
+
+  Maven -> Runner: "Generar archivos .jar"
+  Runner -> RemoteServer: "Crear directorios remotos"
+  Runner -> RemoteServer: "Copiar archivos .jar"
+  RemoteServer -> RemoteServer: "Verificar copia exitosa"
+
+  RemoteServer -> Docker: "Deploy to remote server"
+  Docker -> Docker: "Detener contenedores para \nverificar si existen"
+  Docker -> Docker: "docker compose build --no-cache"
+  Docker -> Docker: "docker compose up -d"
+  Docker -> Docker: "docker image prune -f"
+else Análisis fallido
+  SonarQube -> Maven: "Error en el análisis"
+  Maven -> Runner: "Error de análisis, no se envían archivos"
+end
+
+@enduml

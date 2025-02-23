@@ -1,0 +1,60 @@
+@startuml
+
+' Definición de los estilos con skinparam
+skinparam participant {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+}
+
+skinparam actor {
+    BackgroundColor LightGreen
+    BorderColor DarkGreen
+}
+
+skinparam sequence {
+    ArrowColor DarkRed
+    LineThickness 2
+}
+
+' Definir las entidades y actores
+actor User as "Usuario"
+participant "GitHub Actions Runner" as Runner
+participant "Node.js" as Node
+participant "Remote Server" as RemoteServer
+participant "Docker" as Docker
+
+' Flujo de la secuencia
+User -> Runner: Push o Pull Request (main)
+Runner -> Runner: "Check out the code"
+Runner -> Runner: "Set up Node.js 22.x"
+Runner -> Runner: "Configurar cache de npm"
+
+Runner -> Node: "npm ci"
+note over Node: Instalación limpia de dependencias
+Node -> Node: "npm run build"
+note over Node: Generación de archivos dist/
+
+alt Build exitoso
+    Runner -> Runner: "Configurar SSH"
+    note over Runner
+        - Crear directorio .ssh
+        - Configurar deploy_key
+        - Agregar known_hosts
+    end note
+
+    Runner -> RemoteServer: "Crear directorios remotos"
+    Runner -> RemoteServer: "Copiar archivos dist/"
+    RemoteServer -> RemoteServer: "Verificar copia exitosa"
+
+    RemoteServer -> Docker: "Deploy to remote server"
+    Docker -> Docker: "docker compose down"
+    Docker -> Docker: "docker compose build --no-cache"
+    Docker -> Docker: "docker compose up -d"
+    Docker -> Docker: "docker image prune -f"
+
+else Build fallido
+    Node -> Runner: "Error en build"
+    Runner -> Runner: "Terminar workflow"
+end
+
+@enduml
