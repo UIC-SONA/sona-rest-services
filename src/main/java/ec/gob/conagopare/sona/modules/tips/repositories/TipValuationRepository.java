@@ -1,6 +1,6 @@
-package ec.gob.conagopare.sona.modules.content.repositories;
+package ec.gob.conagopare.sona.modules.tips.repositories;
 
-import ec.gob.conagopare.sona.modules.content.models.TipRate;
+import ec.gob.conagopare.sona.modules.tips.models.TipRate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

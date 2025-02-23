@@ -5,7 +5,7 @@ import ec.gob.conagopare.sona.modules.chat.dto.ReadMessages;
 import ec.gob.conagopare.sona.modules.chat.models.*;
 import ec.gob.conagopare.sona.modules.chat.repositories.ChatRoomRepository;
 import ec.gob.conagopare.sona.modules.user.models.User;
-import ec.gob.conagopare.sona.modules.user.service.NotificationService;
+import ec.gob.conagopare.sona.modules.content.services.NotificationService;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.storage.Storage;
 import org.bson.Document;

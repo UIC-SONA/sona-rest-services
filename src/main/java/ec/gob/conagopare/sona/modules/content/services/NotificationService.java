@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.modules.user.service;
+package ec.gob.conagopare.sona.modules.content.services;
 
 import com.google.firebase.messaging.*;
 import ec.gob.conagopare.sona.application.firebase.messaging.DeviceToken;

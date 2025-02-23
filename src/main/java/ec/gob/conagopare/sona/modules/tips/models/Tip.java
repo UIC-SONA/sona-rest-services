@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.modules.content.models;
+package ec.gob.conagopare.sona.modules.tips.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import ec.gob.conagopare.sona.application.configuration.auditor.Auditable;

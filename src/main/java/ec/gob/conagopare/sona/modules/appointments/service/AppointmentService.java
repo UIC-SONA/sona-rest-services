@@ -7,7 +7,7 @@ import ec.gob.conagopare.sona.modules.appointments.models.Appointment;
 import ec.gob.conagopare.sona.modules.appointments.repository.AppointmentRepository;
 import ec.gob.conagopare.sona.modules.user.models.Authority;
 import ec.gob.conagopare.sona.modules.user.models.User;
-import ec.gob.conagopare.sona.modules.user.service.NotificationService;
+import ec.gob.conagopare.sona.modules.content.services.NotificationService;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.jpa.services.JpaSpecificationReadService;
 import io.github.luidmidev.springframework.data.crud.jpa.utils.AdditionsSearch;

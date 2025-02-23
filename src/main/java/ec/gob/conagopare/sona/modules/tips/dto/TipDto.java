@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.modules.content.dto;
+package ec.gob.conagopare.sona.modules.tips.dto;
 
 import io.github.luidmidev.jakarta.validations.Distincs;
 import io.github.luidmidev.jakarta.validations.Image;

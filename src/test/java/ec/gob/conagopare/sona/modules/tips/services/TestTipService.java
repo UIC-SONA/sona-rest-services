@@ -1,11 +1,12 @@
-package ec.gob.conagopare.sona.modules.content.services;
+package ec.gob.conagopare.sona.modules.tips.services;
 
-import ec.gob.conagopare.sona.modules.content.dto.TipDto;
-import ec.gob.conagopare.sona.modules.content.models.Tip;
-import ec.gob.conagopare.sona.modules.content.repositories.TipRepository;
-import ec.gob.conagopare.sona.modules.content.repositories.TipValuationRepository;
+import ec.gob.conagopare.sona.modules.content.services.NotificationService;
+import ec.gob.conagopare.sona.modules.tips.dto.TipDto;
+import ec.gob.conagopare.sona.modules.tips.models.Tip;
+import ec.gob.conagopare.sona.modules.tips.repositories.TipRepository;
+import ec.gob.conagopare.sona.modules.tips.repositories.TipValuationRepository;
+import ec.gob.conagopare.sona.modules.tips.service.TipService;
 import ec.gob.conagopare.sona.modules.user.models.User;
-import ec.gob.conagopare.sona.modules.user.service.NotificationService;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import ec.gob.conagopare.sona.test.StorageTestUtils;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;

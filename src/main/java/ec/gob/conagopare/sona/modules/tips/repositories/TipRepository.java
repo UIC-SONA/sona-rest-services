@@ -1,7 +1,7 @@
-package ec.gob.conagopare.sona.modules.content.repositories;
+package ec.gob.conagopare.sona.modules.tips.repositories;
 
 
-import ec.gob.conagopare.sona.modules.content.models.Tip;
+import ec.gob.conagopare.sona.modules.tips.models.Tip;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

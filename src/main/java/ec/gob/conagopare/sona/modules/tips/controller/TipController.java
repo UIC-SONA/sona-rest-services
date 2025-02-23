@@ -1,10 +1,10 @@
-package ec.gob.conagopare.sona.modules.content.controller;
+package ec.gob.conagopare.sona.modules.tips.controller;
 
 import ec.gob.conagopare.sona.application.common.schemas.Message;
 import ec.gob.conagopare.sona.application.common.utils.ResponseEntityUtils;
-import ec.gob.conagopare.sona.modules.content.dto.TipDto;
-import ec.gob.conagopare.sona.modules.content.models.Tip;
-import ec.gob.conagopare.sona.modules.content.services.TipService;
+import ec.gob.conagopare.sona.modules.tips.dto.TipDto;
+import ec.gob.conagopare.sona.modules.tips.models.Tip;
+import ec.gob.conagopare.sona.modules.tips.service.TipService;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.ExportController;
 import io.github.luidmidev.springframework.data.crud.core.http.controllers.ReadController;
 import io.github.luidmidev.springframework.data.crud.core.http.export.SpreadSheetExporter;

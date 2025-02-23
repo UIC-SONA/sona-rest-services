@@ -1,4 +1,4 @@
-package ec.gob.conagopare.sona.modules.content.models;
+package ec.gob.conagopare.sona.modules.tips.models;
 
 import ec.gob.conagopare.sona.modules.user.models.User;
 import jakarta.persistence.*;

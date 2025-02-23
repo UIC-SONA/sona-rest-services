@@ -1,7 +1,7 @@
-package ec.gob.conagopare.sona.modules.user.controllers;
+package ec.gob.conagopare.sona.modules.tips.controller;
 
 
-import ec.gob.conagopare.sona.modules.user.service.NotificationService;
+import ec.gob.conagopare.sona.modules.content.services.NotificationService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

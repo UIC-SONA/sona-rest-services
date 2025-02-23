@@ -1,10 +1,10 @@
-package ec.gob.conagopare.sona.modules.content.repositories;
+package ec.gob.conagopare.sona.modules.tips.repositories;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
-import ec.gob.conagopare.sona.modules.content.models.TipRate;
-import ec.gob.conagopare.sona.modules.content.models.Tip;
+import ec.gob.conagopare.sona.modules.tips.models.TipRate;
+import ec.gob.conagopare.sona.modules.tips.models.Tip;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import org.junit.jupiter.api.AfterEach;
