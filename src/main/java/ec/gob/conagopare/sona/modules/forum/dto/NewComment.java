@@ -10,5 +10,4 @@ public class NewComment {
 
     @NotEmpty(message = "El contenido del comentario no puede estar vacío")
     private String content;
-
 }
