@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ChatTest extends IntegrationTest {
+class ChatIntegrationTest extends IntegrationTest {
 
     private static boolean isSetUp = false;
 
@@ -68,7 +68,6 @@ class ChatTest extends IntegrationTest {
     @Test
     @Order(1)
     void createChatRoomAndSendTextImageVoice() throws Exception {
-
         var imageFile = new ClassPathResource("image-for-tests.jpg").getFile();
         var voiceFile = new ClassPathResource("audio-for-tests.mp3").getFile();
 

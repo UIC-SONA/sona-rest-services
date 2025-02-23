@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ContentIntegrationTest extends IntegrationTest {
+class TipsIntegrationTest extends IntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
