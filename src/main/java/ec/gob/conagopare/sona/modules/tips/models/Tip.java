@@ -30,8 +30,7 @@ public class Tip extends Auditable implements Persistable<UUID>, PurgableStored 
     @Column(nullable = false)
     private String summary;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 7000)
     private String description;
 
     @Builder.Default
