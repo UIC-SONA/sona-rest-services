@@ -1,6 +1,6 @@
 package ec.gob.conagopare.sona.modules.tips.services;
 
-import ec.gob.conagopare.sona.modules.content.services.NotificationService;
+import ec.gob.conagopare.sona.application.firebase.NotificationService;
 import ec.gob.conagopare.sona.modules.tips.dto.TipDto;
 import ec.gob.conagopare.sona.modules.tips.models.Tip;
 import ec.gob.conagopare.sona.modules.tips.repositories.TipRepository;

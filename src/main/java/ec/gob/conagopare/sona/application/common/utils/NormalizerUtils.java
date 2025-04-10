@@ -7,8 +7,6 @@ import java.text.Normalizer;
 
 @Slf4j
 public final class NormalizerUtils {
-
-
     NormalizerUtils() {
         throw new UnsupportedOperationException("Utility class");
     }

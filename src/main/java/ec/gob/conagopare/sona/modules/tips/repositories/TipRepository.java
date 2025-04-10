@@ -81,36 +81,34 @@ public interface TipRepository extends JpaRepository<Tip, UUID> {
         var map = findByIdMapWithRates(id, userId);
         if (map.isEmpty()) return Optional.empty();
         if (map.get().isEmpty()) return Optional.empty();
-        return map.map(toTip());
+        return map.map(TO_TIP);
     }
 
     default Page<Tip> findAllWithRates(Long userId, Boolean active, Pageable pageable) {
         var page = findAllMapWithRatings(userId, active, pageable);
-        return page.map(toTip());
+        return page.map(TO_TIP);
     }
 
     default Page<Tip> searchAllWithRates(String search, Long userId, Boolean active, Pageable pageable) {
         var page = searchAllMapWithRatings(search, userId, active, pageable);
-        return page.map(toTip());
+        return page.map(TO_TIP);
     }
 
     default List<Tip> topRating(int limit) {
         var list = findTopRating(limit);
         return list.stream()
-                .map(toTip())
+                .map(TO_TIP)
                 .sorted((a, b) -> Double.compare(b.getAverageRate(), a.getAverageRate()))
                 .toList();
     }
 
-    private static Function<Map<String, Object>, Tip> toTip() {
-        return m -> {
-            var tip = (Tip) m.get("tip");
-            tip.setMyRate((Integer) m.get("myRate"));
-            tip.setAverageRate((Double) m.get("averageRate"));
-            tip.setTotalRate((Long) m.get("totalRate"));
-            return tip;
-        };
-    }
+    Function<Map<String, Object>, Tip> TO_TIP = m -> {
+        var tip = (Tip) m.get("tip");
+        tip.setMyRate((Integer) m.get("myRate"));
+        tip.setAverageRate((Double) m.get("averageRate"));
+        tip.setTotalRate((Long) m.get("totalRate"));
+        return tip;
+    };
 
     @Query("SELECT image FROM Tip WHERE id = :id")
     Optional<String> getImagePathById(UUID id);

@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.ArrayList;
@@ -42,7 +41,7 @@ public final class MongoUtils {
         var countOperations = new ArrayList<>(operations.subList(0, operations.size() - 2));
         countOperations.add(Aggregation.count().as("total"));
         var countAggregation = Aggregation.newAggregation(countOperations);
-        AggregationResults<CountResult> countResult = mongo.aggregate(countAggregation, collectionName, CountResult.class);
+        var countResult = mongo.aggregate(countAggregation, collectionName, CountResult.class);
         var count = countResult.getUniqueMappedResult();
 
         return PageableExecutionUtils.getPage(

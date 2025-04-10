@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 import com.google.firebase.messaging.*;
 import ec.gob.conagopare.sona.application.firebase.messaging.DeviceToken;
 import ec.gob.conagopare.sona.application.firebase.messaging.DeviceTokenRepository;
-import ec.gob.conagopare.sona.modules.content.services.NotificationService;
+import ec.gob.conagopare.sona.application.firebase.NotificationService;
 import ec.gob.conagopare.sona.modules.user.models.User;
 import ec.gob.conagopare.sona.modules.user.repositories.UserRepository;
 import org.jetbrains.annotations.NotNull;

@@ -7,7 +7,7 @@ import ec.gob.conagopare.sona.modules.tips.models.Tip;
 import ec.gob.conagopare.sona.modules.tips.models.TipRate;
 import ec.gob.conagopare.sona.modules.tips.repositories.TipRepository;
 import ec.gob.conagopare.sona.modules.tips.repositories.TipValuationRepository;
-import ec.gob.conagopare.sona.modules.content.services.NotificationService;
+import ec.gob.conagopare.sona.application.firebase.NotificationService;
 import ec.gob.conagopare.sona.modules.user.service.UserService;
 import io.github.luidmidev.springframework.data.crud.core.exceptions.NotFoundEntityException;
 import io.github.luidmidev.springframework.data.crud.core.services.hooks.CrudHooks;

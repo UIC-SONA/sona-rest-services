@@ -249,6 +249,7 @@ class ForumIntegrationTest extends IntegrationTest {
 
     @Test
     void interactWithComments() throws Exception {
+        
         var post = new PostDto();
         post.setAnonymous(false);
         post.setContent("Post to comment");
